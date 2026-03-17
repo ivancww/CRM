@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>保險管家 (Admin - Cloud)</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1e293b">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        [x-cloak] { display: none !important; }
+        .gold-alert { background: linear-gradient(135deg, #fff7e6 0%, #ffecb3 100%); border: 2px solid #ffc107 !important; animation: pulse 2s infinite; }
+        .policy-cancelled { opacity: 0.85; background-color: #f9fafb !important; border-color: #d1d5db !important; }
+        input::-webkit-calendar-picker-indicator { opacity: 100; color: #888; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans pb-20" x-data="app()">
+
+    <nav class="bg-slate-800 text-white p-4 shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-lg font-bold cursor-pointer" @click="view = 'list'"><i class="fa-solid fa-cloud mr-2"></i>保險管家 (雲端版)</h1>
+            <div class="flex items-center gap-2">
+                <button @click="showSettingsModal = true" class="text-gray-300 hover:text-white px-2"><i class="fa-solid fa-gear"></i></button>
+                <div x-show="view === 'list'" class="flex gap-2">
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded text-sm"><i class="fa-solid fa-database"></i></button>
+                        <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-white rounded shadow-xl z-50 text-gray-800 overflow-hidden" x-cloak>
+                            <a href="#" @click.prevent="exportAllData(); open = false" class="block px-4 py-3 hover:bg-gray-100 text-sm border-b">手動備份 (Dropbox/Drive)</a>
+                            <a href="#" @click.prevent="triggerImport()" class="block px-4 py-3 hover:bg-gray-100 text-sm">還原備份</a>
+                            <input type="file" id="importFile" @change="importAllData($event)" class="hidden" accept=".json,application/json">
+                        </div>
+                    </div>
+                    <button @click="handleWebClick()" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded text-sm"><i class="fa-solid fa-globe"></i></button>
+                    <button @click="createNewClient()" class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-sm font-bold"><i class="fa-solid fa-plus"></i></button>
+                </div>
+                <div x-show="view === 'detail'" class="flex gap-2">
+                    <button @click="saveCurrentClient(); view = 'list'" class="bg-gray-600 hover:bg-gray-700 px-3 py-2 rounded text-sm"><i class="fa-solid fa-arrow-left"></i></button>
+                    <button @click="openUploadModal()" class="bg-yellow-500 hover:bg-yellow-600 px-3 py-2 rounded text-sm font-bold text-white border border-yellow-600 shadow-md"><i class="fa-solid fa-cloud-arrow-up"></i></button>
+                    <button @click="saveCurrentClient(true)" class="bg-green-600 hover:bg-green-700 px-3 py-2 rounded text-sm"><i class="fa-solid fa-floppy-disk"></i></button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container mx-auto p-4 max-w-5xl">
+        <div x-show="view === 'list'" x-transition>
+            <div class="mb-6 flex flex-col md:flex-row gap-2">
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
+                    <input type="text" x-model="searchQuery" class="w-full p-3 pl-10 rounded-lg border shadow-sm" placeholder="搜尋持有人、受保人、電話...">
+                </div>
+                <div class="flex gap-2">
+                    <select x-model="renewalFilter" class="p-2 rounded-lg border-2 border-green-200 font-bold text-sm bg-white">
+                        <option value="">📅 續保月份</option>
+                        <template x-for="m in 12"><option :value="m" x-text="m + '月'"></option></template>
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <template x-for="c in filteredClients">
+                    <div @click="openClient(c)" class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500" x-text="c.owner"></div>
+                </template>
+            </div>
+        </div>
+
+        <div x-show="view === 'detail'" x-transition x-cloak>
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6 border-t-4 border-blue-500">
+                <h2 class="text-xl font-bold mb-4 text-blue-700">客戶資料</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="md:col-span-2"><label class="block text-sm font-bold mb-1">持有人</label><input type="text" x-model="client.owner" class="w-full border rounded p-2"></div>
+                    <div>
+                        <label class="block text-sm font-bold mb-1">生日</label>
+                        <div class="flex gap-1">
+                            <input type="date" x-model="client.dob" class="w-full border rounded p-2 text-sm">
+                            <button @click="sendWhatsappMessage('birthday', client)" class="bg-[#25D366] px-2 rounded text-white"><i class="fa-brands fa-whatsapp"></i></button>
+                            <button @click="openCalendarMenu('birthday', client)" class="bg-white px-2 rounded border border-gray-300 text-gray-600"><i class="fa-solid fa-calendar-plus"></i></button>
+                        </div>
+                    </div>
+                    <div><label class="block text-sm font-bold mb-1">電話</label><input type="tel" x-model="client.phone" class="w-full border rounded p-2"></div>
+                </div>
+            </div>
+
+            <template x-for="(policy, pIndex) in client.policies">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6 border-t-4 border-green-500 relative">
+                    <div class="grid grid-cols-1 md:grid-cols-7 gap-3 items-end bg-green-50 p-4 rounded-lg">
+                        <div class="md:col-span-2"><label class="block text-xs font-bold mb-1">受保人</label><input type="text" x-model="policy.insuredPerson" class="w-full border rounded p-2 text-sm bg-white"></div>
+                        <div class="md:col-span-1"><label class="block text-xs font-bold mb-1">公司</label><input type="text" x-model="policy.insurer" class="w-full border rounded p-2 text-sm bg-white"></div>
+                        <div class="md:col-span-1"><label class="block text-xs font-bold mb-1">生效日</label><input type="date" x-model="policy.effectDate" class="w-full border rounded p-2 text-sm bg-white"></div>
+                        <div class="md:col-span-1"><label class="block text-xs font-bold mb-1">繳費</label><select x-model="policy.paymentMode" class="w-full border rounded p-2 text-sm"><option value="Yearly">年繳</option><option value="Monthly">月繳</option></select></div>
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold mb-1">續保日</label>
+                            <div class="flex gap-1">
+                                <input type="date" x-model="policy.dueDate" :disabled="policy.paymentMode === 'Monthly'" class="w-full border rounded p-2 text-sm disabled:bg-gray-200">
+                                <button @click="sendWhatsappMessage('renewal', client, policy)" class="bg-[#25D366] px-2 rounded text-white" :disabled="policy.paymentMode === 'Monthly'"><i class="fa-brands fa-whatsapp"></i></button>
+                                <button x-show="policy.paymentMode === 'Yearly'" @click="openCalendarMenu('renewal', policy)" class="bg-white px-2 rounded border border-gray-300 text-gray-600"><i class="fa-solid fa-calendar-plus"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto mt-4">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-100"><tr><th class="p-2">#</th><th class="p-2">類別</th><th class="p-2">名稱</th><th class="p-2">保額</th><th class="p-2">操作</th></tr></thead>
+                            <tbody>
+                                <template x-for="(item, iIdx) in policy.items">
+                                    <tr class="border-b">
+                                        <td class="p-2" x-text="iIdx === 0 ? '主' : iIdx"></td>
+                                        <td class="p-2"><select x-model="item.category" :class="getCategoryColor(item.category)" class="font-bold"><option value="Medical">醫療</option><option value="CI">危疾</option><option value="Savings">儲蓄</option></select></td>
+                                        <td class="p-2"><input type="text" x-model="item.name" class="w-full border-b"></td>
+                                        <td class="p-2"><div class="flex items-center"><input type="text" x-model="item.sumAssured" @input="item.sumAssured = formatInput($event.target.value)" class="w-full border-b"><button @click="item.sumAssured = convertUSD(item.sumAssured)" class="text-[8px] bg-gray-100 px-1">USD</button></div></td>
+                                        <td class="p-2"><button @click="openRemarkModal(item)" class="text-gray-400">!</button></td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                        <button @click="addRider(pIndex)" class="text-blue-600 text-xs mt-2">+ 附約</button>
+                    </div>
+                </div>
+            </template>
+            <button @click="addPolicy()" class="w-full py-3 border-2 border-dashed border-green-300 text-green-600 font-bold mb-6">+ 新保單</button>
+
+            <div class="bg-white rounded-lg shadow-md p-6 border-t-4 border-purple-500">
+                <h2 class="text-xl font-bold mb-4 text-purple-700">索償與總備忘錄</h2>
+                <template x-for="event in client.claimEvents">
+                    <div class="border p-2 mb-2 bg-gray-50">
+                        <input type="text" x-model="event.name" class="w-full font-bold bg-transparent">
+                        <button @click="event.items.push({date:'',desc:'',amount:''})" class="text-xs text-blue-500">+ 單據</button>
+                    </div>
+                </template>
+                <div class="mt-4 pt-4 border-t">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="font-bold text-blue-600">後續跟進提醒</label>
+                        <button @click="openCalendarMenu('followup', client)" class="bg-indigo-600 text-white px-3 py-1.5 rounded text-xs font-bold shadow-sm">
+                            <i class="fa-solid fa-calendar-check mr-1"></i> 加入提醒
+                        </button>
+                    </div>
+                    <textarea x-model="client.remarks" class="w-full border rounded p-2 h-32" placeholder="輸入備註..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="calendarModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak>
+        <div class="bg-white w-72 rounded-lg p-4 text-center">
+            <h3 class="font-bold mb-2" x-text="getCalendarTitle()"></h3>
+            <div x-show="calendarModal.type === 'followup'" class="mb-4 text-left">
+                <label class="text-xs font-bold">提醒日期:</label>
+                <input type="date" x-model="followUpDate" class="w-full border rounded p-2 text-sm">
+            </div>
+            <button @click="addToCalendar('google')" class="w-full bg-blue-600 text-white py-2 rounded mb-2 font-bold shadow">Google Calendar</button>
+            <button @click="addToCalendar('ios')" class="w-full bg-gray-700 text-white py-2 rounded font-bold shadow">iOS / Outlook (ICS)</button>
+            <button @click="calendarModal.open = false" class="mt-4 text-gray-400 text-sm">取消</button>
+        </div>
+    </div>
+
+    <script>
+        function app() {
+            return {
+                view: 'list', searchQuery: '', renewalFilter: '', clients: [], client: { policies: [], claimEvents: [] },
+                calendarModal: { open: false, type: '', data: null }, followUpDate: new Date().toISOString().split('T')[0],
+                showSettingsModal: false, settings: { waBirthday: '生日快樂！', waRenewal: '保單到期提示：{{insurer}}。' },
+                uploadModal: { open: false, password: '' }, qrModal: { open: false, url: '' }, itemRemarkModal: { open: false, item: {} },
+
+                init() {
+                    const saved = localStorage.getItem('crm_db_v8');
+                    if (saved) this.clients = JSON.parse(saved);
+                },
+
+                get filteredClients() {
+                    return this.clients.filter(c => !c.isDeleted && (!this.searchQuery || c.owner.toLowerCase().includes(this.searchQuery.toLowerCase())));
+                },
+
+                getCalendarTitle() { return this.calendarModal.type === 'birthday' ? '🎂 生日提醒' : (this.calendarModal.type === 'renewal' ? '🔔 續保提醒' : '📅 跟進提醒'); },
+                getCategoryColor(cat) { return ['Medical', 'CI'].includes(cat) ? 'text-red-600' : (cat === 'Savings' ? 'text-blue-600' : 'text-gray-800'); },
+
+                openCalendarMenu(type, data) { this.calendarModal.type = type; this.calendarModal.data = data; this.calendarModal.open = true; },
+
+                addToCalendar(platform) {
+                    let title, dateStr, isYearly = false;
+                    const type = this.calendarModal.type;
+
+                    if (type === 'birthday') {
+                        title = `🎂 生日: ${this.client.owner}`; isYearly = true;
+                        const dob = new Date(this.client.dob); const today = new Date(); let year = today.getFullYear();
+                        if (today > new Date(year, dob.getMonth(), dob.getDate())) year++;
+                        dateStr = `${year}-${('0'+(dob.getMonth()+1)).slice(-2)}-${('0'+dob.getDate()).slice(-2)}`;
+                    } else if (type === 'renewal') {
+                        title = `🔔 續保: ${this.client.owner} (${this.calendarModal.data.insurer})`;
+                        dateStr = this.calendarModal.data.dueDate; isYearly = true;
+                    } else {
+                        title = `📅 跟進: ${this.client.owner}`; dateStr = this.followUpDate;
+                    }
+
+                    if (!dateStr) return alert('請先輸入日期');
+                    const d = dateStr.replace(/-/g, '');
+
+                    if (platform === 'google') {
+                        const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${d}/${d}${isYearly ? '&recur=RRULE:FREQ=YEARLY' : ''}`;
+                        window.open(url, '_blank');
+                    } else {
+                        const alarms = type === 'renewal' ? 'BEGIN:VALARM\nTRIGGER:-P30D\nACTION:DISPLAY\nDESCRIPTION:一個月前預告\nEND:VALARM\nBEGIN:VALARM\nTRIGGER:PT9H\nACTION:DISPLAY\nDESCRIPTION:今日續保\nEND:VALARM' : 'BEGIN:VALARM\nTRIGGER:PT9H\nACTION:DISPLAY\nDESCRIPTION:提醒跟進事項\nEND:VALARM';
+                        const ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nDTSTART;VALUE=DATE:${d}\nDTEND;VALUE=DATE:${d}\nSUMMARY:${title}\n${isYearly ? 'RRULE:FREQ=YEARLY\n' : ''}${alarms}\nEND:VEVENT\nEND:VCALENDAR`;
+                        
+                        const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `reminder.ics`;
+                        document.body.appendChild(a);
+                        a.click();
+                        setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 2000);
+                    }
+                    this.calendarModal.open = false;
+                },
+
+                sendWhatsappMessage(type, client, policy = null) {
+                    let text = type === 'birthday' ? this.settings.waBirthday : this.settings.waRenewal;
+                    text = text.replace(/{{name}}/g, client.owner || '');
+                    if (policy) text = text.replace(/{{insurer}}/g, policy.insurer || '').replace(/{{dueDate}}/g, policy.dueDate || '');
+                    let phone = client.phone.replace(/[^0-9]/g, '');
+                    if (phone.length === 8) phone = '852' + phone;
+                    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+                },
+
+                triggerImport() { document.getElementById('importFile').click(); },
+                importAllData(e) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        this.clients = JSON.parse(ev.target.result);
+                        localStorage.setItem('crm_db_v8', JSON.stringify(this.clients));
+                        window.location.reload();
+                    };
+                    reader.readAsText(e.target.files[0]);
+                },
+
+                exportAllData() {
+                    const blob = new Blob([JSON.stringify(this.clients, null, 2)], { type: 'application/json' });
+                    if (navigator.share) {
+                        const file = new File([blob], 'Backup.json', { type: 'application/json' });
+                        navigator.share({ files: [file] });
+                    } else {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a'); a.href = url; a.download = 'CRM.json'; a.click();
+                    }
+                },
+
+                formatInput(v) { return v.replace(/,/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ","); },
+                convertUSD(val) { let num = parseFloat(val.replace(/,/g, '')); return isNaN(num) ? val : this.formatInput((num * 7.8).toFixed(0)); },
+                formatName(s) { return s.replace(/\b\w/g, l => l.toUpperCase()); },
+                getAge(dob) { if(!dob) return ''; const age = new Date().getFullYear() - new Date(dob).getFullYear(); return age; },
+                getWhatsappLink() { return `https://wa.me/852${this.client.phone}`; },
+                addPolicy() { this.client.policies.push({ insurer: '', insuredPerson: '', effectDate: '', dueDate: '', paymentMode: 'Yearly', items: [{category:'Medical', name:'', sumAssured:''}] }); },
+                addRider(i) { this.client.policies[i].items.push({category:'Medical', name:'', sumAssured:''}); },
+                removePolicy(i) { this.client.policies.splice(i,1); },
+                addClaimEvent() { this.client.claimEvents.push({ name: '', status: 'Pending', items: [] }); },
+                openClient(c) { this.client = JSON.parse(JSON.stringify(c)); this.view = 'detail'; },
+                saveCurrentClient(stay) { const idx = this.clients.findIndex(cl => cl.id === this.client.id); if(idx > -1) this.clients[idx] = this.client; else this.clients.push(this.client); localStorage.setItem('crm_db_v8', JSON.stringify(this.clients)); if(!stay) this.view = 'list'; },
+                createNewClient() { this.client = { id: Date.now(), owner: '', dob: '', phone: '', policies: [], claimEvents: [], isDeleted: false, remarks: '' }; this.view = 'detail'; },
+                saveSettings() { localStorage.setItem('crm_settings', JSON.stringify(this.settings)); this.showSettingsModal = false; },
+                handleWebClick() { alert('網址功能'); },
+                openRemarkModal(item) { this.itemRemarkModal.item = item; this.itemRemarkModal.open = true; },
+                openUploadModal() { this.uploadModal.open = true; },
+                uploadToCloud() { alert('上傳功能'); }
+            }
+        }
+    </script>
+</body>
+</html>
