@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>保險管家 (Admin - Cloud)</title>
+    <title>保險管家 v1.0.3 (Admin - Cloud)</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -32,7 +32,10 @@
 
     <nav class="bg-slate-800 text-white p-4 shadow-lg sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-lg font-bold cursor-pointer" @click="view = 'list'"><i class="fa-solid fa-cloud mr-2"></i>保險管家 (雲端版)</h1>
+            <h1 class="text-lg font-bold cursor-pointer" @click="view = 'list'">
+                <i class="fa-solid fa-cloud mr-2"></i>保險管家 (雲端版) 
+                <span class="text-[10px] bg-blue-600 px-2 py-0.5 rounded ml-1 align-middle" x-text="'v' + version"></span>
+            </h1>
             <div class="flex items-center gap-2">
                 <button @click="showSettingsModal = true" class="text-gray-300 hover:text-white px-2"><i class="fa-solid fa-gear"></i></button>
                 
@@ -41,7 +44,6 @@
                         <button @click="open = !open" class="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded text-sm"><i class="fa-solid fa-database"></i></button>
                         <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-white rounded shadow-xl z-50 text-gray-800 overflow-hidden" x-cloak>
                             <a href="#" @click.prevent="exportAllData(); open = false" class="block px-4 py-3 hover:bg-gray-100 text-sm border-b">備份全部</a>
-                            
                             <a href="#" @click.prevent="document.getElementById('importFile').click(); open = false" class="block px-4 py-3 hover:bg-gray-100 text-sm">還原備份</a>
                             <input type="file" id="importFile" @change="importAllData($event)" class="hidden" accept=".json, application/json">
                         </div>
@@ -122,7 +124,6 @@
         </div>
 
         <div x-show="view === 'detail'" x-transition x-cloak>
-            
             <div x-show="client.isDeleted" class="bg-red-50 border-l-4 border-red-500 p-4 mb-4 rounded-r-lg shadow-sm flex justify-between items-center" x-cloak>
                 <div>
                     <h3 class="text-red-800 font-bold text-sm"><i class="fa-solid fa-triangle-exclamation mr-2"></i> 此客戶資料已移至「已刪除」名單</h3>
@@ -138,7 +139,6 @@
                         <label class="block text-sm font-bold mb-1 text-blue-600">持有人 / 戶口名稱</label>
                         <input type="text" x-model="client.owner" @blur="client.owner = formatName(client.owner)" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" class="w-full border rounded p-2" placeholder="例如: Chan Tai Man, Tony">
                     </div>
-                    
                     <div>
                         <label class="block text-sm font-bold mb-1 text-blue-600">
                             生日 <span x-show="client.dob" class="text-xs text-gray-400" x-text="'(' + getAge(client.dob) + ' 歲)'"></span>
@@ -149,7 +149,6 @@
                             <button @click="openCalendarMenu('birthday', client)" class="bg-white hover:bg-gray-100 px-2 rounded border border-gray-300 text-gray-600 text-xs transition" title="加入日曆"><i class="fa-solid fa-calendar-plus"></i></button>
                         </div>
                     </div>
-                    
                     <div><label class="block text-sm font-bold mb-1">電話</label><div class="flex gap-1"><input type="tel" x-model="client.phone" class="w-full border rounded p-2"><a :href="getWhatsappLink()" target="_blank" class="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded text-gray-700 flex items-center justify-center"><i class="fa-solid fa-message"></i></a></div></div>
                     <div><label class="block text-sm font-bold mb-1">家庭</label><select x-model="client.marital" class="w-full border rounded p-2"><option value="Single">未婚</option><option value="Married">已婚</option></select></div>
                     <div><label class="block text-sm font-bold mb-1">小朋友</label><select x-model="client.children" class="w-full border rounded p-2"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4+">4+</option></select></div>
@@ -164,7 +163,6 @@
                             <span x-show="showFNA">隱藏 <i class="fa-solid fa-chevron-up ml-1"></i></span>
                         </div>
                     </div>
-                    
                     <div x-show="showFNA" x-transition>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div><label class="block text-xs font-bold mb-1 text-gray-600">每月收入</label><div class="relative"><span class="absolute left-2 top-2 text-gray-400 text-xs">HK$</span><input type="text" x-model="client.income" @input="client.income = formatInput($event.target.value)" class="w-full border rounded p-2 pl-8 pr-8 text-sm" placeholder="0"></div></div>
@@ -179,11 +177,9 @@
             <div :class="client.isDeleted ? 'opacity-70 pointer-events-none' : ''">
                 <template x-for="(policy, pIndex) in client.policies" :key="pIndex">
                     <div class="bg-white rounded-lg shadow-md p-6 mb-6 border-t-4 relative transition-all duration-300" :class="policy.isCancelled ? 'policy-cancelled' : 'border-green-500'">
-                        
                         <div x-show="policy.isCancelled" class="absolute top-0 right-0 bg-gray-600 text-white text-xs px-3 py-1 rounded-bl-lg font-bold shadow-sm z-10">
                             已終止 (<span x-text="policy.cancelDate"></span>)
                         </div>
-                        
                         <button @click="removePolicy(pIndex)" class="absolute top-4 right-4 text-gray-400 hover:text-red-500" x-show="!policy.isCancelled"><i class="fa-solid fa-times text-xl"></i></button>
                         
                         <div class="flex flex-wrap items-end gap-3 mb-4 pr-8 border-b border-gray-200 pb-3">
@@ -204,7 +200,6 @@
                             </div>
                             <div class="md:col-span-1"><label class="block text-xs font-bold mb-1 text-blue-600" :class="policy.isCancelled ? 'text-gray-500' : ''">生效日</label><input type="date" x-model="policy.effectDate" :disabled="policy.isCancelled" class="w-full border rounded p-2 text-sm disabled:bg-gray-100 disabled:text-gray-500"></div>
                             <div class="md:col-span-1"><label class="block text-xs font-bold mb-1" :class="policy.isCancelled ? 'text-gray-500' : ''">繳費</label><select x-model="policy.paymentMode" :disabled="policy.isCancelled" class="w-full border rounded p-2 text-sm disabled:bg-gray-100 disabled:text-gray-500" x-init="policy.paymentMode = policy.paymentMode || 'Yearly'"><option value="Yearly">年</option><option value="Monthly">月</option></select></div>
-                            
                             <div class="md:col-span-2" :class="policy.paymentMode === 'Yearly' && checkDueDate(policy.dueDate) && !policy.isCancelled ? 'gold-alert p-1 rounded' : ''">
                                 <label class="block text-xs font-bold mb-1" :class="policy.paymentMode === 'Monthly' || policy.isCancelled ? 'text-gray-400' : ''">續保日期 <span x-show="policy.paymentMode === 'Yearly' && checkDueDate(policy.dueDate) && !policy.isCancelled" class="text-red-600 animate-pulse">!</span></label>
                                 <div class="flex gap-1">
@@ -213,7 +208,6 @@
                                     <button @click="openCalendarMenu('renewal', policy)" x-show="!policy.isCancelled" :disabled="policy.paymentMode === 'Monthly'" class="bg-white hover:bg-gray-100 px-2 rounded border border-gray-300 text-gray-600 text-xs disabled:opacity-50"><i class="fa-solid fa-calendar-plus"></i></button>
                                 </div>
                             </div>
-                            
                             <div class="md:col-span-1"><label class="block text-xs font-bold mb-1" :class="policy.isCancelled ? 'text-gray-500' : ''">保費(HK$)</label><input type="text" x-model="policy.premium" :disabled="policy.isCancelled" @input="policy.premium = formatInput($event.target.value)" class="w-full border rounded p-2 text-sm disabled:bg-gray-100 disabled:text-gray-500"></div>
                         </div>
                         
@@ -260,13 +254,46 @@
                     <div class="space-y-4 mb-6">
                         <template x-for="(event, eIndex) in client.claimEvents">
                             <div class="border rounded p-3" :class="event.status === 'Completed' ? 'bg-gray-50' : 'bg-white border-purple-200'">
-                                <div class="flex justify-between mb-2"><div class="font-bold" x-text="event.name || '新索償'"></div><div class="font-bold text-purple-600" x-text="'HK$' + (event.items.reduce((s,i)=>s+Number(String(i.amount||0).replace(/,/g, '')),0)).toLocaleString()"></div></div>
-                                <input type="text" x-model="event.name" class="border-b border-dashed w-full text-sm mb-2" placeholder="事件名稱...">
-                                <table class="w-full text-xs mb-2"><tbody><template x-for="(item, iIndex) in event.items"><tr><td><input type="date" x-model="item.date" class="border rounded p-1"></td><td><input type="text" x-model="item.desc" class="border rounded p-1 w-full" placeholder="診所"></td><td><input type="text" x-model="item.amount" @input="item.amount = formatInput($event.target.value)" class="border rounded p-1 w-16 text-right"></td><td class="text-center"><button @click="event.items.splice(iIndex,1)" class="text-red-500">-</button></td></tr></template></tbody></table>
-                                <div class="flex justify-between items-center"><button @click="event.items.push({date:'',desc:'',amount:''})" class="text-purple-600 text-xs">+ 單據</button><button @click="event.status = event.status==='Pending'?'Completed':'Pending'" class="text-xs px-2 py-1 rounded border" x-text="event.status==='Pending'?'完成':'重開'"></button></div>
+                                <div class="flex justify-between items-center mb-2">
+                                    <input type="text" x-model="event.name" class="font-bold border-b border-dashed flex-1 mr-2" placeholder="事件名稱 (例如: 意外住院)">
+                                    <div class="font-bold text-purple-600 text-right" x-text="'HK$' + (event.items.reduce((s,i)=>s+Number(String(i.amount||0).replace(/,/g, '')),0)).toLocaleString()"></div>
+                                </div>
+                                
+                                <div class="flex items-center gap-2 mb-3">
+                                    <span class="text-xs font-bold text-gray-500">索償日期:</span>
+                                    <input type="date" x-model="event.eventDate" class="border rounded p-1 text-xs">
+                                </div>
+
+                                <table class="w-full text-xs mb-2">
+                                    <thead><tr class="text-gray-400">
+                                        <th class="text-left py-1">項次說明</th>
+                                        <th class="text-right py-1" width="100">金額 (HK$)</th>
+                                        <th width="30"></th>
+                                    </tr></thead>
+                                    <tbody><template x-for="(item, iIndex) in event.items">
+                                        <tr class="border-t">
+                                            <td class="py-2"><input type="text" x-model="item.desc" class="w-full bg-transparent" placeholder="輸入說明..."></td>
+                                            <td class="py-2">
+                                                <div class="relative">
+                                                    <input type="text" x-model="item.amount" @input="item.amount = formatInput($event.target.value)" class="w-full border rounded p-1 text-right pr-6" placeholder="0">
+                                                    <button @click="item.amount = parseFloat((parseFloat(String(item.amount).replace(/,/g, ''))*7.8).toFixed(0)).toLocaleString('en-US')" class="absolute right-0 top-0 h-full bg-gray-100 px-1 text-[8px] text-gray-400 hover:text-purple-600">USD</button>
+                                                </div>
+                                            </td>
+                                            <td class="text-center"><button @click="event.items.splice(iIndex,1)" class="text-red-400 hover:text-red-600"><i class="fa-solid fa-minus-circle"></i></button></td>
+                                        </tr>
+                                    </template></tbody>
+                                </table>
+                                
+                                <div class="flex justify-between items-center mt-2 pt-2 border-t border-dashed">
+                                    <button @click="event.items.push({desc:'',amount:''})" class="text-purple-600 text-xs font-bold">+ 新增細項</button>
+                                    <div class="flex gap-2">
+                                        <button @click="event.status = event.status==='Pending'?'Completed':'Pending'" class="text-xs px-2 py-1 rounded border bg-white shadow-sm" x-text="event.status==='Pending'?'完成檔案':'重開檔案'"></button>
+                                        <button @click="client.claimEvents.splice(eIndex,1)" class="text-xs px-2 py-1 rounded text-red-400 border border-red-50 shadow-sm" title="刪除檔案"><i class="fa-solid fa-trash-can"></i></button>
+                                    </div>
+                                </div>
                             </div>
                         </template>
-                        <button @click="addClaimEvent()" class="w-full py-2 border-2 border-dashed border-purple-300 text-purple-600 rounded text-sm">+ 新索償檔案</button>
+                        <button @click="addClaimEvent()" class="w-full py-2 border-2 border-dashed border-purple-300 text-purple-600 rounded text-sm font-bold bg-purple-50 hover:bg-purple-100 transition">+ 新索償檔案</button>
                     </div>
                     
                     <div class="border-t pt-4">
@@ -345,7 +372,7 @@
     
     <div x-show="calendarModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-72 rounded-lg shadow-xl p-4 text-center"><h3 class="font-bold text-gray-800 mb-4">加入日曆</h3><button @click="addToCalendar('google')" class="w-full bg-blue-600 text-white py-2 rounded mb-2 font-bold">Google Calendar</button><button @click="addToCalendar('ios')" class="w-full bg-gray-700 text-white py-2 rounded font-bold">iOS / Outlook</button><p class="text-xs text-gray-400 mt-2">* iOS 請選「儲存到檔案」後點擊匯入</p><button @click="calendarModal.open = false" class="mt-4 text-gray-400 text-sm">取消</button></div></div>
     <div x-show="showWebActionModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-72 rounded-lg shadow-xl p-4 text-center"><h3 class="font-bold text-gray-800 mb-4">資訊網操作</h3><template x-if="webLinks.length > 0"><div class="mb-4 text-left"><p class="text-xs text-gray-500 mb-1">開啟網站:</p><template x-for="(link, index) in webLinks"><button @click="openWebFrame(link.url)" class="w-full text-left px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded mb-1 text-indigo-700 font-bold text-sm flex items-center"><i class="fa-solid fa-link mr-2"></i> <span x-text="link.name"></span></button></template></div></template><button @click="showWebActionModal = false; showConfigModal = true" class="w-full bg-gray-600 text-white py-2 rounded font-bold text-sm"><i class="fa-solid fa-gear mr-2"></i> 設定網址列表</button><button @click="showWebActionModal = false" class="mt-4 text-gray-400 text-sm">取消</button></div></div>
-    <div x-show="showConfigModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-96 rounded-lg shadow-xl p-4 max-h-[90vh] overflow-hidden flex flex-col"><h3 class="font-bold text-gray-800 mb-2">管理資訊網列表</h3><div class="flex-1 overflow-y-auto space-y-3 mb-4 p-1"><template x-for="(link, index) in webLinks"><div class="border rounded p-2 bg-gray-50"><div class="flex justify-between mb-1"><span class="text-xs font-bold text-gray-500">項目 #<span x-text="index+1"></span></span><button @click="webLinks.splice(index, 1)" class="text-red-500 text-xs"><i class="fa-solid fa-times"></i> 移除</button></div><input type="text" x-model="link.name" class="border rounded p-1 text-xs w-full mb-2" placeholder="顯示名稱"><div class="flex gap-2 items-center"><select x-model="link.type" class="border rounded p-1 text-xs" x-init="link.type = link.type || 'url'"><option value="url">網址</option><option value="image">圖片/QR</option></select><template x-if="link.type === 'url'"><input type="text" x-model="link.url" class="border rounded p-1 text-xs w-full" placeholder="https://..."></template><template x-if="link.type === 'image'"><div class="flex-1"><label class="block w-full text-center bg-white border border-dashed border-gray-300 rounded p-1 text-xs cursor-pointer hover:bg-gray-100"><span x-text="link.url ? '已上傳 (點擊更換)' : '上傳圖片'"></span><input type="file" class="hidden" accept="image/*" @change="uploadImage($event, link)"></label></div></template></div></div></template></div><button @click="webLinks.push({name:'', url:'', type:'url'})" class="text-blue-600 text-xs font-bold block mb-4 text-center">+ 新增項目</button><button @click="saveLinks(); showConfigModal = false" class="w-full bg-blue-600 text-white py-2 rounded font-bold text-sm">儲存設定</button></div></div>
+    <div x-show="showConfigModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-96 rounded-lg shadow-xl p-4 max-h-[90vh] overflow-hidden flex flex-col"><h3 class="font-bold text-gray-800 mb-2">管理資訊網列表</h3><div class="flex-1 overflow-y-auto space-y-3 mb-4 p-1"><template x-for="(link, index) in webLinks"><div class="border rounded p-2 bg-gray-50"><div class="flex justify-between mb-1"><span class="text-xs font-bold text-gray-500">項目 #<span x-text="index+1"></span></span><button @click="webLinks.splice(index, 1)" class="text-red-500 text-xs"><i class="fa-solid fa-times"></i> 移除</button></div><input type="text" x-model="link.name" class="border rounded p-1 text-xs w-full mb-2" placeholder="顯示名稱"><div class="flex gap-2 items-center"><select x-model="link.type" class="border rounded p-1 text-xs" x-init="link.type = link.type || 'url'"><option value="url">網址</option><option value="image">圖片/QR</option></select><template x-if="link.type === 'url'"><input type="text" x-model="link.url" class="border rounded p-1 text-xs w-full" placeholder="https://..."></template><template x-if="link.type === 'image'"><div class="flex-1"><label class="block w-full text-center bg-white border border-dashed border-gray-300 rounded p-1 text-xs cursor-pointer hover:bg-gray-100"><span x-text="link.url ? '已上傳 (點擊更換)' : '上傳圖片'"></span><input type="file" class="hidden" accept="image/*" @change="uploadImage($event, link)"></label></div></template></div></div></template></div><button @click="webLinks.push({name:'', url:'', type:'url'})" class="text-blue-600 text-xs font-bold block mb-4 text-center">+ 新新增項目</button><button @click="saveLinks(); showConfigModal = false" class="w-full bg-blue-600 text-white py-2 rounded font-bold text-sm">儲存設定</button></div></div>
     <div x-show="showWebFrame" style="display: none;" class="fixed inset-0 z-50 overflow-hidden flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-full max-w-6xl h-[90vh] rounded-lg shadow-2xl flex flex-col relative"><div class="flex justify-between items-center p-3 bg-indigo-600 text-white rounded-t-lg"><h3 class="font-bold">瀏覽器</h3><button @click="showWebFrame = false" class="px-2"><i class="fa-solid fa-times text-xl"></i></button></div><div class="flex-1 bg-gray-100 relative"><iframe :src="currentWebUrl" class="web-frame" frameborder="0"></iframe></div></div></div>
 
     <script>
@@ -353,6 +380,7 @@
 
         function app() {
             return {
+                version: '1.0.3',
                 view: 'list', searchQuery: '', renewalFilter: '', typeFilter: '', clients: [], client: {}, 
                 showWebActionModal: false, showConfigModal: false, showWebFrame: false, 
                 showSettingsModal: false, 
@@ -369,6 +397,14 @@
                 },
 
                 init() {
+                    const storedVersion = localStorage.getItem('crm_version');
+                    if (storedVersion && storedVersion !== this.version) {
+                        localStorage.setItem('crm_version', this.version);
+                        window.location.reload(true);
+                        return;
+                    }
+                    localStorage.setItem('crm_version', this.version);
+
                     const saved = localStorage.getItem('crm_db_v8');
                     if (saved) { this.clients = JSON.parse(saved); this.clients.forEach(c => { if(c.name && !c.owner) c.owner = c.name; }); }
                     const savedLinks = localStorage.getItem('crm_web_links');
@@ -409,7 +445,6 @@
                     return 'text-gray-800 font-bold';
                 },
                 createNewClient() { 
-                    // 新增 remarkDate 欄位
                     this.client = { id: Date.now(), owner: '', insured: '', children: '0', income: '', liquidAssets: '', property: '', investment: '', policies: [], claimEvents: [], remarks: '', remarkDate: '', isDeleted: false };
                     this.addPolicy(); this.view = 'detail'; 
                 },
@@ -548,7 +583,6 @@
                         text = text.replace(/{{insurer}}/g, policy.insurer || '');
                         text = text.replace(/{{policyNo}}/g, policy.policyNo || '未填寫');
                         text = text.replace(/{{dueDate}}/g, policy.dueDate || '未填寫');
-                        // 此處修改確保千分位顯示正確
                         text = text.replace(/{{premium}}/g, policy.premium ? this.formatInput(policy.premium) : '未填寫');
                     }
                     let phone = client.phone.replace(/[^0-9]/g, '');
@@ -560,7 +594,16 @@
                 addRider(i) { if(this.client.policies[i].items.length < 6) this.client.policies[i].items.push({ maturity: '', showRemark: false, term: '' }); },
                 checkDueDate(d) { if (!d) return false;
                 const diff = Math.ceil((new Date(d) - new Date()) / 86400000); return diff >= -20 && diff <= 30; },
-                addClaimEvent() { this.client.claimEvents.push({ name: '', status: 'Pending', items: [{ date: '', desc: '', amount: '' }] }); },
+                
+                addClaimEvent() { 
+                    this.client.claimEvents.push({ 
+                        name: '', 
+                        status: 'Pending', 
+                        eventDate: '', 
+                        items: [{ desc: '', amount: '' }] 
+                    }); 
+                },
+                
                 getWhatsappLink() { return this.client.phone ? `https://wa.me/852${this.client.phone.replace(/[^0-9]/g,'')}` : '#'; },
                 handleWebClick() { this.showWebActionModal = true; },
                 openWebFrame(url) { this.currentWebUrl = url; this.showWebActionModal = false; this.showWebFrame = true; },
@@ -642,7 +685,6 @@
                 openCalendarMenu(type, data) { this.calendarModal.type = type; this.calendarModal.data = data; this.calendarModal.open = true; },
                 addToCalendar(platform) {
                     let title, dateStr;
-                    // 新增備註跟進提醒邏輯
                     if (this.calendarModal.type === 'birthday') { 
                         if (!this.client.dob) return alert('請先輸入生日'); 
                         title = `${this.client.owner} 生日`; 
@@ -668,12 +710,11 @@
                 },
                 openRemarkModal(item) { if (!item.remarks) item.remarks = ''; this.itemRemarkModal.item = item; this.itemRemarkModal.open = true; },
                 
-                // 升級版：支援即時輸入千分位與安全的小數點處理
                 formatInput(v) { 
                     if (v === undefined || v === null || v === '') return '';
-                    let str = String(v).replace(/[^0-9.]/g, ''); // 移除非數字和小數點
+                    let str = String(v).replace(/[^0-9.]/g, ''); 
                     let parts = str.split('.');
-                    if (parts.length > 2) { // 限制只能有一個小數點
+                    if (parts.length > 2) { 
                         parts[1] = parts.slice(1).join('');
                         parts.length = 2;
                     }
