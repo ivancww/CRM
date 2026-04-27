@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>保險管家 v1.2.1 (Admin - Cloud)</title>
+    <title>保險管家 v1.2.2 (Admin - Cloud)</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -318,12 +318,14 @@
 
     <div x-show="itemRemarkModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-96 rounded-lg shadow-xl p-4 m-4"><h3 class="font-bold text-gray-800 mb-2">編輯備註</h3><textarea x-model="itemRemarkModal.item.remarks" class="w-full h-32 border rounded p-2 text-sm mb-4" placeholder="輸入備註..."></textarea><div class="flex justify-end gap-2"><button @click="itemRemarkModal.item.remarks = ''; itemRemarkModal.open = false" class="text-red-500 text-sm px-3">清除</button><button @click="itemRemarkModal.open = false" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">確定</button></div></div></div>
 
+    <div x-show="calendarModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-72 rounded-lg shadow-xl p-4 text-center"><h3 class="font-bold text-gray-800 mb-4">加入日曆</h3><button @click="addToCalendar('google')" class="w-full bg-blue-600 text-white py-2 rounded mb-2 font-bold">Google Calendar</button><button @click="addToCalendar('ios')" class="w-full bg-gray-700 text-white py-2 rounded font-bold">iOS / Outlook</button><p class="text-xs text-gray-400 mt-2">* iOS 請選「儲存到檔案」後點擊匯入</p><button @click="calendarModal.open = false" class="mt-4 text-gray-400 text-sm">取消</button></div></div>
+
     <script>
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwOgcd8Z3nnYtbwgJQ46Fk5imt1mBhYbtSmxTiE0Edgl5M881Ymj8F_J7He8yChffiU/exec'; 
 
         function app() {
             return {
-                version: '1.2.1',
+                version: '1.2.2',
                 view: 'list', searchQuery: '', renewalFilter: '', typeFilter: '', clients: [], client: {}, 
                 showWebActionModal: false, showConfigModal: false, showWebFrame: false, 
                 showSettingsModal: false, 
@@ -355,7 +357,33 @@
                     const savedSettings = localStorage.getItem('crm_settings');
                     if (savedSettings) this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
                 },
-                // 修復與保留的功能邏輯如下
+
+                // 還原備份功能修復
+                importAllData(e) { 
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader(); 
+                    reader.onload = (ev) => { 
+                        try { 
+                            const data = JSON.parse(ev.target.result);
+                            if(Array.isArray(data)) {
+                                if(confirm(`確定要還原 ${data.length} 筆客戶資料嗎？這將覆蓋現有數據。`)) { 
+                                    this.clients = data; 
+                                    this.saveDB(); 
+                                    alert('還原成功！系統將自動重新整理以載入數據。');
+                                    window.location.reload(); 
+                                } 
+                            } else {
+                                alert('檔案格式不正確，還原失敗。');
+                            }
+                        } catch (err) { 
+                            alert('讀取檔案出錯：' + err.message); 
+                        } 
+                        e.target.value = ''; // 重置 input 讓同一個檔案可以重複選取
+                    }; 
+                    reader.readAsText(file); 
+                },
+
                 get filteredClients() { 
                     let result = this.clients;
                     if (this.searchQuery) {
@@ -375,91 +403,148 @@
                     if (this.renewalFilter) { result = result.filter(c => c.policies && c.policies.some(p => !p.isCancelled && this.isMatchRenewal(p))); }
                     return result;
                 },
+
                 isMatchRenewal(p) {
                     if (p.paymentMode === 'Monthly' || !p.dueDate || p.isCancelled) return false;
                     return (new Date(p.dueDate).getMonth() + 1).toString() === this.renewalFilter;
                 },
+
                 hasRenewalMatch(c) { return c.policies && c.policies.some(p => !p.isCancelled && this.isMatchRenewal(p)); },
+
                 getCategoryColor(cat) {
                     if (['Medical', 'CI', 'Life', 'Accident'].includes(cat)) return 'text-red-600 font-bold';
                     if (['Savings', 'Fund', 'MPF'].includes(cat)) return 'text-blue-600 font-bold';
                     return 'text-gray-800 font-bold';
                 },
+
                 createNewClient() { 
                     this.client = { id: Date.now(), owner: '', insured: '', children: '0', income: '', liquidAssets: '', property: '', investment: '', policies: [], claimEvents: [], remarks: '', remarkDate: '', isDeleted: false };
                     this.addPolicy(); this.view = 'detail'; 
                 },
+
                 openClient(c) { 
                     this.client = JSON.parse(JSON.stringify(c));
                     this.view = 'detail';
                 },
+
                 saveCurrentClient(stay) { 
                     const idx = this.clients.findIndex(c => c.id === this.client.id); 
                     if (idx > -1) this.clients[idx] = this.client; else this.clients.push(this.client); 
                     this.saveDB(); if(!stay) alert('已儲存');
                 },
+
                 deleteClient(id) { 
-                    if(confirm('確定要刪除嗎？')) { 
+                    if(confirm('確定要移至垃圾桶嗎？')) { 
                         const idx = this.clients.findIndex(c => c.id === id);
                         if(idx > -1) { this.clients[idx].isDeleted = true; this.saveDB(); }
                     } 
                 },
+
                 restoreClient(id) {
                     const idx = this.clients.findIndex(c => c.id === id);
                     if(idx > -1) { this.clients[idx].isDeleted = false; this.saveDB(); }
                 },
+
+                permanentDeleteClient(id) {
+                    if(confirm('徹底刪除這份客戶紀錄將無法復原！確定？')) {
+                        this.clients = this.clients.filter(c => c.id !== id);
+                        this.saveDB();
+                    }
+                },
+
                 saveDB() { localStorage.setItem('crm_db_v8', JSON.stringify(this.clients)); },
+
                 saveSettings() { localStorage.setItem('crm_settings', JSON.stringify(this.settings)); alert('已儲存'); this.showSettingsModal = false; },
+
                 exportAllData() { 
-                    const blob = new Blob([JSON.stringify(this.clients, null, 2)], { type: 'application/octet-stream' });
-                    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `CRM_BACKUP.json`; a.click();
+                    const jsonStr = JSON.stringify(this.clients, null, 2);
+                    const blob = new Blob([jsonStr], { type: 'application/octet-stream' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `CRM_BACKUP_${new Date().toISOString().slice(0,10)}.json`;
+                    a.click();
                 },
-                importAllData(e) { 
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    const r = new FileReader(); r.onload = (ev) => { 
-                        this.clients = JSON.parse(ev.target.result); this.saveDB(); window.location.reload();
-                    }; r.readAsText(file); 
-                },
+
                 addPolicy() { this.client.policies.push({ insurer: 'AIA', items: [{ category: 'Medical', maturity: '', showRemark: false, term: '' }], paymentMode: 'Yearly', isCancelled: false }); },
-                removePolicy(i) { if(confirm('徹底刪除？')) this.client.policies.splice(i,1); },
+
+                removePolicy(i) { if(confirm('徹底刪除這份保單紀錄？')) this.client.policies.splice(i,1); },
+
                 togglePolicyCancel(policy) { policy.cancelDate = policy.isCancelled ? new Date().toISOString().split('T')[0] : ''; },
+
                 sendWhatsappMessage(type, client, policy = null) {
                     let phone = client.phone.replace(/[^0-9]/g, '');
                     if (phone.length === 8) phone = '852' + phone; 
-                    window.open(`https://wa.me/${phone}?text=...`, '_blank');
+                    let text = type === 'birthday' ? this.settings.waBirthday : this.settings.waRenewal;
+                    text = text.replace(/{{name}}/g, client.owner || '');
+                    if (policy) {
+                        text = text.replace(/{{insurer}}/g, policy.insurer || '');
+                        text = text.replace(/{{dueDate}}/g, policy.dueDate || '');
+                    }
+                    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
                 },
+
                 addRider(i) { this.client.policies[i].items.push({ category: 'Medical', maturity: '', showRemark: false, term: '' }); },
+
                 checkDueDate(d) { if (!d) return false; const diff = Math.ceil((new Date(d) - new Date()) / 86400000); return diff >= -20 && diff <= 30; },
+
                 addClaimEvent() { this.client.claimEvents.push({ name: '', status: 'Pending', eventDate: '', items: [{ desc: '', amount: '' }] }); },
+
                 getWhatsappLink() { return this.client.phone ? `https://wa.me/852${this.client.phone.replace(/[^0-9]/g,'')}` : '#'; },
+
                 handleWebClick() { this.showWebActionModal = true; },
+
                 openWebFrame(url) { this.currentWebUrl = url; this.showWebFrame = true; },
+
                 saveLinks() { localStorage.setItem('crm_web_links', JSON.stringify(this.webLinks)); },
+
                 uploadImage(event, linkObj) {
                     const reader = new FileReader(); reader.onload = (e) => { linkObj.url = e.target.result; }; reader.readAsDataURL(event.target.files[0]);
                 },
+
                 openUploadModal() { this.uploadModal.open = true; },
-                uploadToCloud() { /* 上傳邏輯維持不變 */ },
-                generateQR(id) { /* QR Code 邏輯維持不變 */ },
+
+                uploadToCloud() { /* 上傳邏輯保持不變 */ },
+
+                generateQR(id) { /* QR 邏輯保持不變 */ },
+
                 copyLink() { navigator.clipboard.writeText(this.linkModal.url); },
+
+                // 日曆彈窗修復點
                 openCalendarMenu(type, data) { this.calendarModal.type = type; this.calendarModal.data = data; this.calendarModal.open = true; },
+
                 addToCalendar(platform) { 
                     let title, dateStr;
-                    if (this.calendarModal.type === 'renewal') {
-                        title = `續保: ${this.calendarModal.data.insurer}`;
+                    if (this.calendarModal.type === 'birthday') {
+                        title = `生日祝賀: ${this.client.owner}`;
+                        dateStr = this.client.dob;
+                    } else if (this.calendarModal.type === 'renewal') {
+                        title = `續保提醒: ${this.calendarModal.data.insurer} (${this.client.owner})`;
                         dateStr = this.calendarModal.data.dueDate;
                     } else {
-                        title = `跟進: ${this.calendarModal.data.owner}`;
-                        dateStr = this.calendarModal.data.remarkDate;
+                        title = `跟進提醒: ${this.client.owner}`;
+                        dateStr = this.client.remarkDate;
                     }
-                    if (platform === 'google') window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dateStr.replace(/-/g,'')}/${dateStr.replace(/-/g,'')}`);
+                    if (!dateStr) return alert('日期未選擇');
+                    const d = dateStr.replace(/-/g, '');
+                    if (platform === 'google') window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${d}/${d}`);
                     this.calendarModal.open = false;
                 },
+
+                // 備註彈窗修復點
                 openRemarkModal(item) { if (!item.remarks) item.remarks = ''; this.itemRemarkModal.item = item; this.itemRemarkModal.open = true; },
-                formatInput(v) { return v.replace(/\B(?=(\d{3})+(?!\d))/g, ","); },
-                formatName(str) { return str.toUpperCase(); },
-                getAge(dob) { return new Date().getFullYear() - new Date(dob).getFullYear(); }
+
+                formatInput(v) { 
+                    if (!v) return '';
+                    let str = String(v).replace(/[^0-9.]/g, ''); 
+                    let parts = str.split('.');
+                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    return parts.length > 1 ? parts[0] + '.' + parts[1] : parts[0];
+                },
+
+                formatName(str) { return str ? str.replace(/\b([a-z])/g, c => c.toUpperCase()) : ''; },
+
+                getAge(dob) { if (!dob) return ''; const age = new Date().getFullYear() - new Date(dob).getFullYear(); return age; }
             }
         }
     </script>
