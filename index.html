@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- 修改點：標題加入版本號 -->
-    <title>保險管家 v1.3.0 (Admin - Cloud)</title>
+    <!-- 修改點：標題加入最新版本號 -->
+    <title>保險管家 v1.3.1 (Admin - Cloud)</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -26,7 +26,7 @@
         input::-webkit-calendar-picker-indicator { opacity: 100; color: #888; }
         #qrcode-container { display: none; }
         .policy-cancelled { opacity: 0.85; background-color: #f9fafb !important; border-color: #d1d5db !important; }
-        .report-pillar { border-left-width: 4px; padding-left: 1rem; margin-bottom: 1.5rem; }
+        .report-section { border-left: 4px solid #3b82f6; background: #f8fafc; padding: 1rem; margin-bottom: 1rem; border-radius: 0 0.5rem 0.5rem 0; }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans pb-20" x-data="app()">
@@ -45,6 +45,7 @@
                         <button @click="open = !open" class="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded text-sm"><i class="fa-solid fa-database"></i></button>
                         <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-white rounded shadow-xl z-50 text-gray-800 overflow-hidden" x-cloak>
                             <a href="#" @click.prevent="exportAllData(); open = false" class="block px-4 py-3 hover:bg-gray-100 text-sm border-b">備份全部</a>
+                            <!-- 修復後的還原備份入口 -->
                             <a href="#" @click.prevent="document.getElementById('importFile').click(); open = false" class="block px-4 py-3 hover:bg-gray-100 text-sm">還原備份</a>
                             <input type="file" id="importFile" @change="importAllData($event)" class="hidden" accept=".json, application/json">
                         </div>
@@ -55,8 +56,8 @@
                 <div x-show="view === 'detail'" class="flex gap-2">
                     <button @click="saveCurrentClient(); view = 'list'" class="bg-gray-600 hover:bg-gray-700 px-3 py-2 rounded text-sm"><i class="fa-solid fa-arrow-left"></i></button>
                     <div class="h-6 w-px bg-gray-500 mx-1"></div>
-                    <!-- 新增報告按鈕 -->
-                    <button @click="openReportModal()" class="bg-purple-600 hover:bg-purple-700 px-3 py-2 rounded text-sm font-bold text-white shadow-md"><i class="fa-solid fa-chart-pie mr-1"></i>分析報告</button>
+                    <!-- 修改點：加入分析報告按鈕 -->
+                    <button @click="openReport()" class="bg-purple-600 hover:bg-purple-700 px-3 py-2 rounded text-sm font-bold text-white shadow-md"><i class="fa-solid fa-file-invoice mr-1"></i>報告</button>
                     <button @click="openUploadModal()" class="bg-yellow-500 hover:bg-yellow-600 px-3 py-2 rounded text-sm font-bold text-white border border-yellow-600 shadow-md"><i class="fa-solid fa-cloud-arrow-up"></i></button>
                     <button @click="saveCurrentClient(true)" class="bg-green-600 hover:bg-green-700 px-3 py-2 rounded text-sm"><i class="fa-solid fa-floppy-disk"></i></button>
                 </div>
@@ -66,24 +67,10 @@
     
     <div class="container mx-auto p-4 max-w-5xl">
         <div x-show="view === 'list'" x-transition>
-            <!-- 搜尋與過濾器 (維持原有) -->
             <div class="mb-6 flex flex-col md:flex-row gap-2">
                 <div class="relative flex-1">
                     <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
                     <input type="text" x-model="searchQuery" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="w-full p-3 pl-10 rounded-lg border shadow-sm focus:ring-2 focus:ring-blue-400" placeholder="搜尋客戶、受保人、電話...">
-                </div>
-                <div class="flex gap-2 w-full md:w-auto">
-                    <select x-model="typeFilter" class="flex-1 md:w-32 p-2 rounded-lg border-2 border-purple-200 shadow-sm focus:ring-2 focus:ring-purple-500 bg-white font-bold text-gray-700 text-sm cursor-pointer">
-                        <option value="">☂️ 所有類型</option>
-                        <option value="CI">危疾</option>
-                        <option value="Accident">意外</option>
-                        <option value="Medical">醫療</option>
-                        <option value="Savings">儲蓄</option>
-                        <option value="Fund">基金</option>
-                        <option value="Home">家居保</option>
-                        <option value="MPF">強積金</option>
-                        <option value="Wellness">健康程式</option>
-                    </select>
                 </div>
             </div>
 
@@ -92,7 +79,7 @@
                     <div @click="openClient(c)" class="bg-white p-4 rounded-lg shadow cursor-pointer hover:shadow-md transition border-l-4 relative group" :class="c.isDeleted ? 'border-red-400 bg-red-50 opacity-90' : 'border-blue-500'">
                         <div class="font-bold text-lg flex items-center" :class="c.isDeleted ? 'text-gray-500' : 'text-gray-800'">
                             <span class="text-sm font-bold mr-2" :class="c.isDeleted ? 'text-gray-400' : 'text-blue-500'" x-text="(index + 1) + '.'"></span>
-                            <span x-text="c.owner || '未命名'" :class="c.isDeleted ? 'line-through' : ''"></span>
+                            <span x-text="c.owner || '未命名'"></span>
                         </div>
                         <div class="text-sm text-gray-500 mt-1"><i class="fa-solid fa-phone mr-1"></i> <span x-text="c.phone || '-'"></span></div>
                     </div>
@@ -101,8 +88,8 @@
         </div>
 
         <div x-show="view === 'detail'" x-transition x-cloak>
-            <!-- 客戶詳情 (維持原有功能，包含修復過的日曆、備註、USD 按鈕) -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6 border-t-4 border-blue-500" :class="client.isDeleted ? 'opacity-70 pointer-events-none' : ''">
+            <!-- 客戶資料區塊 -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6 border-t-4 border-blue-500">
                 <h2 class="text-xl font-bold mb-4 text-blue-700">客戶資料 (家庭帳戶)</h2>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                     <div class="md:col-span-2">
@@ -110,30 +97,30 @@
                         <input type="text" x-model="client.owner" @blur="client.owner = formatName(client.owner)" class="w-full border rounded p-2">
                     </div>
                     <div>
-                        <label class="block text-sm font-bold mb-1 text-blue-600">生日</label>
+                        <label class="block text-sm font-bold mb-1 text-blue-600">續保提醒日</label>
                         <div class="flex gap-1">
-                            <input type="date" x-model="client.dob" class="w-full border rounded p-2 text-sm">
-                            <button @click="openCalendarMenu('birthday', client)" class="bg-white border px-2 rounded text-gray-600 transition"><i class="fa-solid fa-calendar-plus"></i></button>
+                            <input type="date" x-model="client.remarkDate" class="w-full border rounded p-2 text-sm">
+                            <button @click="openCalendarMenu('remark', client)" class="bg-white hover:bg-gray-100 px-2 rounded border border-gray-300 text-gray-600 transition"><i class="fa-solid fa-calendar-plus"></i></button>
                         </div>
                     </div>
                     <div><label class="block text-sm font-bold mb-1">電話</label><input type="tel" x-model="client.phone" class="w-full border rounded p-2"></div>
                 </div>
             </div>
 
-            <!-- 保單項目與附約 (維持原有，包含醫療紅字與 USD 按鈕) -->
+            <!-- 保單項目 -->
             <div :class="client.isDeleted ? 'opacity-70 pointer-events-none' : ''">
                 <template x-for="(policy, pIndex) in client.policies" :key="pIndex">
                     <div class="bg-white rounded-lg shadow-md p-6 mb-6 border-t-4 border-green-500 relative transition-all duration-300">
                         <div class="grid grid-cols-1 md:grid-cols-7 gap-3 mb-4 p-4 rounded-lg items-end bg-green-50">
-                            <div class="md:col-span-2"><label class="block text-xs font-bold mb-1">受保人</label><input type="text" x-model="policy.insuredPerson" class="w-full border rounded p-2 text-sm"></div>
-                            <div class="md:col-span-2"><label class="block text-xs font-bold mb-1">續保日期</label>
+                            <div class="md:col-span-2"><label class="block text-xs font-bold mb-1 text-blue-600">續保日期</label>
                                 <div class="flex gap-1">
                                     <input type="date" x-model="policy.dueDate" class="w-full border rounded p-2 text-sm">
-                                    <button @click="openCalendarMenu('renewal', policy)" class="bg-white border px-2 rounded text-gray-600"><i class="fa-solid fa-calendar-plus"></i></button>
+                                    <button @click="openCalendarMenu('renewal', policy)" class="bg-white hover:bg-gray-100 px-2 rounded border border-gray-300 text-gray-600"><i class="fa-solid fa-calendar-plus"></i></button>
                                 </div>
                             </div>
-                            <!-- 保費 USD 轉換按鈕 (保留) -->
-                            <div class="md:col-span-2"><label class="block text-xs font-bold mb-1">保費(HK$)</label>
+                            <!-- USD 換算按鈕 (保留) -->
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-bold mb-1">保費(HK$)</label>
                                 <div class="relative">
                                     <input type="text" x-model="policy.premium" @input="policy.premium = formatInput($event.target.value)" class="w-full border rounded p-2 text-sm pr-10">
                                     <button @click="policy.premium = parseFloat((parseFloat(String(policy.premium).replace(/,/g, ''))*7.8).toFixed(0)).toLocaleString('en-US')" class="absolute right-0 top-0 h-full bg-gray-100 px-1 text-[8px] text-gray-500 rounded-r border-l">USD</button>
@@ -141,31 +128,29 @@
                             </div>
                         </div>
                         
-                        <!-- 附約列表 (醫療紅字保留) -->
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm text-left text-gray-500">
                                 <thead class="text-xs text-gray-700 uppercase bg-gray-100">
-                                    <tr><th class="px-2 w-10">#</th><th class="px-2 w-28">類別</th><th class="px-2 w-32">產品名稱</th><th class="px-2 w-32 text-right">保額 (HK$)</th><th class="px-2 w-16 text-center">操作</th></tr>
+                                    <tr><th class="px-2 w-10">#</th><th class="px-2 w-28">類別</th><th class="px-2 w-32">產品名稱</th><th class="px-2 w-32 text-right">保額 (HK$)</th><th class="px-2 w-28">自付 (HK$)</th><th class="px-2 w-16 text-center">備註</th></tr>
                                 </thead>
                                 <tbody>
                                     <template x-for="(item, iIndex) in policy.items" :key="iIndex">
                                         <tr class="border-b hover:bg-gray-50">
                                             <td class="px-2 py-2" x-text="iIndex === 0 ? '主' : iIndex"></td>
-                                            <td class="px-2 py-2">
-                                                <!-- 醫療紅字邏輯 (保留) -->
-                                                <select x-model="item.category" :class="item.category === 'Medical' ? 'text-red-600 font-bold' : getCategoryColor(item.category)" class="w-full border rounded p-1 text-xs">
-                                                    <option value="Medical">醫療</option><option value="CI">危疾</option><option value="Life">人壽</option><option value="Savings">儲蓄</option><option value="Fund">基金</option>
-                                                </select>
-                                            </td>
+                                            <!-- 醫療紅字邏輯 (保留) -->
+                                            <td class="px-2 py-2"><select x-model="item.category" :class="item.category === 'Medical' ? 'text-red-600 font-bold' : getCategoryColor(item.category)" class="w-full border rounded p-1 text-xs">
+                                                <option value="Medical">醫療</option><option value="CI">危疾</option><option value="Life">人壽</option><option value="Savings">儲蓄</option><option value="Fund">基金</option>
+                                            </select></td>
                                             <td class="px-2 py-2"><input type="text" x-model="item.name" :class="item.category === 'Medical' ? 'text-red-600 font-bold' : ''" class="w-full border rounded p-1 text-xs"></td>
                                             <td class="px-2 py-2">
                                                 <div class="relative">
-                                                    <input type="text" x-model="item.sumAssured" @input="item.sumAssured = formatInput($event.target.value)" class="w-full border rounded p-1 text-xs text-right pr-10">
-                                                    <button @click="item.sumAssured = parseFloat((parseFloat(String(item.sumAssured).replace(/,/g, ''))*7.8).toFixed(0)).toLocaleString('en-US')" class="absolute right-0 top-0 h-full bg-gray-100 px-1 text-[8px] text-gray-500 rounded-r">USD</button>
+                                                    <input type="text" x-model="item.sumAssured" @input="item.sumAssured = formatInput($event.target.value)" class="w-full border rounded p-1 text-xs text-right pr-8">
+                                                    <button @click="item.sumAssured = parseFloat((parseFloat(String(item.sumAssured).replace(/,/g, ''))*7.8).toFixed(0)).toLocaleString('en-US')" class="absolute right-0 top-0 h-full bg-gray-100 px-1 text-[8px] text-gray-400 rounded-r">USD</button>
                                                 </div>
                                             </td>
+                                            <td class="px-2 py-2"><input type="text" x-model="item.deductible" @input="item.deductible = formatInput($event.target.value)" class="w-full border rounded p-1 text-xs text-right"></td>
                                             <td class="px-2 py-2 text-center">
-                                                <button @click="openRemarkModal(item)" class="w-6 h-6 rounded-full border text-xs font-bold" :class="item.remarks ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-400'">!</button>
+                                                <button @click="openRemarkModal(item)" class="w-6 h-6 rounded-full border text-xs font-bold" :class="item.remarks ? 'bg-red-100 text-red-600 border-red-300' : 'bg-gray-100 text-gray-400'">!</button>
                                             </td>
                                         </tr>
                                     </template>
@@ -173,125 +158,107 @@
                             </table>
                         </div>
                         <div class="mt-4 flex justify-end">
-                            <button @click="addRider(pIndex)" class="text-blue-600 text-sm font-bold">+ 附約</button>
+                            <button @click="addRider(pIndex)" class="text-blue-600 text-sm font-bold">+ 附約項目</button>
                         </div>
                     </div>
                 </template>
+                <button @click="addPolicy()" class="w-full py-3 border-2 border-dashed border-green-300 text-green-600 rounded-lg font-bold hover:bg-green-50">+ 新保單</button>
             </div>
         </div>
     </div>
 
-    <!-- 全新分析報告 Modal [source: 1] -->
+    <!-- 報告 Modal[span_7](start_span)[span_7](end_span) -->
     <div x-show="showReportModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak>
         <div class="bg-white w-full max-w-2xl rounded-lg shadow-2xl p-6 m-4 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6 border-b pb-4">
-                <div>
-                    <h3 class="font-bold text-gray-800 text-xl"><i class="fa-solid fa-file-contract text-purple-600 mr-2"></i>五大保障缺口分析報告</h3>
-                    <p class="text-sm text-gray-500 mt-1">客戶：<span x-text="client.owner" class="font-bold text-gray-700"></span></p>
-                </div>
+                <h3 class="font-bold text-gray-800 text-xl"><i class="fa-solid fa-chart-simple text-purple-600 mr-2"></i>四大範疇保障分析</h3>
                 <button @click="showReportModal = false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-times text-2xl"></i></button>
             </div>
 
-            <div class="space-y-6">
-                <!-- 住院醫療 -->
-                <div class="report-pillar border-blue-500 bg-blue-50/30">
-                    <div class="flex justify-between items-center mb-2">
-                        <h4 class="font-bold text-blue-800"><i class="fa-solid fa-hospital mr-2"></i>住院醫療</h4>
-                        <span class="text-xs px-2 py-1 rounded-full font-bold" :class="reportData.Medical.count > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" x-text="reportData.Medical.count > 0 ? '已有保障' : '缺口待補'"></span>
-                    </div>
-                    <template x-if="reportData.Medical.count > 0">
+            <div class="space-y-4">
+                <!-- 醫療 -->
+                <div class="report-section border-blue-500">
+                    <h4 class="font-bold text-blue-800 mb-2">🏥 醫療保障</h4>
+                    <template x-if="reportData.Medical.length > 0">
                         <div class="text-sm space-y-1">
-                            <template x-for="item in reportData.Medical.list">
-                                <div class="flex justify-between text-gray-600">
-                                    <span x-text="item.name"></span>
-                                    <span x-text="'$ ' + (item.sumAssured || '全數賠償')"></span>
+                            <template x-for="i in reportData.Medical">
+                                <div class="flex justify-between border-b border-dashed py-1">
+                                    <span x-text="i.name"></span>
+                                    <span class="font-bold" x-text="'$ ' + (i.sumAssured || '全數賠償') + (i.deductible ? ' (自付: ' + i.deductible + ')' : '')"></span>
                                 </div>
                             </template>
                         </div>
                     </template>
                 </div>
 
-                <!-- 危疾保障 -->
-                <div class="report-pillar border-red-500 bg-red-50/30">
-                    <div class="flex justify-between items-center mb-2">
-                        <h4 class="font-bold text-red-800"><i class="fa-solid fa-hand-holding-heart mr-2"></i>危疾保障</h4>
-                        <span class="font-bold text-red-600" x-text="'總額: HK$ ' + reportData.CI.total"></span>
-                    </div>
-                    <template x-if="reportData.CI.count > 0">
+                <!-- 危疾 -->
+                <div class="report-section border-red-500">
+                    <h4 class="font-bold text-red-800 mb-2">🛡️ 危疾保障</h4>
+                    <template x-if="reportData.CI.length > 0">
                         <div class="text-sm space-y-1">
-                            <template x-for="item in reportData.CI.list">
-                                <div class="flex justify-between text-gray-600"><span x-text="item.name"></span><span x-text="'HK$ ' + item.sumAssured"></span></div>
+                            <template x-for="i in reportData.CI">
+                                <div class="flex justify-between border-b border-dashed py-1">
+                                    <div class="flex flex-col">
+                                        <span x-text="i.name"></span>
+                                        <span x-show="i.remarks && i.remarks.includes('多次賠償')" class="text-[10px] text-red-500 font-bold">* 支援多次賠償</span>
+                                    </div>
+                                    <span class="font-bold" x-text="'HK$ ' + i.sumAssured"></span>
+                                </div>
                             </template>
                         </div>
                     </template>
                 </div>
 
-                <!-- 人壽保障 -->
-                <div class="report-pillar border-slate-500 bg-slate-50/30">
-                    <div class="flex justify-between items-center mb-2">
-                        <h4 class="font-bold text-slate-800"><i class="fa-solid fa-umbrella mr-2"></i>人壽保障</h4>
-                        <span class="font-bold text-slate-600" x-text="'總額: HK$ ' + reportData.Life.total"></span>
-                    </div>
-                    <template x-if="reportData.Life.count > 0">
+                <!-- 人壽 -->
+                <div class="report-section border-slate-500">
+                    <h4 class="font-bold text-slate-800 mb-2">🕊️ 人壽保障</h4>
+                    <template x-if="reportData.Life.length > 0">
                         <div class="text-sm space-y-1">
-                            <template x-for="item in reportData.Life.list">
-                                <div class="flex justify-between text-gray-600"><span x-text="item.name"></span><span x-text="'HK$ ' + item.sumAssured"></span></div>
+                            <template x-for="i in reportData.Life">
+                                <div class="flex justify-between border-b border-dashed py-1">
+                                    <span x-text="i.name"></span><span class="font-bold" x-text="'HK$ ' + i.sumAssured"></span>
+                                </div>
                             </template>
                         </div>
                     </template>
                 </div>
 
-                <!-- 退休規劃 -->
-                <div class="report-pillar border-orange-500 bg-orange-50/30">
-                    <div class="flex justify-between items-center mb-2">
-                        <h4 class="font-bold text-orange-800"><i class="fa-solid fa-mug-hot mr-2"></i>退休規劃</h4>
-                        <span class="text-xs px-2 py-1 rounded-full bg-orange-100 text-orange-700 font-bold" x-text="reportData.Retire.count + ' 項計劃'"></span>
-                    </div>
-                    <template x-if="reportData.Retire.count > 0">
+                <!-- 儲蓄 -->
+                <div class="report-section border-orange-500">
+                    <h4 class="font-bold text-orange-800 mb-2">💰 儲蓄與財富</h4>
+                    <template x-if="reportData.Savings.length > 0">
                         <div class="text-sm space-y-1">
-                            <template x-for="item in reportData.Retire.list">
-                                <div class="flex justify-between text-gray-600"><span x-text="item.name"></span><span x-text="'HK$ ' + item.sumAssured"></span></div>
-                            </template>
-                        </div>
-                    </template>
-                </div>
-
-                <!-- 教育基金 -->
-                <div class="report-pillar border-indigo-500 bg-indigo-50/30">
-                    <div class="flex justify-between items-center mb-2">
-                        <h4 class="font-bold text-indigo-800"><i class="fa-solid fa-graduation-cap mr-2"></i>教育基金</h4>
-                        <span class="text-xs px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 font-bold" x-text="reportData.Education.count + ' 項計劃'"></span>
-                    </div>
-                    <template x-if="reportData.Education.count > 0">
-                        <div class="text-sm space-y-1">
-                            <template x-for="item in reportData.Education.list">
-                                <div class="flex justify-between text-gray-600"><span x-text="item.name"></span><span x-text="'HK$ ' + item.sumAssured"></span></div>
+                            <template x-for="i in reportData.Savings">
+                                <div class="flex justify-between border-b border-dashed py-1">
+                                    <span x-text="i.name"></span><span class="font-bold" x-text="'HK$ ' + i.sumAssured"></span>
+                                </div>
                             </template>
                         </div>
                     </template>
                 </div>
             </div>
 
-            <div class="mt-8 pt-6 border-t flex flex-col items-center">
-                <p class="text-xs text-gray-400 italic mb-4">此報告僅供參考，詳情請參閱各保單合約條款。</p>
-                <button @click="window.print()" class="bg-slate-800 text-white px-8 py-3 rounded-lg font-bold shadow-lg hover:bg-slate-700 transition">
-                    <i class="fa-solid fa-print mr-2"></i>列印 / 匯出報告
-                </button>
-            </div>
+            <button @click="window.print()" class="w-full mt-6 bg-slate-800 text-white py-3 rounded-lg font-bold shadow-md"><i class="fa-solid fa-print mr-2"></i>列印報告 / 儲存 PDF</button>
         </div>
     </div>
 
-    <!-- 備註 Modal 與 其他維持不變 -->
-    <div x-show="itemRemarkModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-96 rounded-lg shadow-xl p-4 m-4"><h3 class="font-bold text-gray-800 mb-2">編輯備註</h3><textarea x-model="itemRemarkModal.item.remarks" class="w-full h-32 border rounded p-2 text-sm mb-4" placeholder="輸入備註..."></textarea><div class="flex justify-end gap-2"><button @click="itemRemarkModal.item.remarks = ''; itemRemarkModal.open = false" class="text-red-500 text-sm px-3">清除</button><button @click="itemRemarkModal.open = false" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">確定</button></div></div></div>
+    <!-- 備註 Modal -->
+    <div x-show="itemRemarkModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-96 rounded-lg shadow-xl p-4 m-4"><h3 class="font-bold text-gray-800 mb-2">編輯項目細節</h3><p class="text-[10px] text-gray-400 mb-2">* 危疾如支援多次賠償請在此註明</p><textarea x-model="itemRemarkModal.item.remarks" class="w-full h-32 border rounded p-2 text-sm mb-4" placeholder="輸入備註..."></textarea><div class="flex justify-end gap-2"><button @click="itemRemarkModal.item.remarks = ''; itemRemarkModal.open = false" class="text-red-500 text-sm px-3">清除</button><button @click="itemRemarkModal.open = false" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">確定</button></div></div></div>
+
+    <!-- 日曆 Modal -->
+    <div x-show="calendarModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-72 rounded-lg shadow-xl p-4 text-center"><h3 class="font-bold text-gray-800 mb-4">加入日曆</h3><button @click="addToCalendar('google')" class="w-full bg-blue-600 text-white py-2 rounded mb-2 font-bold">Google Calendar</button><button @click="addToCalendar('ios')" class="w-full bg-gray-700 text-white py-2 rounded font-bold">iOS / Outlook</button><p class="text-xs text-gray-400 mt-2">* iOS 請選「儲存到檔案」後點擊匯入</p><button @click="calendarModal.open = false" class="mt-4 text-gray-400 text-sm">取消</button></div></div>
 
     <script>
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwOgcd8Z3nnYtbwgJQ46Fk5imt1mBhYbtSmxTiE0Edgl5M881Ymj8F_J7He8yChffiU/exec'; 
+
         function app() {
             return {
-                version: '1.3.0', view: 'list', searchQuery: '', clients: [], client: {}, 
-                showReportModal: false, showSettingsModal: false, 
+                version: '1.3.1',
+                view: 'list', searchQuery: '', clients: [], client: {}, 
+                showSettingsModal: false, showReportModal: false,
                 calendarModal: { open: false, type: '', data: null },
                 itemRemarkModal: { open: false, item: {} },
-                reportData: { Medical: {}, CI: {}, Life: {}, Retire: {}, Education: {} },
+                reportData: { Medical: [], CI: [], Life: [], Savings: [] },
 
                 init() {
                     const storedVersion = localStorage.getItem('crm_version');
@@ -305,39 +272,24 @@
                     if (saved) { this.clients = JSON.parse(saved); }
                 },
 
-                // 分析報告核心邏輯
-                openReportModal() {
-                    let data = {
-                        Medical: { count: 0, list: [] },
-                        CI: { count: 0, total: 0, list: [] },
-                        Life: { count: 0, total: 0, list: [] },
-                        Retire: { count: 0, list: [] },
-                        Education: { count: 0, list: [] }
-                    };
-
-                    this.client.policies.forEach(p => {
-                        p.items.forEach(i => {
-                            const val = parseFloat(String(i.sumAssured || 0).replace(/,/g, ''));
-                            if (i.category === 'Medical') { data.Medical.count++; data.Medical.list.push(i); }
-                            else if (i.category === 'CI') { data.CI.count++; data.CI.total += val; data.CI.list.push(i); }
-                            else if (i.category === 'Life') { data.Life.count++; data.Life.total += val; data.Life.list.push(i); }
-                            // 自動識別退休或教育基金：根據名稱關鍵字或類別
-                            else if (i.category === 'Savings' || i.category === 'Fund') {
-                                if (i.name.includes('教育') || i.name.includes('學') || i.name.includes('Edu')) { data.Education.count++; data.Education.list.push(i); }
-                                else { data.Retire.count++; data.Retire.list.push(i); }
-                            }
+                // 報告生成邏輯[span_8](start_span)[span_8](end_span)
+                openReport() {
+                    let data = { Medical: [], CI: [], Life: [], Savings: [] };
+                    if (this.client.policies) {
+                        this.client.policies.forEach(p => {
+                            p.items.forEach(i => {
+                                if (i.category === 'Medical') data.Medical.push(i);
+                                else if (i.category === 'CI') data.CI.push(i);
+                                else if (i.category === 'Life') data.Life.push(i);
+                                else if (i.category === 'Savings' || i.category === 'Fund') data.Savings.push(i);
+                            });
                         });
-                    });
-
-                    // 格式化總額
-                    data.CI.total = data.CI.total.toLocaleString();
-                    data.Life.total = data.Life.total.toLocaleString();
-                    
+                    }
                     this.reportData = data;
                     this.showReportModal = true;
                 },
 
-                // 備份還原邏輯修復
+                // 修復過的還原功能 (v1.2.2 邏輯)[span_9](start_span)[span_9](end_span)
                 importAllData(e) { 
                     const file = e.target.files[0];
                     if (!file) return;
@@ -346,17 +298,17 @@
                         try { 
                             const data = JSON.parse(ev.target.result);
                             if(Array.isArray(data)) {
-                                if(confirm(`確定要還原 ${data.length} 筆資料嗎？`)) { 
+                                if(confirm(`確定要還原 ${data.length} 筆資料嗎？這將覆蓋現有數據。`)) { 
                                     this.clients = data; this.saveDB(); window.location.reload(); 
                                 } 
                             } else { alert('檔案格式不正確'); }
-                        } catch (err) { alert('讀取錯誤'); } 
+                        } catch (err) { alert('讀取檔案失敗'); } 
                         e.target.value = '';
                     }; 
                     reader.readAsText(file); 
                 },
 
-                // 其他輔助函數維持不變
+                // 其餘 helper 函數保留
                 get filteredClients() { 
                     if (this.searchQuery) {
                         const q = this.searchQuery.toLowerCase();
@@ -375,14 +327,29 @@
                     const blob = new Blob([JSON.stringify(this.clients, null, 2)], { type: 'application/octet-stream' });
                     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `CRM_BACKUP.json`; a.click();
                 },
-                addPolicy() { this.client.policies.push({ insurer: 'AIA', items: [{ category: 'Medical', sumAssured: '' }], paymentMode: 'Yearly' }); },
-                addRider(i) { this.client.policies[i].items.push({ category: 'CI', sumAssured: '' }); },
+                addPolicy() { this.client.policies.push({ insurer: 'AIA', items: [{ category: 'Medical', sumAssured: '', deductible: '' }], paymentMode: 'Yearly' }); },
+                addRider(i) { this.client.policies[i].items.push({ category: 'CI', sumAssured: '', deductible: '' }); },
                 openCalendarMenu(type, data) { this.calendarModal.type = type; this.calendarModal.data = data; this.calendarModal.open = true; },
+                addToCalendar(platform) { 
+                    let title, dateStr;
+                    if (this.calendarModal.type === 'renewal') {
+                        title = `續保: ${this.calendarModal.data.insurer}`;
+                        dateStr = this.calendarModal.data.dueDate;
+                    } else {
+                        title = `跟進提醒: ${this.client.owner}`;
+                        dateStr = this.client.remarkDate;
+                    }
+                    if (!dateStr) return alert('日期未填');
+                    const d = dateStr.replace(/-/g, '');
+                    if (platform === 'google') window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${d}/${d}`);
+                    this.calendarModal.open = false;
+                },
                 openRemarkModal(item) { if (!item.remarks) item.remarks = ''; this.itemRemarkModal.item = item; this.itemRemarkModal.open = true; },
-                formatInput(v) { return v.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ","); },
-                formatName(str) { return str ? str.replace(/\b[a-z]/g, c => c.toUpperCase()) : ''; },
+                formatInput(v) { return String(v).replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ","); },
+                formatName(str) { return str ? str.replace(/\b([a-z])/g, c => c.toUpperCase()) : ''; },
                 getCategoryColor(cat) { return cat === 'Medical' ? 'text-red-600 font-bold' : 'text-blue-600'; },
-                getAge(dob) { return dob ? new Date().getFullYear() - new Date(dob).getFullYear() : ''; }
+                getWhatsappLink() { return this.client.phone ? `https://wa.me/852${this.client.phone.replace(/[^0-9]/g,'')}` : '#'; },
+                handleWebClick() { this.showWebActionModal = true; }
             }
         }
     </script>
