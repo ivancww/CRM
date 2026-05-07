@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>保險管家 v1.3.4 (Admin - Cloud)</title>
+    <title>保險管家 v1.4.0 (Admin - Cloud)</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,6 +16,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
@@ -315,49 +316,70 @@
     </div>
 
     <div x-show="showReportModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak>
-        <div class="bg-white w-full max-w-2xl rounded-lg shadow-2xl p-6 m-4 max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-6 border-b pb-4">
-                <h3 class="font-bold text-gray-800 text-xl"><i class="fa-solid fa-chart-pie text-purple-600 mr-2"></i>保障範疇彙整報告</h3>
-                <button @click="showReportModal = false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-times text-2xl"></i></button>
-            </div>
-            <div class="mb-4 text-sm text-gray-500">客戶姓名：<span class="font-bold text-gray-800" x-text="reportClient.owner"></span></div>
+        <div class="bg-white w-full max-w-2xl rounded-lg shadow-2xl p-6 m-4 max-h-[90vh] overflow-y-auto flex flex-col relative">
+            <button @click="showReportModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10"><i class="fa-solid fa-times text-2xl"></i></button>
+            
+            <div id="report-content" class="bg-white p-2">
+                <div class="flex justify-between items-center mb-6 border-b pb-4">
+                    <h3 class="font-bold text-gray-800 text-xl"><i class="fa-solid fa-chart-pie text-purple-600 mr-2"></i>保障範疇彙整報告</h3>
+                </div>
+                <div class="mb-4 text-sm text-gray-500">客戶姓名：<span class="font-bold text-gray-800" x-text="reportClient.owner"></span></div>
 
-            <div class="space-y-4">
-                <template x-for="cat in ['Medical', 'CI', 'Life', 'Savings']">
-                    <div class="report-section" :style="'border-left-color:' + (cat === 'Medical' ? '#ef4444' : (cat === 'CI' ? '#f59e0b' : (cat === 'Life' ? '#3b82f6' : '#10b981')))">
-                        <h4 class="font-bold mb-2 flex justify-between items-center">
-                            <span x-text="cat === 'Medical' ? '🏥 醫療' : (cat === 'CI' ? '🛡️ 危疾' : (cat === 'Life' ? '🕊️ 人壽' : '💰 儲蓄'))"></span>
-                            <span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500" x-text="reportData[cat].length + ' 項'"></span>
-                        </h4>
-                        <div class="text-sm space-y-2">
-                            <template x-for="i in reportData[cat]">
-                                <div class="flex justify-between border-b border-dashed pb-2">
-                                    <div class="flex flex-col">
-                                        <span x-text="i.name" class="font-bold text-gray-700"></span>
-                                        
-                                        <div class="text-[10px] text-gray-500 mt-0.5">
-                                            生效: <span x-text="i.effectDate || '-'"></span>
-                                            <span x-show="reportClient.dob && i.effectDate" x-text="' (' + getAgeAtDate(reportClient.dob, i.effectDate) + '歲)'"></span>
-                                            | 供款: <span x-text="i.term || '-'"></span>
-                                            | 保障: <span x-text="i.maturity || '-'"></span>
+                <div class="space-y-4">
+                    <template x-for="cat in ['Medical', 'CI', 'Life', 'Accident', 'Savings']">
+                        <div class="report-section" 
+                             x-show="cat !== 'Savings' || showSavingsInReport"
+                             :style="'border-left-color:' + (cat === 'Medical' ? '#ef4444' : (cat === 'CI' ? '#f59e0b' : (cat === 'Life' ? '#3b82f6' : (cat === 'Accident' ? '#14b8a6' : '#10b981'))))">
+                            <h4 class="font-bold mb-2 flex justify-between items-center">
+                                <span x-text="cat === 'Medical' ? '🏥 醫療' : (cat === 'CI' ? '🛡️ 危疾' : (cat === 'Life' ? '🕊️ 人壽' : (cat === 'Accident' ? '🚑 意外 (含身故及醫療費用)' : '💰 儲蓄')))"></span>
+                                <span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500" x-text="reportData[cat].length + ' 項'"></span>
+                            </h4>
+                            <div class="text-sm space-y-2">
+                                <template x-for="i in reportData[cat]">
+                                    <div class="flex justify-between border-b border-dashed pb-2">
+                                        <div class="flex flex-col">
+                                            <span x-text="i.name" class="font-bold text-gray-700"></span>
+                                            
+                                            <div class="text-[10px] text-gray-500 mt-0.5">
+                                                公司: <span class="font-bold" x-text="i.insurer || '-'"></span> 
+                                                | 保單: <span class="font-bold" x-text="i.policyNo || '-'"></span>
+                                            </div>
+
+                                            <div class="text-[10px] text-gray-500 mt-0.5">
+                                                生效: <span x-text="i.effectDate || '-'"></span>
+                                                <span x-show="reportClient.dob && i.effectDate" x-text="' (' + getAgeAtDate(reportClient.dob, i.effectDate) + '歲)'"></span>
+                                                | 供款: <span x-text="i.term || '-'"></span>
+                                                | 保障: <span x-text="i.maturity || '-'"></span>
+                                            </div>
+                                            
+                                            <span x-show="cat === 'CI' && i.remarks && i.remarks.includes('多次賠償')" class="text-[10px] text-red-500 font-bold mt-0.5">* 支援多次賠償</span>
+                                            
+                                            <span x-show="cat === 'Savings' && i.remarks && i.remarks.includes('目標')" class="text-[10px] text-green-600 font-bold mt-0.5" x-text="'* 備註: ' + i.remarks"></span>
                                         </div>
-                                        
-                                        <span x-show="cat === 'CI' && i.remarks && i.remarks.includes('多次賠償')" class="text-[10px] text-red-500 font-bold mt-0.5">* 支援多次賠償</span>
+                                        <div class="text-right">
+                                            <div class="font-bold text-gray-800" x-text="'$ ' + (i.sumAssured || '全數賠償')"></div>
+                                            <div x-show="cat === 'Medical' && i.deductible && i.deductible !== '0'" class="text-[10px] text-red-400" x-text="'(自付: ' + i.deductible + ')'"></div>
+                                        </div>
                                     </div>
-                                    <div class="text-right">
-                                        <div class="font-bold text-gray-800" x-text="'$ ' + (i.sumAssured || '全數賠償')"></div>
-                                        <div x-show="cat === 'Medical' && i.deductible && i.deductible !== '0'" class="text-[10px] text-red-400" x-text="'(自付: ' + i.deductible + ')'"></div>
-                                    </div>
-                                </div>
-                            </template>
-                            <template x-if="reportData[cat].length === 0">
-                                <div class="text-gray-400 italic">尚未配置保障</div>
-                            </template>
+                                </template>
+                                <template x-if="reportData[cat].length === 0">
+                                    <div class="text-gray-400 italic">尚未配置保障</div>
+                                </template>
+                            </div>
                         </div>
-                    </div>
-                </template>
+                    </template>
+                </div>
             </div>
-            <button @click="window.print()" class="w-full mt-6 bg-slate-800 text-white py-3 rounded-lg font-bold"><i class="fa-solid fa-print mr-2"></i>列印 / 儲存 PDF</button>
+
+            <div class="mt-6 border-t pt-4">
+                <label class="flex items-center text-sm font-bold cursor-pointer transition select-none text-gray-700 bg-gray-50 p-3 rounded mb-3 border">
+                    <input type="checkbox" class="mr-2 w-4 h-4 rounded cursor-pointer accent-purple-600" x-model="showSavingsInReport">
+                    <span>報告包含「儲蓄與財富」類別</span>
+                </label>
+                <button @click="savePDF()" class="w-full bg-slate-800 text-white py-3 rounded-lg font-bold shadow-md hover:bg-slate-700 transition">
+                    <i class="fa-solid fa-file-pdf mr-2"></i>直接儲存成 PDF
+                </button>
+            </div>
         </div>
     </div>
 
@@ -428,11 +450,11 @@
 
         function app() {
             return {
-                version: '1.3.4',
+                version: '1.4.0',
                 view: 'list', searchQuery: '', renewalFilter: '', typeFilter: '', clients: [], client: {}, 
                 showWebActionModal: false, showConfigModal: false, showWebFrame: false, 
                 showSettingsModal: false, 
-                showReportModal: false, reportClient: {}, reportData: { Medical: [], CI: [], Life: [], Savings: [] },
+                showReportModal: false, showSavingsInReport: true, reportClient: {}, reportData: { Medical: [], CI: [], Life: [], Accident: [], Savings: [] },
                 linkModal: { open: false, url: '' },
                 uploadModal: { open: false, password: '', loading: false },
                 qrModal: { open: false, url: '' },
@@ -462,14 +484,15 @@
                     if (savedSettings) this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
                 },
 
-                // 報告處理邏輯：加入 effectDate 提取，供報告顯示生效日期
                 openReport(c) {
                     this.reportClient = JSON.parse(JSON.stringify(c));
-                    let data = { Medical: [], CI: [], Life: [], Savings: [] };
+                    let data = { Medical: [], CI: [], Life: [], Accident: [], Savings: [] };
                     if (this.reportClient.policies) {
                         this.reportClient.policies.forEach(p => {
                             p.items.forEach(i => {
-                                i.effectDate = p.effectDate; // 將保單層級的生效日期注入到項目中
+                                i.effectDate = p.effectDate;
+                                i.insurer = p.insurer;
+                                i.policyNo = p.policyNo;
                                 if (data[i.category]) data[i.category].push(i);
                                 else if (i.category === 'Fund' || i.category === 'MPF') data['Savings'].push(i);
                             });
@@ -477,6 +500,19 @@
                     }
                     this.reportData = data;
                     this.showReportModal = true;
+                },
+
+                // PDF 儲存功能
+                savePDF() {
+                    const element = document.getElementById('report-content');
+                    const opt = {
+                        margin:       [0.5, 0.5, 0.5, 0.5],
+                        filename:     `${this.reportClient.owner || '客戶'}_保障分析報告.pdf`,
+                        image:        { type: 'jpeg', quality: 0.98 },
+                        html2canvas:  { scale: 2, useCORS: true },
+                        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+                    };
+                    html2pdf().set(opt).from(element).save();
                 },
 
                 importAllData(e) { 
@@ -499,7 +535,7 @@
                         } catch (err) { 
                             alert('讀取檔案出錯：' + err.message); 
                         } 
-                        e.target.value = '';
+                        e.target.value = ''; 
                     }; 
                     reader.readAsText(file); 
                 },
@@ -606,7 +642,6 @@
 
                 togglePolicyCancel(policy) { policy.cancelDate = policy.isCancelled ? new Date().toISOString().split('T')[0] : ''; },
 
-                // 修復點：加入 policyNo 及 premium 的自動替換邏輯
                 sendWhatsappMessage(type, client, policy = null) {
                     if (!client.phone) return alert('請先輸入電話號碼！');
                     let phone = client.phone.replace(/[^0-9]/g, '');
@@ -782,7 +817,6 @@
                     return age >= 0 ? age : 0; 
                 },
 
-                // 新增：根據指定日期計算當時歲數 (用於計算保單生效時的歲數)
                 getAgeAtDate(dob, targetDate) {
                     if (!dob || !targetDate) return '';
                     const b = new Date(dob);
