@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>保險管家 v1.3.3 (Admin - Cloud)</title>
+    <title>保險管家 v1.3.4 (Admin - Cloud)</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -38,7 +38,6 @@
                 <span class="text-[10px] bg-blue-600 px-2 py-0.5 rounded ml-1 align-middle" x-text="'v' + version"></span>
             </h1>
             <div class="flex items-center gap-2">
-                <!-- 齒輪按鈕 -->
                 <button @click="showSettingsModal = true" class="text-gray-300 hover:text-white px-2"><i class="fa-solid fa-gear"></i></button>
                 
                 <div x-show="view === 'list'" class="flex gap-2">
@@ -315,7 +314,6 @@
         </div>
     </div>
 
-    <!-- 四大範疇分析報告 Modal -->
     <div x-show="showReportModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak>
         <div class="bg-white w-full max-w-2xl rounded-lg shadow-2xl p-6 m-4 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-6 border-b pb-4">
@@ -331,17 +329,23 @@
                             <span x-text="cat === 'Medical' ? '🏥 醫療' : (cat === 'CI' ? '🛡️ 危疾' : (cat === 'Life' ? '🕊️ 人壽' : '💰 儲蓄'))"></span>
                             <span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500" x-text="reportData[cat].length + ' 項'"></span>
                         </h4>
-                        <div class="text-sm space-y-1">
+                        <div class="text-sm space-y-2">
                             <template x-for="i in reportData[cat]">
-                                <div class="flex justify-between border-b border-dashed py-1">
+                                <div class="flex justify-between border-b border-dashed pb-2">
                                     <div class="flex flex-col">
-                                        <span x-text="i.name"></span>
-                                        <!-- 危疾多次賠償註明 -->
-                                        <span x-show="cat === 'CI' && i.remarks && i.remarks.includes('多次賠償')" class="text-[10px] text-red-500 font-bold">* 支援多次賠償</span>
+                                        <span x-text="i.name" class="font-bold text-gray-700"></span>
+                                        
+                                        <div class="text-[10px] text-gray-500 mt-0.5">
+                                            生效: <span x-text="i.effectDate || '-'"></span>
+                                            <span x-show="reportClient.dob && i.effectDate" x-text="' (' + getAgeAtDate(reportClient.dob, i.effectDate) + '歲)'"></span>
+                                            | 供款: <span x-text="i.term || '-'"></span>
+                                            | 保障: <span x-text="i.maturity || '-'"></span>
+                                        </div>
+                                        
+                                        <span x-show="cat === 'CI' && i.remarks && i.remarks.includes('多次賠償')" class="text-[10px] text-red-500 font-bold mt-0.5">* 支援多次賠償</span>
                                     </div>
                                     <div class="text-right">
-                                        <div class="font-bold" x-text="'$ ' + (i.sumAssured || '全數賠償')"></div>
-                                        <!-- 醫療自付額註明 -->
+                                        <div class="font-bold text-gray-800" x-text="'$ ' + (i.sumAssured || '全數賠償')"></div>
                                         <div x-show="cat === 'Medical' && i.deductible && i.deductible !== '0'" class="text-[10px] text-red-400" x-text="'(自付: ' + i.deductible + ')'"></div>
                                     </div>
                                 </div>
@@ -357,7 +361,6 @@
         </div>
     </div>
 
-    <!-- 齒輪 WhatsApp 設定 Modal (完全恢復) -->
     <div x-show="showSettingsModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak>
         <div class="bg-white w-full max-w-md rounded-lg shadow-xl p-6 m-4 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4 border-b pb-2">
@@ -384,7 +387,6 @@
         </div>
     </div>
 
-    <!-- 上傳雲端 Modal (完全恢復) -->
     <div x-show="uploadModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak>
         <div class="bg-white w-80 rounded-lg shadow-xl p-6 text-center relative z-50">
             <h3 class="font-bold text-gray-800 mb-2 text-lg">設定存取密碼</h3>
@@ -396,7 +398,6 @@
         </div>
     </div>
     
-    <!-- QR Code Modal (完全恢復) -->
     <div x-show="qrModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90" x-cloak>
         <div class="bg-white w-80 rounded-lg shadow-xl p-6 text-center relative z-50">
             <h3 class="font-bold text-gray-800 mb-1">專屬連結已建立</h3>
@@ -412,19 +413,14 @@
         </div>
     </div>
 
-    <!-- 資訊網操作 Modal (完全恢復) -->
     <div x-show="showWebActionModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-72 rounded-lg shadow-xl p-4 text-center"><h3 class="font-bold text-gray-800 mb-4">資訊網操作</h3><template x-if="webLinks.length > 0"><div class="mb-4 text-left"><p class="text-xs text-gray-500 mb-1">開啟網站:</p><template x-for="(link, index) in webLinks"><button @click="openWebFrame(link.url)" class="w-full text-left px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded mb-1 text-indigo-700 font-bold text-sm flex items-center"><i class="fa-solid fa-link mr-2"></i> <span x-text="link.name"></span></button></template></div></template><button @click="showWebActionModal = false; showConfigModal = true" class="w-full bg-gray-600 text-white py-2 rounded font-bold text-sm"><i class="fa-solid fa-gear mr-2"></i> 設定網址列表</button><button @click="showWebActionModal = false" class="mt-4 text-gray-400 text-sm">取消</button></div></div>
     
-    <!-- 設定資訊網 Modal (完全恢復) -->
     <div x-show="showConfigModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-96 rounded-lg shadow-xl p-4 max-h-[90vh] overflow-hidden flex flex-col"><h3 class="font-bold text-gray-800 mb-2">管理資訊網列表</h3><div class="flex-1 overflow-y-auto space-y-3 mb-4 p-1"><template x-for="(link, index) in webLinks"><div class="border rounded p-2 bg-gray-50"><div class="flex justify-between mb-1"><span class="text-xs font-bold text-gray-500">項目 #<span x-text="index+1"></span></span><button @click="webLinks.splice(index, 1)" class="text-red-500 text-xs"><i class="fa-solid fa-times"></i> 移除</button></div><input type="text" x-model="link.name" class="border rounded p-1 text-xs w-full mb-2" placeholder="顯示名稱"><div class="flex gap-2 items-center"><select x-model="link.type" class="border rounded p-1 text-xs" x-init="link.type = link.type || 'url'"><option value="url">網址</option><option value="image">圖片/QR</option></select><template x-if="link.type === 'url'"><input type="text" x-model="link.url" class="border rounded p-1 text-xs w-full" placeholder="https://..."></template><template x-if="link.type === 'image'"><div class="flex-1"><label class="block w-full text-center bg-white border border-dashed border-gray-300 rounded p-1 text-xs cursor-pointer hover:bg-gray-100"><span x-text="link.url ? '已上傳 (點擊更換)' : '上傳圖片'"></span><input type="file" class="hidden" accept="image/*" @change="uploadImage($event, link)"></label></div></template></div></div></template></div><button @click="webLinks.push({name:'', url:'', type:'url'})" class="text-blue-600 text-xs font-bold block mb-4 text-center">+ 新增項目</button><button @click="saveLinks(); showConfigModal = false" class="w-full bg-blue-600 text-white py-2 rounded font-bold text-sm">儲存設定</button></div></div>
     
-    <!-- 瀏覽器 Frame Modal (完全恢復) -->
     <div x-show="showWebFrame" style="display: none;" class="fixed inset-0 z-50 overflow-hidden flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-full max-w-6xl h-[90vh] rounded-lg shadow-2xl flex flex-col relative"><div class="flex justify-between items-center p-3 bg-indigo-600 text-white rounded-t-lg"><h3 class="font-bold">瀏覽器</h3><button @click="showWebFrame = false" class="px-2"><i class="fa-solid fa-times text-xl"></i></button></div><div class="flex-1 bg-gray-100 relative"><iframe :src="currentWebUrl" class="web-frame" frameborder="0"></iframe></div></div></div>
 
-    <!-- 備註編輯 Modal (原有) -->
     <div x-show="itemRemarkModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-96 rounded-lg shadow-xl p-4 m-4"><h3 class="font-bold text-gray-800 mb-2">編輯項目備註</h3><p class="text-[10px] text-gray-400 mb-2">* 危疾如支援多次賠償請在此註明</p><textarea x-model="itemRemarkModal.item.remarks" class="w-full h-32 border rounded p-2 text-sm mb-4" placeholder="例如：支援三次癌症多次賠償..."></textarea><div class="flex justify-end gap-2"><button @click="itemRemarkModal.item.remarks = ''; itemRemarkModal.open = false" class="text-red-500 text-sm px-3">清除</button><button @click="itemRemarkModal.open = false" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">確定</button></div></div></div>
 
-    <!-- 日曆 Modal (原有) -->
     <div x-show="calendarModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-72 rounded-lg shadow-xl p-4 text-center"><h3 class="font-bold text-gray-800 mb-4">加入日曆</h3><button @click="addToCalendar('google')" class="w-full bg-blue-600 text-white py-2 rounded mb-2 font-bold">Google Calendar</button><button @click="addToCalendar('ios')" class="w-full bg-gray-700 text-white py-2 rounded font-bold">iOS / Outlook</button><p class="text-xs text-gray-400 mt-2">* iOS 請選「儲存到檔案」後點擊匯入</p><button @click="calendarModal.open = false" class="mt-4 text-gray-400 text-sm">取消</button></div></div>
 
     <script>
@@ -432,7 +428,7 @@
 
         function app() {
             return {
-                version: '1.3.3',
+                version: '1.3.4',
                 view: 'list', searchQuery: '', renewalFilter: '', typeFilter: '', clients: [], client: {}, 
                 showWebActionModal: false, showConfigModal: false, showWebFrame: false, 
                 showSettingsModal: false, 
@@ -466,13 +462,14 @@
                     if (savedSettings) this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
                 },
 
-                // 報告處理邏輯
+                // 報告處理邏輯：加入 effectDate 提取，供報告顯示生效日期
                 openReport(c) {
                     this.reportClient = JSON.parse(JSON.stringify(c));
                     let data = { Medical: [], CI: [], Life: [], Savings: [] };
                     if (this.reportClient.policies) {
                         this.reportClient.policies.forEach(p => {
                             p.items.forEach(i => {
+                                i.effectDate = p.effectDate; // 將保單層級的生效日期注入到項目中
                                 if (data[i.category]) data[i.category].push(i);
                                 else if (i.category === 'Fund' || i.category === 'MPF') data['Savings'].push(i);
                             });
@@ -482,7 +479,6 @@
                     this.showReportModal = true;
                 },
 
-                // 還原備份功能
                 importAllData(e) { 
                     const file = e.target.files[0];
                     if (!file) return;
@@ -503,7 +499,7 @@
                         } catch (err) { 
                             alert('讀取檔案出錯：' + err.message); 
                         } 
-                        e.target.value = ''; // 重置 input 讓同一個檔案可以重複選取
+                        e.target.value = '';
                     }; 
                     reader.readAsText(file); 
                 },
@@ -580,7 +576,6 @@
 
                 saveSettings() { localStorage.setItem('crm_settings', JSON.stringify(this.settings)); alert('已儲存'); this.showSettingsModal = false; },
 
-                // 修復：原汁原味的匯出與分享功能
                 exportAllData() { 
                     const jsonStr = JSON.stringify(this.clients, null, 2);
                     const fileName = `CRM_BACKUP_${new Date().toISOString().slice(0,10).replace(/-/g, '')}.json`;
@@ -611,15 +606,22 @@
 
                 togglePolicyCancel(policy) { policy.cancelDate = policy.isCancelled ? new Date().toISOString().split('T')[0] : ''; },
 
+                // 修復點：加入 policyNo 及 premium 的自動替換邏輯
                 sendWhatsappMessage(type, client, policy = null) {
+                    if (!client.phone) return alert('請先輸入電話號碼！');
                     let phone = client.phone.replace(/[^0-9]/g, '');
                     if (phone.length === 8) phone = '852' + phone; 
+                    
                     let text = type === 'birthday' ? this.settings.waBirthday : this.settings.waRenewal;
                     text = text.replace(/{{name}}/g, client.owner || '');
+                    
                     if (policy) {
                         text = text.replace(/{{insurer}}/g, policy.insurer || '');
-                        text = text.replace(/{{dueDate}}/g, policy.dueDate || '');
+                        text = text.replace(/{{policyNo}}/g, policy.policyNo || '-');
+                        text = text.replace(/{{dueDate}}/g, policy.dueDate || '-');
+                        text = text.replace(/{{premium}}/g, policy.premium ? this.formatInput(policy.premium) : '-');
                     }
+                    
                     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
                 },
 
@@ -645,7 +647,6 @@
 
                 openUploadModal() { this.uploadModal.password = ''; this.uploadModal.open = true; },
 
-                // 上傳至雲端功能恢復
                 uploadToCloud() {
                     this.uploadModal.loading = true;
                     const uniqueId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
@@ -672,7 +673,6 @@
                     });
                 },
 
-                // 生成 QR 功能恢復
                 generateQR(id) {
                     this.uploadModal.open = false;
                     this.qrModal.open = true;
@@ -716,7 +716,6 @@
 
                 openCalendarMenu(type, data) { this.calendarModal.type = type; this.calendarModal.data = data; this.calendarModal.open = true; },
 
-                // 修復：原汁原味的日曆及分享機制
                 addToCalendar(platform) { 
                     let title, dateStr;
                     if (this.calendarModal.type === 'birthday') {
@@ -780,7 +779,20 @@
                     if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
                         age--;
                     }
-                    return age; 
+                    return age >= 0 ? age : 0; 
+                },
+
+                // 新增：根據指定日期計算當時歲數 (用於計算保單生效時的歲數)
+                getAgeAtDate(dob, targetDate) {
+                    if (!dob || !targetDate) return '';
+                    const b = new Date(dob);
+                    const t = new Date(targetDate);
+                    let age = t.getFullYear() - b.getFullYear();
+                    const m = t.getMonth() - b.getMonth();
+                    if (m < 0 || (m === 0 && t.getDate() < b.getDate())) {
+                        age--;
+                    }
+                    return age >= 0 ? age : 0;
                 }
             }
         }
