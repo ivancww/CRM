@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>保險管家 v1.4.1 (Admin - Cloud)</title>
+    <title>保險管家 v1.4.2 (Admin - Cloud)</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,7 +16,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
@@ -28,11 +27,20 @@
         #qrcode-container { display: none; }
         .policy-cancelled { opacity: 0.85; background-color: #f9fafb !important; border-color: #d1d5db !important; }
         .report-section { border-left: 4px solid #3b82f6; background: #f8fafc; padding: 1rem; margin-bottom: 1rem; border-radius: 0 0.5rem 0.5rem 0; }
+        
+        /* 專門處理 PDF 列印的 CSS：隱藏非報告元素，強制背景顏色，確保文件格式 */
+        @media print {
+            @page { margin: 15mm; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            body { background: white !important; }
+            .no-print { display: none !important; }
+            .report-section { page-break-inside: avoid; break-inside: avoid; }
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans pb-20" x-data="app()">
 
-    <nav class="bg-slate-800 text-white p-4 shadow-lg sticky top-0 z-50">
+    <nav class="bg-slate-800 text-white p-4 shadow-lg sticky top-0 z-50 print:hidden">
         <div class="container mx-auto flex justify-between items-center">
             <h1 class="text-lg font-bold cursor-pointer" @click="view = 'list'">
                 <i class="fa-solid fa-cloud mr-2"></i>保險管家 (雲端版)
@@ -65,7 +73,7 @@
         </div>
     </nav>
     
-    <div class="container mx-auto p-4 max-w-5xl">
+    <div class="container mx-auto p-4 max-w-5xl print:hidden">
         <div x-show="view === 'list'" x-transition>
             <div class="mb-6 flex flex-col md:flex-row gap-2">
                 <div class="relative flex-1">
@@ -315,9 +323,9 @@
         </div>
     </div>
 
-    <div x-show="showReportModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak>
-        <div class="bg-white w-full max-w-2xl rounded-lg shadow-2xl p-6 m-4 max-h-[90vh] overflow-y-auto flex flex-col relative">
-            <button @click="showReportModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10"><i class="fa-solid fa-times text-2xl"></i></button>
+    <div x-show="showReportModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 overflow-y-auto print:absolute print:inset-0 print:block print:bg-white print:overflow-visible print:z-0" x-cloak>
+        <div class="bg-white w-full max-w-2xl rounded-lg shadow-2xl p-6 m-4 max-h-[90vh] overflow-y-auto flex flex-col relative print:max-h-none print:shadow-none print:m-0 print:p-0 print:block">
+            <button @click="showReportModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10 print:hidden"><i class="fa-solid fa-times text-2xl"></i></button>
             
             <div id="report-content" class="bg-white p-2">
                 <div class="flex justify-between items-center mb-6 border-b pb-4">
@@ -334,7 +342,7 @@
                             <h4 class="font-bold mb-2 flex justify-between items-center">
                                 <span x-text="cat === 'Medical' ? '🏥 醫療' : (cat === 'CI' ? '🛡️ 危疾' : (cat === 'Life' ? '🕊️ 人壽' : (cat === 'Accident' ? '🚑 意外 (含身故及醫療費用)' : '💰 儲蓄')))"></span>
                                 <div class="text-right">
-                                    <span x-show="cat === 'CI' && reportData.ciTotal && reportData.ciTotal !== '0'" class="text-xs text-red-600 font-bold mr-2" x-text="'總賠償額: $' + reportData.ciTotal"></span>
+                                    <span x-show="cat === 'CI' && reportData.ciTotal && reportData.ciTotal !== '0'" class="text-xs text-red-600 font-bold mr-2" x-text="'總保額: $' + reportData.ciTotal"></span>
                                     <span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500" x-text="reportData[cat].length + ' 項'"></span>
                                 </div>
                             </h4>
@@ -358,19 +366,24 @@
                                             </div>
                                             
                                             <span x-show="cat === 'CI' && i.remarks && i.remarks.includes('多次賠償')" class="text-[10px] text-red-500 font-bold mt-0.5">* 支援多次賠償</span>
-                                            <span x-show="cat === 'Savings' && i.remarks && i.remarks.includes('目標')" class="text-[10px] text-green-600 font-bold mt-0.5" x-text="'* 備註: ' + i.remarks"></span>
+                                            <span x-show="cat === 'Savings' && i.remarks && i.remarks.includes('目標')" class="text-[10px] text-green-600 font-bold mt-0.5" x-text="'* ' + i.remarks"></span>
                                         </div>
                                         
                                         <div class="text-right">
                                             <template x-if="cat === 'Medical'">
                                                 <div>
-                                                    <div class="font-bold text-gray-800" x-show="!i.name.includes('自願醫保標準計劃')" x-text="i.sumAssured ? '$ ' + i.sumAssured : '全數賠償'"></div>
-                                                    <div class="font-bold text-gray-800" x-show="i.name.includes('自願醫保標準計劃')" x-text="i.deductible ? '應付自付額: $' + i.deductible : '需應付自付額'"></div>
-                                                    <div x-show="!i.name.includes('自願醫保標準計劃') && i.deductible && i.deductible !== '0'" class="text-[10px] text-red-400" x-text="'(自付: ' + i.deductible + ')'"></div>
+                                                    <div class="font-bold text-gray-800" x-show="!i.name.includes('自願醫保')" x-text="i.sumAssured ? '$ ' + i.sumAssured : '全數賠償'"></div>
+                                                    <div class="font-bold text-gray-800" x-show="i.name.includes('自願醫保')" x-text="i.deductible ? '應付自付額: $' + i.deductible : '需應付自付額'"></div>
+                                                    <div x-show="!i.name.includes('自願醫保') && i.deductible && i.deductible !== '0'" class="text-[10px] text-red-400" x-text="'(自付: ' + i.deductible + ')'"></div>
                                                 </div>
                                             </template>
-                                            <template x-if="cat !== 'Medical'">
-                                                <div class="font-bold text-gray-800" x-text="i.sumAssured ? '$ ' + i.sumAssured : '-'"></div>
+                                            
+                                            <template x-if="cat === 'Savings'">
+                                                <div class="font-bold text-gray-800" x-text="i.sumAssured ? '$ ' + i.sumAssured : ''"></div>
+                                            </template>
+                                            
+                                            <template x-if="cat !== 'Medical' && cat !== 'Savings'">
+                                                <div class="font-bold text-gray-800" x-text="i.sumAssured ? '$ ' + i.sumAssured : '全數賠償'"></div>
                                             </template>
                                         </div>
                                     </div>
@@ -381,19 +394,19 @@
                 </div>
             </div>
 
-            <div class="mt-6 border-t pt-4">
+            <div class="mt-6 border-t pt-4 print:hidden">
                 <label class="flex items-center text-sm font-bold cursor-pointer transition select-none text-gray-700 bg-gray-50 p-3 rounded mb-3 border">
                     <input type="checkbox" class="mr-2 w-4 h-4 rounded cursor-pointer accent-purple-600" x-model="showSavingsInReport">
                     <span>報告包含「儲蓄與財富」類別</span>
                 </label>
-                <button @click="savePDF()" :disabled="isGeneratingPDF" class="w-full bg-slate-800 text-white py-3 rounded-lg font-bold shadow-md hover:bg-slate-700 transition disabled:bg-gray-500">
-                    <i class="fa-solid fa-file-pdf mr-2"></i><span x-text="isGeneratingPDF ? ' PDF 生成中請稍候...' : ' 直接儲存成 PDF'"></span>
+                <button @click="savePDF()" class="w-full bg-slate-800 text-white py-3 rounded-lg font-bold shadow-md hover:bg-slate-700 transition">
+                    <i class="fa-solid fa-file-pdf mr-2"></i>匯出 PDF (使用系統列印)
                 </button>
             </div>
         </div>
     </div>
 
-    <div x-show="showSettingsModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak>
+    <div x-show="showSettingsModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 print:hidden" x-cloak>
         <div class="bg-white w-full max-w-md rounded-lg shadow-xl p-6 m-4 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-4 border-b pb-2">
                 <h3 class="font-bold text-gray-800 text-lg"><i class="fa-brands fa-whatsapp text-green-500 mr-2"></i>設定預設訊息</h3>
@@ -419,7 +432,7 @@
         </div>
     </div>
 
-    <div x-show="uploadModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak>
+    <div x-show="uploadModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 print:hidden" x-cloak>
         <div class="bg-white w-80 rounded-lg shadow-xl p-6 text-center relative z-50">
             <h3 class="font-bold text-gray-800 mb-2 text-lg">設定存取密碼</h3>
             <p class="text-xs text-gray-500 mb-4">為了保護客戶隱私，請設定一組密碼。</p>
@@ -430,7 +443,7 @@
         </div>
     </div>
     
-    <div x-show="qrModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90" x-cloak>
+    <div x-show="qrModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 print:hidden" x-cloak>
         <div class="bg-white w-80 rounded-lg shadow-xl p-6 text-center relative z-50">
             <h3 class="font-bold text-gray-800 mb-1">專屬連結已建立</h3>
             <p class="text-xs text-green-600 font-bold mb-3">密碼: <span x-text="uploadModal.password" class="text-lg bg-green-100 px-2 rounded"></span></p>
@@ -445,26 +458,26 @@
         </div>
     </div>
 
-    <div x-show="showWebActionModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-72 rounded-lg shadow-xl p-4 text-center"><h3 class="font-bold text-gray-800 mb-4">資訊網操作</h3><template x-if="webLinks.length > 0"><div class="mb-4 text-left"><p class="text-xs text-gray-500 mb-1">開啟網站:</p><template x-for="(link, index) in webLinks"><button @click="openWebFrame(link.url)" class="w-full text-left px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded mb-1 text-indigo-700 font-bold text-sm flex items-center"><i class="fa-solid fa-link mr-2"></i> <span x-text="link.name"></span></button></template></div></template><button @click="showWebActionModal = false; showConfigModal = true" class="w-full bg-gray-600 text-white py-2 rounded font-bold text-sm"><i class="fa-solid fa-gear mr-2"></i> 設定網址列表</button><button @click="showWebActionModal = false" class="mt-4 text-gray-400 text-sm">取消</button></div></div>
+    <div x-show="showWebActionModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 print:hidden" x-cloak><div class="bg-white w-72 rounded-lg shadow-xl p-4 text-center"><h3 class="font-bold text-gray-800 mb-4">資訊網操作</h3><template x-if="webLinks.length > 0"><div class="mb-4 text-left"><p class="text-xs text-gray-500 mb-1">開啟網站:</p><template x-for="(link, index) in webLinks"><button @click="openWebFrame(link.url)" class="w-full text-left px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded mb-1 text-indigo-700 font-bold text-sm flex items-center"><i class="fa-solid fa-link mr-2"></i> <span x-text="link.name"></span></button></template></div></template><button @click="showWebActionModal = false; showConfigModal = true" class="w-full bg-gray-600 text-white py-2 rounded font-bold text-sm"><i class="fa-solid fa-gear mr-2"></i> 設定網址列表</button><button @click="showWebActionModal = false" class="mt-4 text-gray-400 text-sm">取消</button></div></div>
     
-    <div x-show="showConfigModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-96 rounded-lg shadow-xl p-4 max-h-[90vh] overflow-hidden flex flex-col"><h3 class="font-bold text-gray-800 mb-2">管理資訊網列表</h3><div class="flex-1 overflow-y-auto space-y-3 mb-4 p-1"><template x-for="(link, index) in webLinks"><div class="border rounded p-2 bg-gray-50"><div class="flex justify-between mb-1"><span class="text-xs font-bold text-gray-500">項目 #<span x-text="index+1"></span></span><button @click="webLinks.splice(index, 1)" class="text-red-500 text-xs"><i class="fa-solid fa-times"></i> 移除</button></div><input type="text" x-model="link.name" class="border rounded p-1 text-xs w-full mb-2" placeholder="顯示名稱"><div class="flex gap-2 items-center"><select x-model="link.type" class="border rounded p-1 text-xs" x-init="link.type = link.type || 'url'"><option value="url">網址</option><option value="image">圖片/QR</option></select><template x-if="link.type === 'url'"><input type="text" x-model="link.url" class="border rounded p-1 text-xs w-full" placeholder="https://..."></template><template x-if="link.type === 'image'"><div class="flex-1"><label class="block w-full text-center bg-white border border-dashed border-gray-300 rounded p-1 text-xs cursor-pointer hover:bg-gray-100"><span x-text="link.url ? '已上傳 (點擊更換)' : '上傳圖片'"></span><input type="file" class="hidden" accept="image/*" @change="uploadImage($event, link)"></label></div></template></div></div></template></div><button @click="webLinks.push({name:'', url:'', type:'url'})" class="text-blue-600 text-xs font-bold block mb-4 text-center">+ 新增項目</button><button @click="saveLinks(); showConfigModal = false" class="w-full bg-blue-600 text-white py-2 rounded font-bold text-sm">儲存設定</button></div></div>
+    <div x-show="showConfigModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 print:hidden" x-cloak><div class="bg-white w-96 rounded-lg shadow-xl p-4 max-h-[90vh] overflow-hidden flex flex-col"><h3 class="font-bold text-gray-800 mb-2">管理資訊網列表</h3><div class="flex-1 overflow-y-auto space-y-3 mb-4 p-1"><template x-for="(link, index) in webLinks"><div class="border rounded p-2 bg-gray-50"><div class="flex justify-between mb-1"><span class="text-xs font-bold text-gray-500">項目 #<span x-text="index+1"></span></span><button @click="webLinks.splice(index, 1)" class="text-red-500 text-xs"><i class="fa-solid fa-times"></i> 移除</button></div><input type="text" x-model="link.name" class="border rounded p-1 text-xs w-full mb-2" placeholder="顯示名稱"><div class="flex gap-2 items-center"><select x-model="link.type" class="border rounded p-1 text-xs" x-init="link.type = link.type || 'url'"><option value="url">網址</option><option value="image">圖片/QR</option></select><template x-if="link.type === 'url'"><input type="text" x-model="link.url" class="border rounded p-1 text-xs w-full" placeholder="https://..."></template><template x-if="link.type === 'image'"><div class="flex-1"><label class="block w-full text-center bg-white border border-dashed border-gray-300 rounded p-1 text-xs cursor-pointer hover:bg-gray-100"><span x-text="link.url ? '已上傳 (點擊更換)' : '上傳圖片'"></span><input type="file" class="hidden" accept="image/*" @change="uploadImage($event, link)"></label></div></template></div></div></template></div><button @click="webLinks.push({name:'', url:'', type:'url'})" class="text-blue-600 text-xs font-bold block mb-4 text-center">+ 新增項目</button><button @click="saveLinks(); showConfigModal = false" class="w-full bg-blue-600 text-white py-2 rounded font-bold text-sm">儲存設定</button></div></div>
     
-    <div x-show="showWebFrame" style="display: none;" class="fixed inset-0 z-50 overflow-hidden flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-full max-w-6xl h-[90vh] rounded-lg shadow-2xl flex flex-col relative"><div class="flex justify-between items-center p-3 bg-indigo-600 text-white rounded-t-lg"><h3 class="font-bold">瀏覽器</h3><button @click="showWebFrame = false" class="px-2"><i class="fa-solid fa-times text-xl"></i></button></div><div class="flex-1 bg-gray-100 relative"><iframe :src="currentWebUrl" class="web-frame" frameborder="0"></iframe></div></div></div>
+    <div x-show="showWebFrame" style="display: none;" class="fixed inset-0 z-50 overflow-hidden flex items-center justify-center bg-black bg-opacity-75 print:hidden" x-cloak><div class="bg-white w-full max-w-6xl h-[90vh] rounded-lg shadow-2xl flex flex-col relative"><div class="flex justify-between items-center p-3 bg-indigo-600 text-white rounded-t-lg"><h3 class="font-bold">瀏覽器</h3><button @click="showWebFrame = false" class="px-2"><i class="fa-solid fa-times text-xl"></i></button></div><div class="flex-1 bg-gray-100 relative"><iframe :src="currentWebUrl" class="web-frame" frameborder="0"></iframe></div></div></div>
 
-    <div x-show="itemRemarkModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-96 rounded-lg shadow-xl p-4 m-4"><h3 class="font-bold text-gray-800 mb-2">編輯項目備註</h3><p class="text-[10px] text-gray-400 mb-2">* 提示：危疾輸入「多次賠償」；儲蓄輸入「目標」將自動於報告標示</p><textarea x-model="itemRemarkModal.item.remarks" class="w-full h-32 border rounded p-2 text-sm mb-4" placeholder="輸入備註..."></textarea><div class="flex justify-end gap-2"><button @click="itemRemarkModal.item.remarks = ''; itemRemarkModal.open = false" class="text-red-500 text-sm px-3">清除</button><button @click="itemRemarkModal.open = false" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">確定</button></div></div></div>
+    <div x-show="itemRemarkModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 print:hidden" x-cloak><div class="bg-white w-96 rounded-lg shadow-xl p-4 m-4"><h3 class="font-bold text-gray-800 mb-2">編輯項目備註</h3><p class="text-[10px] text-gray-400 mb-2">* 提示：危疾輸入「多次賠償」；儲蓄輸入「目標」將自動於報告標示</p><textarea x-model="itemRemarkModal.item.remarks" class="w-full h-32 border rounded p-2 text-sm mb-4" placeholder="例如：支援三次癌症多次賠償..."></textarea><div class="flex justify-end gap-2"><button @click="itemRemarkModal.item.remarks = ''; itemRemarkModal.open = false" class="text-red-500 text-sm px-3">清除</button><button @click="itemRemarkModal.open = false" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">確定</button></div></div></div>
 
-    <div x-show="calendarModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-72 rounded-lg shadow-xl p-4 text-center"><h3 class="font-bold text-gray-800 mb-4">加入日曆</h3><button @click="addToCalendar('google')" class="w-full bg-blue-600 text-white py-2 rounded mb-2 font-bold">Google Calendar</button><button @click="addToCalendar('ios')" class="w-full bg-gray-700 text-white py-2 rounded font-bold">iOS / Outlook</button><p class="text-xs text-gray-400 mt-2">* iOS 請選「儲存到檔案」後點擊匯入</p><button @click="calendarModal.open = false" class="mt-4 text-gray-400 text-sm">取消</button></div></div>
+    <div x-show="calendarModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 print:hidden" x-cloak><div class="bg-white w-72 rounded-lg shadow-xl p-4 text-center"><h3 class="font-bold text-gray-800 mb-4">加入日曆</h3><button @click="addToCalendar('google')" class="w-full bg-blue-600 text-white py-2 rounded mb-2 font-bold">Google Calendar</button><button @click="addToCalendar('ios')" class="w-full bg-gray-700 text-white py-2 rounded font-bold">iOS / Outlook</button><p class="text-xs text-gray-400 mt-2">* iOS 請選「儲存到檔案」後點擊匯入</p><button @click="calendarModal.open = false" class="mt-4 text-gray-400 text-sm">取消</button></div></div>
 
     <script>
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwOgcd8Z3nnYtbwgJQ46Fk5imt1mBhYbtSmxTiE0Edgl5M881Ymj8F_J7He8yChffiU/exec'; 
 
         function app() {
             return {
-                version: '1.4.1',
+                version: '1.4.2',
                 view: 'list', searchQuery: '', renewalFilter: '', typeFilter: '', clients: [], client: {}, 
                 showWebActionModal: false, showConfigModal: false, showWebFrame: false, 
                 showSettingsModal: false, 
-                showReportModal: false, showSavingsInReport: true, isGeneratingPDF: false,
+                showReportModal: false, showSavingsInReport: true,
                 reportClient: {}, reportData: { Medical: [], CI: [], Life: [], Accident: [], Savings: [] },
                 linkModal: { open: false, url: '' },
                 uploadModal: { open: false, password: '', loading: false },
@@ -524,38 +537,11 @@
                     this.showReportModal = true;
                 },
 
+                // PDF 儲存功能 (改用系統列印，完美告別白畫面)
                 savePDF() {
-                    this.isGeneratingPDF = true;
-                    
-                    // 建立隱藏的完美渲染容器，避免卷軸與彈窗影響 PDF 擷取
-                    const container = document.createElement('div');
-                    container.style.position = 'absolute';
-                    container.style.top = '-9999px';
-                    container.style.left = '-9999px';
-                    container.style.width = '800px';
-                    container.style.backgroundColor = '#ffffff';
-                    container.style.padding = '30px';
-                    
-                    const contentClone = document.getElementById('report-content').cloneNode(true);
-                    container.appendChild(contentClone);
-                    document.body.appendChild(container);
-
-                    const opt = {
-                        margin:       [0.4, 0.4, 0.4, 0.4],
-                        filename:     `${this.reportClient.owner || '客戶'}_保障分析報告.pdf`,
-                        image:        { type: 'jpeg', quality: 0.98 },
-                        html2canvas:  { scale: 2, useCORS: true, windowWidth: 800, logging: false },
-                        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-                    };
-
-                    html2pdf().set(opt).from(container).save().then(() => {
-                        document.body.removeChild(container);
-                        this.isGeneratingPDF = false;
-                    }).catch(err => {
-                        console.error('PDF 生成失敗', err);
-                        document.body.removeChild(container);
-                        this.isGeneratingPDF = false;
-                    });
+                    setTimeout(() => {
+                        window.print();
+                    }, 300);
                 },
 
                 importAllData(e) { 
