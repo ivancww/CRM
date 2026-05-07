@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>保險管家 v1.4.0 (Admin - Cloud)</title>
+    <title>保險管家 v1.4.1 (Admin - Cloud)</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -328,12 +328,17 @@
                 <div class="space-y-4">
                     <template x-for="cat in ['Medical', 'CI', 'Life', 'Accident', 'Savings']">
                         <div class="report-section" 
-                             x-show="cat !== 'Savings' || showSavingsInReport"
+                             x-show="reportData[cat] && reportData[cat].length > 0 && (cat !== 'Savings' || showSavingsInReport)"
                              :style="'border-left-color:' + (cat === 'Medical' ? '#ef4444' : (cat === 'CI' ? '#f59e0b' : (cat === 'Life' ? '#3b82f6' : (cat === 'Accident' ? '#14b8a6' : '#10b981'))))">
+                            
                             <h4 class="font-bold mb-2 flex justify-between items-center">
                                 <span x-text="cat === 'Medical' ? '🏥 醫療' : (cat === 'CI' ? '🛡️ 危疾' : (cat === 'Life' ? '🕊️ 人壽' : (cat === 'Accident' ? '🚑 意外 (含身故及醫療費用)' : '💰 儲蓄')))"></span>
-                                <span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500" x-text="reportData[cat].length + ' 項'"></span>
+                                <div class="text-right">
+                                    <span x-show="cat === 'CI' && reportData.ciTotal && reportData.ciTotal !== '0'" class="text-xs text-red-600 font-bold mr-2" x-text="'總賠償額: $' + reportData.ciTotal"></span>
+                                    <span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500" x-text="reportData[cat].length + ' 項'"></span>
+                                </div>
                             </h4>
+                            
                             <div class="text-sm space-y-2">
                                 <template x-for="i in reportData[cat]">
                                     <div class="flex justify-between border-b border-dashed pb-2">
@@ -353,17 +358,22 @@
                                             </div>
                                             
                                             <span x-show="cat === 'CI' && i.remarks && i.remarks.includes('多次賠償')" class="text-[10px] text-red-500 font-bold mt-0.5">* 支援多次賠償</span>
-                                            
                                             <span x-show="cat === 'Savings' && i.remarks && i.remarks.includes('目標')" class="text-[10px] text-green-600 font-bold mt-0.5" x-text="'* 備註: ' + i.remarks"></span>
                                         </div>
+                                        
                                         <div class="text-right">
-                                            <div class="font-bold text-gray-800" x-text="'$ ' + (i.sumAssured || '全數賠償')"></div>
-                                            <div x-show="cat === 'Medical' && i.deductible && i.deductible !== '0'" class="text-[10px] text-red-400" x-text="'(自付: ' + i.deductible + ')'"></div>
+                                            <template x-if="cat === 'Medical'">
+                                                <div>
+                                                    <div class="font-bold text-gray-800" x-show="!i.name.includes('自願醫保標準計劃')" x-text="i.sumAssured ? '$ ' + i.sumAssured : '全數賠償'"></div>
+                                                    <div class="font-bold text-gray-800" x-show="i.name.includes('自願醫保標準計劃')" x-text="i.deductible ? '應付自付額: $' + i.deductible : '需應付自付額'"></div>
+                                                    <div x-show="!i.name.includes('自願醫保標準計劃') && i.deductible && i.deductible !== '0'" class="text-[10px] text-red-400" x-text="'(自付: ' + i.deductible + ')'"></div>
+                                                </div>
+                                            </template>
+                                            <template x-if="cat !== 'Medical'">
+                                                <div class="font-bold text-gray-800" x-text="i.sumAssured ? '$ ' + i.sumAssured : '-'"></div>
+                                            </template>
                                         </div>
                                     </div>
-                                </template>
-                                <template x-if="reportData[cat].length === 0">
-                                    <div class="text-gray-400 italic">尚未配置保障</div>
                                 </template>
                             </div>
                         </div>
@@ -376,8 +386,8 @@
                     <input type="checkbox" class="mr-2 w-4 h-4 rounded cursor-pointer accent-purple-600" x-model="showSavingsInReport">
                     <span>報告包含「儲蓄與財富」類別</span>
                 </label>
-                <button @click="savePDF()" class="w-full bg-slate-800 text-white py-3 rounded-lg font-bold shadow-md hover:bg-slate-700 transition">
-                    <i class="fa-solid fa-file-pdf mr-2"></i>直接儲存成 PDF
+                <button @click="savePDF()" :disabled="isGeneratingPDF" class="w-full bg-slate-800 text-white py-3 rounded-lg font-bold shadow-md hover:bg-slate-700 transition disabled:bg-gray-500">
+                    <i class="fa-solid fa-file-pdf mr-2"></i><span x-text="isGeneratingPDF ? ' PDF 生成中請稍候...' : ' 直接儲存成 PDF'"></span>
                 </button>
             </div>
         </div>
@@ -441,7 +451,7 @@
     
     <div x-show="showWebFrame" style="display: none;" class="fixed inset-0 z-50 overflow-hidden flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-full max-w-6xl h-[90vh] rounded-lg shadow-2xl flex flex-col relative"><div class="flex justify-between items-center p-3 bg-indigo-600 text-white rounded-t-lg"><h3 class="font-bold">瀏覽器</h3><button @click="showWebFrame = false" class="px-2"><i class="fa-solid fa-times text-xl"></i></button></div><div class="flex-1 bg-gray-100 relative"><iframe :src="currentWebUrl" class="web-frame" frameborder="0"></iframe></div></div></div>
 
-    <div x-show="itemRemarkModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-96 rounded-lg shadow-xl p-4 m-4"><h3 class="font-bold text-gray-800 mb-2">編輯項目備註</h3><p class="text-[10px] text-gray-400 mb-2">* 危疾如支援多次賠償請在此註明</p><textarea x-model="itemRemarkModal.item.remarks" class="w-full h-32 border rounded p-2 text-sm mb-4" placeholder="例如：支援三次癌症多次賠償..."></textarea><div class="flex justify-end gap-2"><button @click="itemRemarkModal.item.remarks = ''; itemRemarkModal.open = false" class="text-red-500 text-sm px-3">清除</button><button @click="itemRemarkModal.open = false" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">確定</button></div></div></div>
+    <div x-show="itemRemarkModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-96 rounded-lg shadow-xl p-4 m-4"><h3 class="font-bold text-gray-800 mb-2">編輯項目備註</h3><p class="text-[10px] text-gray-400 mb-2">* 提示：危疾輸入「多次賠償」；儲蓄輸入「目標」將自動於報告標示</p><textarea x-model="itemRemarkModal.item.remarks" class="w-full h-32 border rounded p-2 text-sm mb-4" placeholder="輸入備註..."></textarea><div class="flex justify-end gap-2"><button @click="itemRemarkModal.item.remarks = ''; itemRemarkModal.open = false" class="text-red-500 text-sm px-3">清除</button><button @click="itemRemarkModal.open = false" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">確定</button></div></div></div>
 
     <div x-show="calendarModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-72 rounded-lg shadow-xl p-4 text-center"><h3 class="font-bold text-gray-800 mb-4">加入日曆</h3><button @click="addToCalendar('google')" class="w-full bg-blue-600 text-white py-2 rounded mb-2 font-bold">Google Calendar</button><button @click="addToCalendar('ios')" class="w-full bg-gray-700 text-white py-2 rounded font-bold">iOS / Outlook</button><p class="text-xs text-gray-400 mt-2">* iOS 請選「儲存到檔案」後點擊匯入</p><button @click="calendarModal.open = false" class="mt-4 text-gray-400 text-sm">取消</button></div></div>
 
@@ -450,11 +460,12 @@
 
         function app() {
             return {
-                version: '1.4.0',
+                version: '1.4.1',
                 view: 'list', searchQuery: '', renewalFilter: '', typeFilter: '', clients: [], client: {}, 
                 showWebActionModal: false, showConfigModal: false, showWebFrame: false, 
                 showSettingsModal: false, 
-                showReportModal: false, showSavingsInReport: true, reportClient: {}, reportData: { Medical: [], CI: [], Life: [], Accident: [], Savings: [] },
+                showReportModal: false, showSavingsInReport: true, isGeneratingPDF: false,
+                reportClient: {}, reportData: { Medical: [], CI: [], Life: [], Accident: [], Savings: [] },
                 linkModal: { open: false, url: '' },
                 uploadModal: { open: false, password: '', loading: false },
                 qrModal: { open: false, url: '' },
@@ -487,32 +498,64 @@
                 openReport(c) {
                     this.reportClient = JSON.parse(JSON.stringify(c));
                     let data = { Medical: [], CI: [], Life: [], Accident: [], Savings: [] };
+                    let ciTotal = 0;
+                    
                     if (this.reportClient.policies) {
                         this.reportClient.policies.forEach(p => {
                             p.items.forEach(i => {
                                 i.effectDate = p.effectDate;
                                 i.insurer = p.insurer;
                                 i.policyNo = p.policyNo;
-                                if (data[i.category]) data[i.category].push(i);
-                                else if (i.category === 'Fund' || i.category === 'MPF') data['Savings'].push(i);
+                                
+                                if (i.category === 'Medical' || i.category === 'Life' || i.category === 'Accident') {
+                                    data[i.category].push(i);
+                                } else if (i.category === 'CI') {
+                                    data.CI.push(i);
+                                    let val = parseFloat(String(i.sumAssured || '0').replace(/,/g, ''));
+                                    if (!isNaN(val)) ciTotal += val;
+                                } else if (i.category === 'Savings' || i.category === 'Fund' || i.category === 'MPF') {
+                                    data.Savings.push(i);
+                                }
                             });
                         });
                     }
                     this.reportData = data;
+                    this.reportData.ciTotal = ciTotal > 0 ? this.formatInput(ciTotal) : '0';
                     this.showReportModal = true;
                 },
 
-                // PDF 儲存功能
                 savePDF() {
-                    const element = document.getElementById('report-content');
+                    this.isGeneratingPDF = true;
+                    
+                    // 建立隱藏的完美渲染容器，避免卷軸與彈窗影響 PDF 擷取
+                    const container = document.createElement('div');
+                    container.style.position = 'absolute';
+                    container.style.top = '-9999px';
+                    container.style.left = '-9999px';
+                    container.style.width = '800px';
+                    container.style.backgroundColor = '#ffffff';
+                    container.style.padding = '30px';
+                    
+                    const contentClone = document.getElementById('report-content').cloneNode(true);
+                    container.appendChild(contentClone);
+                    document.body.appendChild(container);
+
                     const opt = {
-                        margin:       [0.5, 0.5, 0.5, 0.5],
+                        margin:       [0.4, 0.4, 0.4, 0.4],
                         filename:     `${this.reportClient.owner || '客戶'}_保障分析報告.pdf`,
                         image:        { type: 'jpeg', quality: 0.98 },
-                        html2canvas:  { scale: 2, useCORS: true },
+                        html2canvas:  { scale: 2, useCORS: true, windowWidth: 800, logging: false },
                         jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
                     };
-                    html2pdf().set(opt).from(element).save();
+
+                    html2pdf().set(opt).from(container).save().then(() => {
+                        document.body.removeChild(container);
+                        this.isGeneratingPDF = false;
+                    }).catch(err => {
+                        console.error('PDF 生成失敗', err);
+                        document.body.removeChild(container);
+                        this.isGeneratingPDF = false;
+                    });
                 },
 
                 importAllData(e) { 
