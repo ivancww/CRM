@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>保險管家 v1.4.2 (Admin - Cloud)</title>
+    <title>保險管家 v1.4.3 (Admin - Cloud)</title>
     
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -28,7 +28,6 @@
         .policy-cancelled { opacity: 0.85; background-color: #f9fafb !important; border-color: #d1d5db !important; }
         .report-section { border-left: 4px solid #3b82f6; background: #f8fafc; padding: 1rem; margin-bottom: 1rem; border-radius: 0 0.5rem 0.5rem 0; }
         
-        /* 專門處理 PDF 列印的 CSS：隱藏非報告元素，強制背景顏色，確保文件格式 */
         @media print {
             @page { margin: 15mm; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -145,6 +144,9 @@
                     <div class="md:col-span-2">
                         <label class="block text-sm font-bold mb-1 text-blue-600">持有人 / 戶口名稱</label>
                         <input type="text" x-model="client.owner" @blur="client.owner = formatName(client.owner)" autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false" class="w-full border rounded p-2" placeholder="例如: Chan Tai Man, Tony">
+                        <span x-show="isDuplicateOwner" class="text-xs text-red-500 font-bold mt-1 block" x-cloak>
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i>系統已存在相同名稱的客戶資料！
+                        </span>
                     </div>
                     <div>
                         <label class="block text-sm font-bold mb-1 text-blue-600">
@@ -221,6 +223,20 @@
                                     <input type="text" x-model="policy.premium" :disabled="policy.isCancelled" @input="policy.premium = formatInput($event.target.value)" class="w-full border rounded p-2 text-sm disabled:bg-gray-100 disabled:text-gray-500 pr-10">
                                     <button @click="policy.premium = parseFloat((parseFloat(String(policy.premium).replace(/,/g, ''))*7.8).toFixed(0)).toLocaleString('en-US')" x-show="!policy.isCancelled" class="absolute right-0 top-0 h-full bg-gray-100 hover:bg-gray-200 text-[8px] px-1 text-gray-500 rounded-r border-l">USD</button>
                                 </div>
+                            </div>
+                        </div>
+
+                        <div x-show="policy.insuredPerson && client.owner && policy.insuredPerson !== client.owner" class="mb-4 bg-purple-50 p-3 rounded-lg border border-purple-100 flex flex-wrap gap-3 items-end" x-cloak>
+                            <div class="flex-1 min-w-[200px] max-w-sm">
+                                <label class="block text-xs font-bold mb-1 text-purple-700">受保人 (<span x-text="policy.insuredPerson"></span>) 生日 <span x-show="policy.insuredDob" class="font-normal text-purple-500" x-text="'(' + getAge(policy.insuredDob) + ' 歲)'"></span></label>
+                                <div class="flex gap-1">
+                                    <input type="date" x-model="policy.insuredDob" :disabled="policy.isCancelled" class="w-full border rounded p-2 text-sm bg-white">
+                                    <button @click="sendWhatsappMessage('insuredBirthday', client, policy)" x-show="!policy.isCancelled" class="bg-[#25D366] hover:bg-green-600 px-3 rounded text-white shadow-sm transition" title="發送生日祝賀"><i class="fa-brands fa-whatsapp"></i></button>
+                                    <button @click="openCalendarMenu('insuredBirthday', {client: client, policy: policy})" x-show="!policy.isCancelled" class="bg-white hover:bg-gray-100 px-3 rounded border border-gray-300 text-gray-600 text-xs transition" title="加入日曆"><i class="fa-solid fa-calendar-plus"></i></button>
+                                </div>
+                            </div>
+                            <div class="text-[10px] text-purple-500 pb-1 flex items-center">
+                                <i class="fa-solid fa-circle-info mr-1"></i> 聯絡電話跟隨持有人
                             </div>
                         </div>
                         
@@ -414,7 +430,7 @@
             </div>
             <div class="mb-4 bg-blue-50 p-3 rounded text-xs text-blue-800 border border-blue-100">
                 <strong>可用變數 (自動替換):</strong><br>
-                <code>{{name}}</code> 客戶姓名<br>
+                <code>{{name}}</code> 客戶/受保人姓名<br>
                 <code>{{insurer}}</code> 保險公司<br>
                 <code>{{policyNo}}</code> 保單號碼<br>
                 <code>{{dueDate}}</code> 續保日期<br>
@@ -473,7 +489,7 @@
 
         function app() {
             return {
-                version: '1.4.2',
+                version: '1.4.3',
                 view: 'list', searchQuery: '', renewalFilter: '', typeFilter: '', clients: [], client: {}, 
                 showWebActionModal: false, showConfigModal: false, showWebFrame: false, 
                 showSettingsModal: false, 
@@ -508,6 +524,14 @@
                     if (savedSettings) this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
                 },
 
+                // 新增：偵測重複客戶名稱
+                get isDuplicateOwner() {
+                    if (!this.client || !this.client.owner) return false;
+                    const currentName = this.client.owner.trim().toLowerCase();
+                    if (currentName === '') return false;
+                    return this.clients.some(c => c.id !== this.client.id && c.owner && c.owner.trim().toLowerCase() === currentName);
+                },
+
                 openReport(c) {
                     this.reportClient = JSON.parse(JSON.stringify(c));
                     let data = { Medical: [], CI: [], Life: [], Accident: [], Savings: [] };
@@ -537,11 +561,8 @@
                     this.showReportModal = true;
                 },
 
-                // PDF 儲存功能 (改用系統列印，完美告別白畫面)
                 savePDF() {
-                    setTimeout(() => {
-                        window.print();
-                    }, 300);
+                    setTimeout(() => { window.print(); }, 300);
                 },
 
                 importAllData(e) { 
@@ -665,21 +686,28 @@
                     setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000); 
                 },
 
-                addPolicy() { this.client.policies.push({ insurer: 'AIA', items: [{ category: 'Medical', maturity: '', showRemark: false, term: '' }], paymentMode: 'Yearly', isCancelled: false }); },
+                addPolicy() { this.client.policies.push({ insurer: 'AIA', insuredDob: '', items: [{ category: 'Medical', maturity: '', showRemark: false, term: '' }], paymentMode: 'Yearly', isCancelled: false }); },
 
                 removePolicy(i) { if(confirm('徹底刪除這份保單紀錄？')) this.client.policies.splice(i,1); },
 
                 togglePolicyCancel(policy) { policy.cancelDate = policy.isCancelled ? new Date().toISOString().split('T')[0] : ''; },
 
                 sendWhatsappMessage(type, client, policy = null) {
-                    if (!client.phone) return alert('請先輸入電話號碼！');
+                    if (!client.phone) return alert('請先輸入持有人電話號碼！');
                     let phone = client.phone.replace(/[^0-9]/g, '');
                     if (phone.length === 8) phone = '852' + phone; 
                     
-                    let text = type === 'birthday' ? this.settings.waBirthday : this.settings.waRenewal;
-                    text = text.replace(/{{name}}/g, client.owner || '');
+                    let text = '';
+                    if (type === 'birthday') {
+                        text = this.settings.waBirthday.replace(/{{name}}/g, client.owner || '');
+                    } else if (type === 'insuredBirthday') {
+                        // 使用受保人名稱發送生日祝賀
+                        text = this.settings.waBirthday.replace(/{{name}}/g, policy.insuredPerson || '');
+                    } else if (type === 'renewal') {
+                        text = this.settings.waRenewal.replace(/{{name}}/g, client.owner || '');
+                    }
                     
-                    if (policy) {
+                    if (policy && type === 'renewal') {
                         text = text.replace(/{{insurer}}/g, policy.insurer || '');
                         text = text.replace(/{{policyNo}}/g, policy.policyNo || '-');
                         text = text.replace(/{{dueDate}}/g, policy.dueDate || '-');
@@ -785,6 +813,9 @@
                     if (this.calendarModal.type === 'birthday') {
                         title = `生日祝賀: ${this.client.owner}`;
                         dateStr = this.client.dob;
+                    } else if (this.calendarModal.type === 'insuredBirthday') {
+                        title = `受保人生日: ${this.calendarModal.data.policy.insuredPerson}`;
+                        dateStr = this.calendarModal.data.policy.insuredDob;
                     } else if (this.calendarModal.type === 'renewal') {
                         title = `續保提醒: ${this.calendarModal.data.insurer} (${this.client.owner})`;
                         dateStr = this.calendarModal.data.dueDate;
@@ -792,7 +823,16 @@
                         title = `跟進提醒: ${this.client.owner}`;
                         dateStr = this.client.remarkDate;
                     }
+                    
                     if (!dateStr) return alert('請先輸入日期');
+                    
+                    // 生日需要計算下一年的日期
+                    if (this.calendarModal.type === 'birthday' || this.calendarModal.type === 'insuredBirthday') {
+                        const dob = new Date(dateStr);
+                        const today = new Date(); 
+                        const year = today.getMonth() > dob.getMonth() || (today.getMonth() === dob.getMonth() && today.getDate() > dob.getDate()) ? today.getFullYear() + 1 : today.getFullYear(); 
+                        dateStr = year + '-' + ('0' + (dob.getMonth()+1)).slice(-2) + '-' + ('0' + dob.getDate()).slice(-2);
+                    }
                     
                     const d = dateStr.replace(/-/g, '');
                     if (platform === 'google') { 
