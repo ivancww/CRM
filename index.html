@@ -15,8 +15,7 @@
             document.write('<link rel="icon" type="image/png" href="client-logo-192.png">');
             document.write('<link rel="apple-touch-icon" href="client-logo-192.png">');
         } else {
-            // 🌟 已經幫你喺呢度更新埋，等你一眼就睇到最新版本！
-            document.title = "保險管家 v1.4.6 (Admin - Cloud)";
+            document.title = "保險管家 v1.4.7 (Admin - Cloud)";
             document.write('<link rel="manifest" href="manifest-admin.json">');
             document.write('<link rel="icon" type="image/png" href="admin-logo-192.png">');
             document.write('<link rel="apple-touch-icon" href="admin-logo-192.png">');
@@ -30,7 +29,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
@@ -44,13 +42,10 @@
         .report-section { border-left: 4px solid #3b82f6; background: #f8fafc; padding: 1rem; margin-bottom: 1rem; border-radius: 0 0.5rem 0.5rem 0; }
         
         /* 客戶儀表板樣式 */
-        .progress-bar-bg { background-color: #E2E8F0; border-radius: 999px; overflow: hidden; height: 1.5rem; }
-        .progress-fill-green { background-color: #10B981; height: 100%; transition: width 1s ease-in-out; }
-        .progress-fill-orange { background-color: #F97316; height: 100%; transition: width 1s ease-in-out; }
         .theme-blue { color: #1E3A8A; }
         .gradient-bg { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
         .client-body { -webkit-user-select: none; user-select: none; }
-        
+
         @media print {
             @page { margin: 15mm; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -98,7 +93,7 @@
         
         <div class="container mx-auto p-4 max-w-5xl print:hidden">
             <div x-show="view === 'list'" x-transition>
-                <div class="mb-6 flex flex-col md:flex-row gap-2">
+                <div class="mb-4 flex flex-col md:flex-row gap-2">
                     <div class="relative flex-1">
                         <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
                         <input type="text" x-model="searchQuery" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" class="w-full p-3 pl-10 rounded-lg border shadow-sm focus:ring-2 focus:ring-blue-400" placeholder="搜尋客戶、受保人、電話...">
@@ -108,11 +103,18 @@
                             <option value="">☂️ 所有類型</option>
                             <option value="CI">危疾</option><option value="Accident">意外</option><option value="Medical">醫療</option><option value="Savings">儲蓄</option><option value="Fund">基金</option><option value="Home">家居保</option><option value="MPF">強積金</option><option value="Wellness">健康程式</option>
                         </select>
-                        <select x-model="renewalFilter" class="flex-1 md:w-32 p-2 rounded-lg border-2 border-green-200 shadow-sm focus:ring-2 focus:ring-green-500 bg-white font-bold text-gray-700 text-sm cursor-pointer">
-                            <option value="">📅 所有月份</option>
-                            <option value="1">1月 續保</option><option value="2">2月 續保</option><option value="3">3月 續保</option><option value="4">4月 續保</option><option value="5">5月 續保</option><option value="6">6月 續保</option><option value="7">7月 續保</option><option value="8">8月 續保</option><option value="9">9月 續保</option><option value="10">10月 續保</option><option value="11">11月 續保</option><option value="12">12月 續保</option>
-                        </select>
                     </div>
+                </div>
+                
+                <div class="mb-6 flex flex-col md:flex-row gap-2">
+                    <select x-model="birthdayFilter" class="flex-1 p-2 rounded-lg border-2 border-pink-200 shadow-sm focus:ring-2 focus:ring-pink-500 bg-white font-bold text-gray-700 text-sm cursor-pointer">
+                        <option value="">🎂 生日月份</option>
+                        <option value="1">1月 生日</option><option value="2">2月 生日</option><option value="3">3月 生日</option><option value="4">4月 生日</option><option value="5">5月 生日</option><option value="6">6月 生日</option><option value="7">7月 生日</option><option value="8">8月 生日</option><option value="9">9月 生日</option><option value="10">10月 生日</option><option value="11">11月 生日</option><option value="12">12月 生日</option>
+                    </select>
+                    <select x-model="renewalFilter" class="flex-1 p-2 rounded-lg border-2 border-green-200 shadow-sm focus:ring-2 focus:ring-green-500 bg-white font-bold text-gray-700 text-sm cursor-pointer">
+                        <option value="">📅 續保月份</option>
+                        <option value="1">1月 續保</option><option value="2">2月 續保</option><option value="3">3月 續保</option><option value="4">4月 續保</option><option value="5">5月 續保</option><option value="6">6月 續保</option><option value="7">7月 續保</option><option value="8">8月 續保</option><option value="9">9月 續保</option><option value="10">10月 續保</option><option value="11">11月 續保</option><option value="12">12月 續保</option>
+                    </select>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -126,8 +128,10 @@
                             </div>
                             <div class="text-sm text-gray-500 mt-1"><i class="fa-solid fa-phone mr-1"></i> <span x-text="c.phone || '-'"></span></div>
                             <div class="text-xs text-gray-400 mt-2">有效保單: <span x-text="(c.policies || []).filter(p=>!p.isCancelled).length"></span></div>
-                            <div x-show="renewalFilter && hasRenewalMatch(c)" class="mt-2 text-xs text-green-600 font-bold bg-green-50 inline-block px-1 rounded">
-                                <i class="fa-solid fa-check"></i> <span x-text="renewalFilter"></span>月有續保
+                            
+                            <div class="mt-2 flex gap-1 flex-wrap">
+                                <div x-show="renewalFilter && hasRenewalMatch(c)" class="text-xs text-green-600 font-bold bg-green-50 inline-block px-1 rounded border border-green-100"><i class="fa-solid fa-check"></i> <span x-text="renewalFilter"></span>月有續保</div>
+                                <div x-show="birthdayFilter && c.dob && (new Date(c.dob).getMonth()+1).toString() === birthdayFilter" class="text-xs text-pink-600 font-bold bg-pink-50 inline-block px-1 rounded border border-pink-100"><i class="fa-solid fa-cake-candles"></i> 此月生日</div>
                             </div>
                             
                             <div class="absolute bottom-4 right-4 flex gap-2">
@@ -241,7 +245,7 @@
                                 </div>
                             </div>
 
-                            <div x-show="policy.insuredPerson && client.owner && policy.insuredPerson !== client.owner" class="mb-4 bg-purple-50 p-3 rounded-lg border border-purple-100 flex flex-wrap gap-3 items-end" x-cloak>
+                            <div x-show="policy.insuredPerson && client.owner && policy.insuredPerson.trim().toLowerCase() !== client.owner.trim().toLowerCase()" class="mb-4 bg-purple-50 p-3 rounded-lg border border-purple-100 flex flex-wrap gap-3 items-end" x-cloak>
                                 <div class="flex-1 min-w-[200px] max-w-sm">
                                     <label class="block text-xs font-bold mb-1 text-purple-700">受保人 (<span x-text="policy.insuredPerson"></span>) 生日 <span x-show="policy.insuredDob" class="font-normal text-purple-500" x-text="'(' + getAge(policy.insuredDob) + ' 歲)'"></span></label>
                                     <div class="flex gap-1">
@@ -496,6 +500,7 @@
         </div>
     </div>
 
+
     <div x-show="isClientView" x-data="dashboardApp()" x-cloak>
         <div x-show="!hasData" class="flex items-center justify-center min-h-screen">
             <div class="text-center text-gray-500">
@@ -519,38 +524,70 @@
             </div>
 
             <div class="p-4 md:p-8 space-y-6 md:space-y-8 bg-gray-50">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                    <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                        <h2 class="text-lg font-bold theme-blue mb-2"><i class="fa-solid fa-chart-radar mr-2"></i>第一層：全方位保障均衡度</h2>
-                        <p class="text-xs text-gray-500 mb-4">外圈為理想目標，藍色範圍為現有保障。助您一眼看清保障缺口。</p>
-                        <div class="relative h-64 w-full">
-                            <canvas id="gapRadarChart"></canvas>
+                
+                <div>
+                    <h2 class="text-lg font-bold theme-blue mb-4"><i class="fa-solid fa-shield-cat mr-2"></i>第一層：四大保障基石概覽</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-red-400">
+                            <div class="text-xs text-gray-500 mb-1">🏥 醫療保障</div>
+                            <div class="text-lg font-bold text-gray-800" x-text="protectionSummary.medical.type"></div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-orange-400">
+                            <div class="text-xs text-gray-500 mb-1">🛡️ 危疾保障 (替代收入)</div>
+                            <div class="text-lg font-bold text-gray-800" x-text="protectionSummary.ci.sum > 0 ? 'HK$ ' + formatNumber(protectionSummary.ci.sum) : '尚未配置'"></div>
+                            <div x-show="protectionSummary.ci.sum > 0" class="text-[10px] text-gray-400 mt-2 bg-gray-50 p-1 rounded">💡 足夠替代 3 年收入嗎？</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-blue-400">
+                            <div class="text-xs text-gray-500 mb-1">🕊️ 人壽保障 (家庭責任)</div>
+                            <div class="text-lg font-bold text-gray-800" x-text="protectionSummary.life.sum > 0 ? 'HK$ ' + formatNumber(protectionSummary.life.sum) : '尚未配置'"></div>
+                            <div x-show="protectionSummary.life.sum > 0" class="text-[10px] text-gray-400 mt-2 bg-gray-50 p-1 rounded">💡 房貸、生活費已覆蓋？</div>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-teal-400">
+                            <div class="text-xs text-gray-500 mb-1">🚑 意外保障</div>
+                            <div class="text-sm font-bold text-gray-800" x-show="protectionSummary.accDeath.sum > 0">身故: HK$ <span x-text="formatNumber(protectionSummary.accDeath.sum)"></span></div>
+                            <div class="text-sm font-bold text-gray-800 mt-1" x-show="protectionSummary.accMedical.sum > 0">醫療: HK$ <span x-text="formatNumber(protectionSummary.accMedical.sum)"></span></div>
+                            <div class="text-lg font-bold text-gray-800" x-show="protectionSummary.accDeath.sum === 0 && protectionSummary.accMedical.sum === 0">尚未配置</div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="flex flex-col gap-6">
-                        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                            <div class="flex justify-between items-end mb-2">
-                                <h2 class="text-lg font-bold theme-blue"><i class="fa-solid fa-mug-hot mr-2"></i>理想退休計畫</h2>
-                                <span class="text-sm font-bold text-orange-500">缺口：每月 -$20,000</span>
+                <div>
+                    <h2 class="text-lg font-bold theme-blue mb-4"><i class="fa-solid fa-calculator mr-2"></i>第二層：互動財務需求探索</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                            <h3 class="font-bold text-gray-700 mb-3 border-b pb-2">理想退休生活</h3>
+                            <div class="space-y-3 text-sm">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">每月預期開支 (HK$)</span>
+                                    <input type="number" x-model.number="tools.retireMonthly" class="border rounded p-1 w-24 text-right bg-gray-50 focus:bg-white outline-none">
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">預計退休年期 (年)</span>
+                                    <input type="number" x-model.number="tools.retireYears" class="border rounded p-1 w-24 text-right bg-gray-50 focus:bg-white outline-none">
+                                </div>
+                                <div class="mt-4 bg-orange-50 p-3 rounded-lg text-center">
+                                    <div class="text-xs text-orange-600 mb-1">您總共需要準備</div>
+                                    <div class="text-xl font-bold text-orange-600 font-mono" x-text="'HK$ ' + formatNumber(tools.retireMonthly * 12 * tools.retireYears)"></div>
+                                </div>
                             </div>
-                            <p class="text-[10px] text-gray-500 mb-3">目標：每月 $30,000 (持續 20 年) | 現有預期：強積金等每月 $10,000</p>
-                            <div class="progress-bar-bg relative">
-                                <div class="progress-fill-orange flex items-center justify-end pr-2 text-white text-xs font-bold" style="width: 33%;">33%</div>
-                            </div>
-                            <p class="text-xs text-red-500 mt-3 bg-red-50 p-2 rounded"><i class="fa-regular fa-lightbulb mr-1"></i> 顧問建議：可考慮配置年金產品或收息資產，填補未來的現金流空白。</p>
                         </div>
-
-                        <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm flex-1">
-                            <div class="flex justify-between items-end mb-2">
-                                <h2 class="text-lg font-bold theme-blue"><i class="fa-solid fa-graduation-cap mr-2"></i>子女海外教育金</h2>
-                                <span class="text-sm font-bold text-green-600">進度良好</span>
+                        
+                        <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                            <h3 class="font-bold text-gray-700 mb-3 border-b pb-2">子女教育基金</h3>
+                            <div class="space-y-3 text-sm">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">每年學費及生活費 (HK$)</span>
+                                    <input type="number" x-model.number="tools.eduAnnual" class="border rounded p-1 w-24 text-right bg-gray-50 focus:bg-white outline-none">
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">預計留學年期 (年)</span>
+                                    <input type="number" x-model.number="tools.eduYears" class="border rounded p-1 w-24 text-right bg-gray-50 focus:bg-white outline-none">
+                                </div>
+                                <div class="mt-4 bg-green-50 p-3 rounded-lg text-center">
+                                    <div class="text-xs text-green-600 mb-1">您總共需要準備</div>
+                                    <div class="text-xl font-bold text-green-600 font-mono" x-text="'HK$ ' + formatNumber(tools.eduAnnual * tools.eduYears)"></div>
+                                </div>
                             </div>
-                            <p class="text-[10px] text-gray-500 mb-3">目標：$2,000,000 | 現有現金價值：$1,500,000</p>
-                            <div class="progress-bar-bg relative">
-                                <div class="progress-fill-green flex items-center justify-end pr-2 text-white text-xs font-bold" style="width: 75%;">75%</div>
-                            </div>
-                            <p class="text-xs text-gray-600 mt-3 bg-gray-50 p-2 rounded border"><i class="fa-solid fa-check-circle text-green-500 mr-1"></i> 顧問建議：維持現有供款計畫即可，需持續留意通脹影響。</p>
                         </div>
                     </div>
                 </div>
@@ -559,7 +596,7 @@
                     <h2 class="text-xl font-bold theme-blue mb-4 border-l-4 border-blue-600 pl-3">保單明細一覽</h2>
                     
                     <template x-for="(policy, index) in client.policies" :key="index">
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-4 overflow-hidden">
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-4 overflow-hidden" x-show="!policy.isCancelled">
                             <div class="bg-blue-50/50 p-4 border-b border-gray-100 flex flex-wrap justify-between items-center gap-4">
                                 <div>
                                     <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded font-bold mr-2" x-text="policy.insurer"></span>
@@ -587,46 +624,29 @@
                                 </div>
                             </div>
 
-                            <div class="p-4">
-                                <div class="overflow-x-auto">
-                                    <table class="w-full text-sm text-left">
-                                        <thead class="text-xs text-gray-500 bg-gray-50 rounded">
-                                            <tr>
-                                                <th class="px-3 py-2 rounded-l">產品名稱 (種類)</th>
-                                                <th class="px-3 py-2">保額 / 自付費</th>
-                                                <th class="px-3 py-2">保障期 / 供款期</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <template x-for="(item, iIndex) in policy.items">
-                                                <tr class="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition">
-                                                    <td class="px-3 py-3">
-                                                        <div class="flex items-center gap-2">
-                                                            <span x-show="iIndex === 0" class="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">主</span>
-                                                            <span x-show="iIndex > 0" class="bg-gray-200 text-gray-600 text-[10px] px-1.5 py-0.5 rounded">附</span>
-                                                            <div>
-                                                                <div class="font-bold text-gray-800" x-text="item.name || '未命名項目'"></div>
-                                                                <div class="text-[10px]" :class="getCategoryColor(item.category)" x-text="item.category"></div>
-                                                            </div>
-                                                        </div>
-                                                        <div x-show="item.remarks" class="mt-2 text-xs bg-yellow-50 text-yellow-800 p-2 rounded border border-yellow-100 flex items-start gap-1">
-                                                            <i class="fa-solid fa-circle-info mt-0.5"></i>
-                                                            <span x-text="item.remarks" class="whitespace-pre-line"></span>
-                                                        </div>
-                                                    </td>
-                                                    <td class="px-3 py-3">
-                                                        <div x-show="item.sumAssured" class="text-gray-800 font-bold font-mono">保額: HK$ <span x-text="formatNumber(item.sumAssured)"></span></div>
-                                                        <div x-show="item.deductible" class="text-gray-500 text-xs mt-0.5">自付: HK$ <span x-text="formatNumber(item.deductible)"></span></div>
-                                                    </td>
-                                                    <td class="px-3 py-3 text-gray-600 text-xs">
-                                                        <div x-show="item.maturity">保障至: <span class="font-bold" x-text="item.maturity"></span></div>
-                                                        <div x-show="item.term" class="mt-0.5">供款期: <span class="font-bold" x-text="item.term"></span></div>
-                                                    </td>
-                                                </tr>
-                                            </template>
-                                        </tbody>
-                                    </table>
-                                </div>
+                            <div class="p-2">
+                                <template x-for="(item, iIndex) in policy.items" :key="iIndex">
+                                    <div class="p-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 transition">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <div class="flex items-center gap-2">
+                                                <span x-show="iIndex === 0" class="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">主</span>
+                                                <span x-show="iIndex > 0" class="bg-gray-200 text-gray-600 text-[10px] px-1.5 py-0.5 rounded">附</span>
+                                                <div>
+                                                    <div class="font-bold text-gray-800 text-sm" x-text="item.name || '未命名項目'"></div>
+                                                    <div class="text-[10px]" :class="getCategoryColor(item.category)" x-text="item.category"></div>
+                                                </div>
+                                            </div>
+                                            <button x-show="item.remarks" @click="openClientRemark(item.remarks)" class="w-6 h-6 rounded-full bg-red-50 text-red-500 flex items-center justify-center text-xs border border-red-200 shadow-sm transition active:scale-95"><i class="fa-solid fa-exclamation"></i></button>
+                                        </div>
+                                        
+                                        <div class="grid grid-cols-2 gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded border border-gray-100 mt-1">
+                                            <div><span class="text-gray-400">保額:</span> <span class="font-mono font-bold text-gray-700" x-text="item.sumAssured ? '$'+formatNumber(item.sumAssured) : '-'"></span></div>
+                                            <div><span class="text-gray-400">自付費:</span> <span class="font-mono font-bold text-gray-700" x-text="item.deductible ? '$'+formatNumber(item.deductible) : '-'"></span></div>
+                                            <div><span class="text-gray-400">保障期:</span> <span class="font-bold" x-text="item.maturity || '-'"></span></div>
+                                            <div><span class="text-gray-400">供款期:</span> <span class="font-bold" x-text="item.term || '-'"></span></div>
+                                        </div>
+                                    </div>
+                                </template>
                             </div>
                         </div>
                     </template>
@@ -689,6 +709,19 @@
                 </div>
             </div>
         </div>
+
+        <div x-show="clientRemarkModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4" x-cloak>
+            <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden relative">
+                <div class="bg-red-500 p-4 text-center">
+                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto text-red-500 text-2xl shadow-sm mb-2"><i class="fa-solid fa-info"></i></div>
+                    <h3 class="font-bold text-white">保單項目備註</h3>
+                </div>
+                <div class="p-6">
+                    <div class="text-sm text-gray-700 whitespace-pre-line leading-relaxed" x-text="clientRemarkModal.text"></div>
+                    <button @click="clientRemarkModal.open = false" class="mt-6 w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 rounded-xl transition">關閉</button>
+                </div>
+            </div>
+        </div>
     </div>
 
 
@@ -698,9 +731,8 @@
         // ==================== 管理者 (Admin) JS 邏輯 ====================
         function app() {
             return {
-                // 🌟 呢度已經幫你更新做 1.4.6！
-                version: '1.4.6',
-                view: 'list', searchQuery: '', renewalFilter: '', typeFilter: '', clients: [], client: {}, 
+                version: '1.4.7', // 🌟 強制更新版號
+                view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, 
                 showWebActionModal: false, showConfigModal: false, showWebFrame: false, 
                 showSettingsModal: false, 
                 showReportModal: false, showSavingsInReport: true,
@@ -811,6 +843,14 @@
                         result = result.filter(c => c.policies && c.policies.some(p => !p.isCancelled && p.items && p.items.some(i => i.category === this.typeFilter)));
                     }
                     if (this.renewalFilter) { result = result.filter(c => c.policies && c.policies.some(p => !p.isCancelled && this.isMatchRenewal(p))); }
+                    
+                    // 🌟 新增生日月份過濾
+                    if (this.birthdayFilter) {
+                        result = result.filter(c => {
+                            if (!c.dob) return false;
+                            return (new Date(c.dob).getMonth() + 1).toString() === this.birthdayFilter;
+                        });
+                    }
                     return result;
                 },
 
@@ -1115,6 +1155,8 @@
                 client: {},
                 hasData: false,
                 loadingMsg: '正在為您準備專屬保障報告...',
+                clientRemarkModal: { open: false, text: '' },
+                tools: { retireMonthly: 20000, retireYears: 20, eduAnnual: 300000, eduYears: 4 },
                 
                 init() {
                     const params = new URLSearchParams(window.location.search);
@@ -1153,9 +1195,7 @@
                     } else {
                         this.client = deepParsed;
                     }
-                    
                     this.hasData = true;
-                    this.$nextTick(() => { this.initChart(); });
                 },
 
                 recursiveParse(data) {
@@ -1185,49 +1225,47 @@
                     if (wealth.includes(cat)) return 'text-blue-500 font-bold'; 
                     return 'text-gray-600 font-bold';
                 },
+                
+                openClientRemark(text) {
+                    this.clientRemarkModal.text = text;
+                    this.clientRemarkModal.open = true;
+                },
 
-                initChart() {
-                    const ctx = document.getElementById('gapRadarChart');
-                    if(!ctx) return;
+                // 🌟 新增：智能計算第一層四大保障基石
+                get protectionSummary() {
+                    let summary = {
+                        medical: { sum: 0, type: '尚未配置' },
+                        ci: { sum: 0 },
+                        life: { sum: 0 },
+                        accDeath: { sum: 0 },
+                        accMedical: { sum: 0 }
+                    };
                     
-                    new Chart(ctx.getContext('2d'), {
-                        type: 'radar',
-                        data: {
-                            labels: ['基本醫療', '危疾(替代收入)', '人壽(家庭責任)', '子女教育金', '退休現金流'],
-                            datasets: [
-                                {
-                                    label: '現有保障狀況',
-                                    data: [90, 40, 50, 75, 33], 
-                                    backgroundColor: 'rgba(30, 58, 138, 0.4)',
-                                    borderColor: 'rgba(30, 58, 138, 1)',
-                                    pointBackgroundColor: 'rgba(30, 58, 138, 1)',
-                                    borderWidth: 2,
-                                },
-                                {
-                                    label: '理想目標',
-                                    data: [100, 100, 100, 100, 100],
-                                    backgroundColor: 'rgba(200, 200, 200, 0.1)',
-                                    borderColor: 'rgba(156, 163, 175, 1)',
-                                    borderDash: [5, 5],
-                                    borderWidth: 1,
-                                    pointRadius: 0
+                    if (!this.client.policies) return summary;
+                    
+                    this.client.policies.forEach(p => {
+                        if(p.isCancelled) return;
+                        p.items.forEach(i => {
+                            let amt = parseFloat(String(i.sumAssured||'0').replace(/,/g, '')) || 0;
+                            let remarks = i.remarks || '';
+                            
+                            if(i.category === 'Medical') {
+                                if(remarks.includes('高端')) summary.medical.type = '高端醫療';
+                                else if(summary.medical.type === '尚未配置') summary.medical.type = '傳統醫療';
+                            } else if (i.category === 'CI') {
+                                summary.ci.sum += amt;
+                            } else if (i.category === 'Life') {
+                                summary.life.sum += amt;
+                            } else if (i.category === 'Accident') {
+                                if(remarks.includes('費用索償')) {
+                                    summary.accMedical.sum += amt;
+                                } else {
+                                    summary.accDeath.sum += amt;
                                 }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                                r: {
-                                    angleLines: { color: '#E5E7EB' },
-                                    grid: { color: '#E5E7EB' },
-                                    pointLabels: { font: { size: 12, family: 'sans-serif' }, color: '#4B5563' },
-                                    ticks: { display: false, min: 0, max: 100 }
-                                }
-                            },
-                            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }
-                        }
+                            }
+                        });
                     });
+                    return summary;
                 }
             }
         }
