@@ -15,7 +15,8 @@
             document.write('<link rel="icon" type="image/png" href="client-logo-192.png">');
             document.write('<link rel="apple-touch-icon" href="client-logo-192.png">');
         } else {
-            document.title = "保險管家 v1.4.5 (Admin - Cloud)";
+            // 🌟 已經幫你喺呢度更新埋，等你一眼就睇到最新版本！
+            document.title = "保險管家 v1.4.6 (Admin - Cloud)";
             document.write('<link rel="manifest" href="manifest-admin.json">');
             document.write('<link rel="icon" type="image/png" href="admin-logo-192.png">');
             document.write('<link rel="apple-touch-icon" href="admin-logo-192.png">');
@@ -697,7 +698,8 @@
         // ==================== 管理者 (Admin) JS 邏輯 ====================
         function app() {
             return {
-                version: '1.4.5',
+                // 🌟 呢度已經幫你更新做 1.4.6！
+                version: '1.4.6',
                 view: 'list', searchQuery: '', renewalFilter: '', typeFilter: '', clients: [], client: {}, 
                 showWebActionModal: false, showConfigModal: false, showWebFrame: false, 
                 showSettingsModal: false, 
@@ -939,7 +941,6 @@
 
                 openUploadModal() { this.uploadModal.open = true; },
 
-                // ★ 已修改：強制空白密碼上傳
                 uploadToCloud() {
                     this.uploadModal.loading = true;
                     const uniqueId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
@@ -947,7 +948,6 @@
                     d.webLinks = this.webLinks || []; 
                     d.name = d.owner;
                     
-                    // 密碼強制為空，不再讀取 this.uploadModal.password
                     const finalPayload = {
                         forceId: uniqueId,
                         password: '',
@@ -969,13 +969,11 @@
                     });
                 },
 
-                // ★ 已修改：將 QR Code 網址指向當前目錄
                 generateQR(id) {
                     this.uploadModal.open = false;
                     this.qrModal.open = true;
                     let url;
                     try { 
-                        // 改為指向當前 HTML (例如 index.html?id=xxx)
                         url = window.location.href.split('?')[0] + '?id=' + id;
                     } catch(e) { 
                         let base = window.location.href.substring(0, window.location.href.lastIndexOf('/')); 
@@ -1131,7 +1129,6 @@
                             this.loadingMsg = "資料解析失敗，請確認連結是否正確。";
                         }
                     } else if (idData) {
-                        // 無密碼直接從 Google Apps Script 獲取
                         const payload = { action: 'get', id: idData, password: '' };
                         fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) })
                         .then(res => res.json())
@@ -1158,7 +1155,6 @@
                     }
                     
                     this.hasData = true;
-                    // 初始化雷達圖
                     this.$nextTick(() => { this.initChart(); });
                 },
 
