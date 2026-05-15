@@ -1,7 +1,6 @@
 {
     "name": "我的保險摘要",
     "short_name": "我的保單",
-    "start_url": "index.html",
     "display": "standalone",
     "background_color": "#f3f4f6",
     "theme_color": "#ffffff",
