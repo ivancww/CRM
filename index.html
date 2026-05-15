@@ -15,7 +15,7 @@
             document.write('<link rel="icon" type="image/png" href="client-logo-192.png">');
             document.write('<link rel="apple-touch-icon" href="client-logo-192.png">');
         } else {
-            // 🌟 版本同步為 1.5.4
+            // 🌟 版本已升級為 1.5.4，確保強制清除所有舊錯誤
             document.title = "保險管家 v1.5.4 (Admin - Cloud)";
             document.write('<link rel="manifest" href="manifest-admin.json">');
             document.write('<link rel="icon" type="image/png" href="admin-logo-192.png">');
@@ -355,7 +355,7 @@
                         </div>
                     </div>
 
-                    <button @click="view = 'review'; saveCurrentClient(true);" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-lg rounded-xl mt-4 shadow-lg transition transform active:scale-95">
+                    <button @click="updateSummary(); view = 'review'; saveCurrentClient(true);" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-lg rounded-xl mt-4 shadow-lg transition transform active:scale-95">
                         <i class="fa-solid fa-desktop mr-2"></i> 進入客戶 Review 模式
                     </button>
                 </div>
@@ -944,14 +944,6 @@
     <script>
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwOgcd8Z3nnYtbwgJQ46Fk5imt1mBhYbtSmxTiE0Edgl5M881Ymj8F_J7He8yChffiU/exec';
 
-        // 🌟 補番全域共用嘅 formatNumber 函數 (非常重要，避免系統因為搵唔到呢個 function 而死機空白)
-        function formatNumber(num) { 
-            if (num === null || num === undefined || num === '') return '-';
-            const nStr = num.toString().replace(/,/g, ''); 
-            const n = parseFloat(nStr); 
-            return isNaN(n) ? num : n.toLocaleString('en-US');
-        }
-
         // ==================== 管理者 (Admin) JS 邏輯 ====================
         function app() {
             return {
@@ -974,9 +966,6 @@
                     waRenewal: '親愛的 {{name}}，溫馨提示您的 {{insurer}} 保單 ({{policyNo}}) 將於 {{dueDate}} 到期，保費為 HK${{premium}}。'
                 },
 
-                // 綁定全域函數畀 Alpine.js 內使用
-                formatNumber(num) { return formatNumber(num); },
-
                 init() {
                     const storedVersion = localStorage.getItem('crm_version');
                     if (storedVersion && storedVersion !== this.version) {
@@ -991,6 +980,14 @@
                     if (savedLinks) this.webLinks = JSON.parse(savedLinks);
                     const savedSettings = localStorage.getItem('crm_settings');
                     if (savedSettings) this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
+                },
+
+                // 🌟 所有數字顯示必備函數
+                formatNumber(num) { 
+                    if (num === null || num === undefined || num === '') return '-';
+                    const nStr = num.toString().replace(/,/g, ''); 
+                    const n = parseFloat(nStr); 
+                    return isNaN(n) ? num : n.toLocaleString('en-US');
                 },
 
                 get isDuplicateOwner() {
@@ -1401,9 +1398,6 @@
                 loadingMsg: '正在為您準備專屬保障報告...',
                 clientRemarkModal: { open: false, text: '' },
                 
-                // 綁定畀 Alpine 使用的函數
-                formatNumber(num) { return formatNumber(num); },
-                
                 init() {
                     const params = new URLSearchParams(window.location.search);
                     const oldData = params.get('data');
@@ -1433,7 +1427,7 @@
                         this.client = payloadObj ? payloadObj : deepParsed.payload;
                     } else { this.client = deepParsed; }
                     
-                    // 向下兼容：確保舊的資料也有 summary 鎖定計算
+                    // 向下兼容舊的 QR Code，若沒有鎖定的 summary，在背景補救計算
                     if(!this.client.summary) { this.fallbackSummary(); }
                     this.hasData = true;
                 },
@@ -1444,6 +1438,13 @@
                         try { return this.recursiveParse(JSON.parse(data)); } catch (e) { return null; }
                     }
                     return null;
+                },
+
+                formatNumber(num) { 
+                    if (num === null || num === undefined || num === '') return '-';
+                    const nStr = num.toString().replace(/,/g, ''); 
+                    const n = parseFloat(nStr); 
+                    return isNaN(n) ? num : n.toLocaleString('en-US');
                 },
 
                 getCategoryColor(cat) { 
@@ -1459,4 +1460,37 @@
                 // 客戶端用的向下兼容補救計算
                 fallbackSummary() {
                     let s = { medicalType: '尚未配置', ciSum: 0, lifeSum: 0, accDeathSum: 0, accMedicalSum: 0, totalPremium: 0 };
-                    s.retireTotal = (this.client.fnaRetireMonthly || 0) *
+                    s.retireTotal = (this.client.fnaRetireMonthly || 0) * 12 * (this.client.fnaRetireYears || 0);
+                    s.eduTotal = (this.client.fnaEduAnnual || 0) * (this.client.fnaEduYears || 0);
+                    
+                    if (this.client.policies) {
+                        this.client.policies.forEach(p => {
+                            if (p.isCancelled) return;
+                            s.totalPremium += (parseFloat(String(p.premium||'').replace(/,/g, '')) || 0);
+                            p.items.forEach(i => {
+                                let amt = parseFloat(String(i.sumAssured||'0').replace(/,/g, '')) || 0;
+                                let remarks = i.remarks || ''; let name = i.name || '';
+                                if (i.category === 'Medical') {
+                                    if (remarks.includes('高端') || name.includes('高端')) s.medicalType = '高端醫療';
+                                    else if (s.medicalType === '尚未配置') s.medicalType = '傳統醫療';
+                                } else if (i.category === 'CI') { s.ciSum += amt; } 
+                                else if (i.category === 'Life') { s.lifeSum += amt; } 
+                                else if (i.category === 'Accident') {
+                                    if (remarks.includes('費用') || remarks.includes('醫療') || name.includes('費用') || name.includes('醫療')) { s.accMedicalSum += amt; } 
+                                    else { s.accDeathSum += amt; }
+                                }
+                            });
+                        });
+                    }
+                    this.client.summary = s;
+                }
+            }
+        }
+        
+        // ==================== 註冊 Service Worker 強制更新 ====================
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+        }
+    </script>
+</body>
+</html>
