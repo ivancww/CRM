@@ -1,4 +1,4 @@
-const CACHE_NAME = 'crm-cache-v1.5.4'; 
+const CACHE_NAME = 'crm-cache-v1.5.5'; 
 const urlsToCache = [
   '/',
   '/manifest-admin.json',
