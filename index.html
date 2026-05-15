@@ -15,8 +15,8 @@
             document.write('<link rel="icon" type="image/png" href="client-logo-192.png">');
             document.write('<link rel="apple-touch-icon" href="client-logo-192.png">');
         } else {
-            // 🌟 版本已升級為 1.5.4，確保強制清除所有舊錯誤
-            document.title = "保險管家 v1.5.4 (Admin - Cloud)";
+            // 🌟 版本同步為 1.5.5
+            document.title = "保險管家 v1.5.5 (Admin - Cloud)";
             document.write('<link rel="manifest" href="manifest-admin.json">');
             document.write('<link rel="icon" type="image/png" href="admin-logo-192.png">');
             document.write('<link rel="apple-touch-icon" href="admin-logo-192.png">');
@@ -101,7 +101,15 @@
                     <div class="flex gap-2 w-full md:w-auto">
                         <select x-model="typeFilter" class="flex-1 md:w-32 p-2 rounded-lg border-2 border-purple-200 shadow-sm focus:ring-2 focus:ring-purple-500 bg-white font-bold text-gray-700 text-sm cursor-pointer">
                             <option value="">☂️ 所有類型</option>
-                            <option value="CI">危疾</option><option value="Accident">意外</option><option value="Medical">醫療</option><option value="Savings">儲蓄</option><option value="Fund">基金</option><option value="Home">家居保</option><option value="MPF">強積金</option><option value="Wellness">健康程式</option>
+                            <option value="CI">危疾</option>
+                            <option value="Accident">意外身故</option>
+                            <option value="AccidentMedical">意外醫療</option>
+                            <option value="Medical">醫療</option>
+                            <option value="Savings">儲蓄</option>
+                            <option value="Fund">基金</option>
+                            <option value="Home">家居保</option>
+                            <option value="MPF">強積金</option>
+                            <option value="Wellness">健康程式</option>
                         </select>
                     </div>
                 </div>
@@ -268,7 +276,27 @@
                                         <template x-for="(item, iIndex) in policy.items" :key="iIndex">
                                             <tr class="border-b" :class="policy.isCancelled ? 'bg-transparent' : (iIndex === 0 ? 'bg-blue-50/30 hover:bg-gray-50' : 'hover:bg-gray-50')">
                                                 <td class="px-2 py-2 text-center align-middle"><div x-show="iIndex === 0" class="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center mx-auto shadow-sm" :class="policy.isCancelled ? 'opacity-50' : ''">主</div><div x-show="iIndex > 0" class="w-6 h-6 rounded-full bg-gray-200 text-gray-600 text-xs font-bold flex items-center justify-center mx-auto" x-text="iIndex" :class="policy.isCancelled ? 'opacity-50' : ''"></div></td>
-                                                <td class="px-2 py-2"><select x-model="item.category" :disabled="policy.isCancelled" :class="policy.isCancelled ? 'text-gray-500' : getCategoryColor(item.category)" class="w-full border rounded p-1 text-xs font-bold disabled:bg-gray-100"><optgroup label="保障"><option value="Medical">醫療</option><option value="CI">危疾</option><option value="Life">人壽</option><option value="Accident">意外</option></optgroup><optgroup label="理財"><option value="Savings">儲蓄</option><option value="Fund">基金</option><option value="MPF">強積金</option></optgroup><optgroup label="其他"><option value="Home">家居保</option><option value="Travel">全年旅遊保</option><option value="Wellness">健康程式</option></optgroup></select></td>
+                                                <td class="px-2 py-2">
+                                                    <select x-model="item.category" :disabled="policy.isCancelled" :class="policy.isCancelled ? 'text-gray-500' : getCategoryColor(item.category)" class="w-full border rounded p-1 text-xs font-bold disabled:bg-gray-100">
+                                                        <optgroup label="保障">
+                                                            <option value="Medical">醫療</option>
+                                                            <option value="CI">危疾</option>
+                                                            <option value="Life">人壽</option>
+                                                            <option value="Accident">意外身故</option>
+                                                            <option value="AccidentMedical">意外醫療</option>
+                                                        </optgroup>
+                                                        <optgroup label="理財">
+                                                            <option value="Savings">儲蓄</option>
+                                                            <option value="Fund">基金</option>
+                                                            <option value="MPF">強積金</option>
+                                                        </optgroup>
+                                                        <optgroup label="其他">
+                                                            <option value="Home">家居保</option>
+                                                            <option value="Travel">全年旅遊保</option>
+                                                            <option value="Wellness">健康程式</option>
+                                                        </optgroup>
+                                                    </select>
+                                                </td>
                                                 <td class="px-2 py-2"><input type="text" x-model="item.name" :disabled="policy.isCancelled" :class="policy.isCancelled ? 'text-gray-500' : (item.category === 'Medical' ? 'text-red-600 font-bold' : getCategoryColor(item.category))" class="w-full border rounded p-1 text-xs disabled:bg-gray-100"></td>
                                                 <td class="px-2 py-2"><div class="relative"><input type="text" x-model="item.sumAssured" :disabled="policy.isCancelled" @input="item.sumAssured = formatInput($event.target.value)" class="w-full border rounded p-1 text-xs disabled:bg-gray-100 disabled:text-gray-500"><button @click="item.sumAssured = parseFloat((parseFloat(String(item.sumAssured).replace(/,/g, ''))*7.8).toFixed(0)).toLocaleString('en-US')" x-show="!policy.isCancelled" class="absolute right-0 top-0 h-full bg-gray-100 hover:bg-gray-200 text-[8px] px-1 text-gray-500 rounded-r">USD</button></div></td>
                                                 <td class="px-2 py-2"><input type="text" x-model="item.deductible" :disabled="policy.isCancelled" @input="item.deductible = formatInput($event.target.value)" class="w-full border rounded p-1 text-xs disabled:bg-gray-100 disabled:text-gray-500" placeholder="0"></td>
@@ -355,7 +383,7 @@
                         </div>
                     </div>
 
-                    <button @click="updateSummary(); view = 'review'; saveCurrentClient(true);" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-lg rounded-xl mt-4 shadow-lg transition transform active:scale-95">
+                    <button @click="view = 'review'; saveCurrentClient(true);" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-lg rounded-xl mt-4 shadow-lg transition transform active:scale-95">
                         <i class="fa-solid fa-desktop mr-2"></i> 進入客戶 Review 模式
                     </button>
                 </div>
@@ -371,7 +399,7 @@
                     
                     <div x-data="{ showTotal: false }" class="bg-white/10 backdrop-blur-sm border border-white/20 p-3 rounded-xl text-center min-w-[150px] cursor-pointer hover:bg-white/20 transition shadow-sm" @click="showTotal = !showTotal">
                         <div class="text-xs text-blue-100 mb-1">家庭總保費 (年) <i class="fa-solid ml-1 opacity-70" :class="showTotal ? 'fa-eye-slash' : 'fa-eye'"></i></div>
-                        <div class="text-xl font-bold text-yellow-300 font-mono" x-text="showTotal ? 'HK$ ' + formatNumber(protectionSummary.totalPremium) : '****'"></div>
+                        <div class="text-xl font-bold text-yellow-300 font-mono" x-text="showTotal ? 'HK$ ' + formatNumber(client.summary?.totalPremium || 0) : '****'"></div>
                     </div>
                 </div>
 
@@ -379,32 +407,40 @@
                     
                     <div>
                         <h2 class="text-lg font-bold theme-blue mb-4"><i class="fa-solid fa-shield-cat mr-2"></i>第一層：四大保障基石概覽</h2>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-red-400 flex flex-col justify-center">
-                                <div class="text-xs text-gray-500 mb-1">🏥 醫療保障</div>
-                                <div class="text-lg font-bold text-gray-800" x-text="protectionSummary.medicalType"></div>
-                            </div>
-                            <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-orange-400">
-                                <div class="text-xs text-gray-500 mb-1">🛡️ 危疾保障 (替代收入)</div>
-                                <div class="text-lg font-bold text-gray-800" x-text="protectionSummary.ciSum > 0 ? 'HK$ ' + formatNumber(protectionSummary.ciSum) : '尚未配置'"></div>
-                                <div x-show="protectionSummary.ciSum > 0" class="text-xs md:text-sm text-red-600 font-bold mt-3 bg-red-50 p-2 rounded border border-red-200 flex items-start gap-1">
-                                    <i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 足夠替代 3 年家庭開支嗎？</span>
+                        
+                        <template x-for="(summary, sIndex) in protectionSummaries" :key="sIndex">
+                            <div class="mb-6 last:mb-0">
+                                <div class="inline-block bg-blue-100 text-blue-800 px-4 py-1.5 rounded-t-lg font-bold text-sm shadow-sm border border-blue-200 border-b-0">
+                                    <i class="fa-solid fa-user-shield mr-1"></i> 受保人: <span x-text="summary.name"></span>
+                                </div>
+                                <div class="bg-white p-4 rounded-b-xl rounded-tr-xl shadow-sm border border-blue-100 grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div class="p-3 rounded-xl bg-gray-50 border-t-4 border-red-400 flex flex-col justify-center">
+                                        <div class="text-xs text-gray-500 mb-1">🏥 醫療保障</div>
+                                        <div class="text-lg font-bold text-gray-800" x-text="summary.medicalType"></div>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-gray-50 border-t-4 border-orange-400">
+                                        <div class="text-xs text-gray-500 mb-1">🛡️ 危疾保障 (替代收入)</div>
+                                        <div class="text-lg font-bold text-gray-800" x-text="summary.ciSum > 0 ? 'HK$ ' + formatNumber(summary.ciSum) : '尚未配置'"></div>
+                                        <div x-show="summary.ciSum > 0" class="text-xs md:text-[11px] text-red-600 font-bold mt-2 bg-red-50 p-1.5 rounded border border-red-200 flex items-start gap-1">
+                                            <i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 足夠替代 3 年家庭開支嗎？</span>
+                                        </div>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-gray-50 border-t-4 border-blue-400">
+                                        <div class="text-xs text-gray-500 mb-1">🕊️ 人壽保障 (家庭責任)</div>
+                                        <div class="text-lg font-bold text-gray-800" x-text="summary.lifeSum > 0 ? 'HK$ ' + formatNumber(summary.lifeSum) : '尚未配置'"></div>
+                                        <div x-show="summary.lifeSum > 0" class="text-xs md:text-[11px] text-blue-600 font-bold mt-2 bg-blue-50 p-1.5 rounded border border-blue-200 flex items-start gap-1">
+                                            <i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 萬一有事，能覆蓋房貸及生活費嗎？</span>
+                                        </div>
+                                    </div>
+                                    <div class="p-3 rounded-xl bg-gray-50 border-t-4 border-teal-400 flex flex-col justify-center">
+                                        <div class="text-xs text-gray-500 mb-1">🚑 意外保障</div>
+                                        <div class="text-sm font-bold text-gray-800" x-show="summary.accDeathSum > 0">身故: HK$ <span x-text="formatNumber(summary.accDeathSum)"></span></div>
+                                        <div class="text-sm font-bold text-gray-800 mt-1" x-show="summary.accMedicalSum > 0">醫療: HK$ <span x-text="formatNumber(summary.accMedicalSum)"></span></div>
+                                        <div class="text-lg font-bold text-gray-800" x-show="summary.accDeathSum === 0 && summary.accMedicalSum === 0">尚未配置</div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-blue-400">
-                                <div class="text-xs text-gray-500 mb-1">🕊️ 人壽保障 (家庭責任)</div>
-                                <div class="text-lg font-bold text-gray-800" x-text="protectionSummary.lifeSum > 0 ? 'HK$ ' + formatNumber(protectionSummary.lifeSum) : '尚未配置'"></div>
-                                <div x-show="protectionSummary.lifeSum > 0" class="text-xs md:text-sm text-blue-600 font-bold mt-3 bg-blue-50 p-2 rounded border border-blue-200 flex items-start gap-1">
-                                    <i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 萬一有事，能覆蓋房貸及生活費嗎？</span>
-                                </div>
-                            </div>
-                            <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-teal-400 flex flex-col justify-center">
-                                <div class="text-xs text-gray-500 mb-1">🚑 意外保障</div>
-                                <div class="text-sm font-bold text-gray-800" x-show="protectionSummary.accDeathSum > 0">身故: HK$ <span x-text="formatNumber(protectionSummary.accDeathSum)"></span></div>
-                                <div class="text-sm font-bold text-gray-800 mt-1" x-show="protectionSummary.accMedicalSum > 0">醫療: HK$ <span x-text="formatNumber(protectionSummary.accMedicalSum)"></span></div>
-                                <div class="text-lg font-bold text-gray-800" x-show="protectionSummary.accDeathSum === 0 && protectionSummary.accMedicalSum === 0">尚未配置</div>
-                            </div>
-                        </div>
+                        </template>
                     </div>
 
                     <div>
@@ -416,19 +452,19 @@
                                 <div class="space-y-3 text-sm">
                                     <div class="flex justify-between items-center">
                                         <span class="text-gray-600 font-bold">每月理想生活費 (HK$)</span>
-                                        <input type="number" x-model.number="client.fnaRetireMonthly" class="border-2 border-blue-200 rounded p-1 w-28 text-right bg-blue-50 focus:bg-white focus:border-blue-400 outline-none font-bold text-blue-800">
+                                        <input type="number" x-model.number="client.fnaRetireMonthly" @input="updateSummary()" class="border-2 border-blue-200 rounded p-1 w-28 text-right bg-blue-50 focus:bg-white focus:border-blue-400 outline-none font-bold text-blue-800">
                                     </div>
                                     <div class="flex justify-between items-center">
                                         <span class="text-gray-600 font-bold">預計退休年期 (年)</span>
-                                        <input type="number" x-model.number="client.fnaRetireYears" class="border-2 border-blue-200 rounded p-1 w-28 text-right bg-blue-50 focus:bg-white focus:border-blue-400 outline-none font-bold text-blue-800">
+                                        <input type="number" x-model.number="client.fnaRetireYears" @input="updateSummary()" class="border-2 border-blue-200 rounded p-1 w-28 text-right bg-blue-50 focus:bg-white focus:border-blue-400 outline-none font-bold text-blue-800">
                                     </div>
                                     <div class="flex justify-between items-center">
                                         <span class="text-gray-600 font-bold">預備的工具</span>
-                                        <input type="text" x-model="client.fnaRetireTools" class="border-2 border-blue-200 rounded p-1 w-32 text-right bg-blue-50 focus:bg-white focus:border-blue-400 outline-none font-bold text-blue-800" placeholder="如股票, 債券, 定期...">
+                                        <input type="text" x-model="client.fnaRetireTools" @input="updateSummary()" class="border-2 border-blue-200 rounded p-1 w-32 text-right bg-blue-50 focus:bg-white focus:border-blue-400 outline-none font-bold text-blue-800" placeholder="如股票, 債券, 定期...">
                                     </div>
                                     <div class="mt-4 bg-orange-50 p-3 rounded-lg text-center">
                                         <div class="text-xs text-orange-600 mb-1">您總共需要準備</div>
-                                        <div class="text-xl font-bold text-orange-600 font-mono" x-text="'HK$ ' + formatNumber((client.fnaRetireMonthly || 0) * 12 * (client.fnaRetireYears || 0))"></div>
+                                        <div class="text-xl font-bold text-orange-600 font-mono" x-text="'HK$ ' + formatNumber(client.summary?.retireTotal || 0)"></div>
                                     </div>
                                 </div>
                             </div>
@@ -439,19 +475,19 @@
                                 <div class="space-y-3 text-sm">
                                     <div class="flex justify-between items-center">
                                         <span class="text-gray-600 font-bold">每年學費及生活費 (HK$)</span>
-                                        <input type="number" x-model.number="client.fnaEduAnnual" class="border-2 border-blue-200 rounded p-1 w-28 text-right bg-blue-50 focus:bg-white focus:border-blue-400 outline-none font-bold text-blue-800">
+                                        <input type="number" x-model.number="client.fnaEduAnnual" @input="updateSummary()" class="border-2 border-blue-200 rounded p-1 w-28 text-right bg-blue-50 focus:bg-white focus:border-blue-400 outline-none font-bold text-blue-800">
                                     </div>
                                     <div class="flex justify-between items-center">
                                         <span class="text-gray-600 font-bold">預計留學年期 (年)</span>
-                                        <input type="number" x-model.number="client.fnaEduYears" class="border-2 border-blue-200 rounded p-1 w-28 text-right bg-blue-50 focus:bg-white focus:border-blue-400 outline-none font-bold text-blue-800">
+                                        <input type="number" x-model.number="client.fnaEduYears" @input="updateSummary()" class="border-2 border-blue-200 rounded p-1 w-28 text-right bg-blue-50 focus:bg-white focus:border-blue-400 outline-none font-bold text-blue-800">
                                     </div>
                                     <div class="flex justify-between items-center">
                                         <span class="text-gray-600 font-bold">預備的工具</span>
-                                        <input type="text" x-model="client.fnaEduTools" class="border-2 border-blue-200 rounded p-1 w-32 text-right bg-blue-50 focus:bg-white focus:border-blue-400 outline-none font-bold text-blue-800" placeholder="如儲蓄險, 基金...">
+                                        <input type="text" x-model="client.fnaEduTools" @input="updateSummary()" class="border-2 border-blue-200 rounded p-1 w-32 text-right bg-blue-50 focus:bg-white focus:border-blue-400 outline-none font-bold text-blue-800" placeholder="如儲蓄險, 基金...">
                                     </div>
                                     <div class="mt-4 bg-green-50 p-3 rounded-lg text-center">
                                         <div class="text-xs text-green-600 mb-1">您總共需要準備</div>
-                                        <div class="text-xl font-bold text-green-600 font-mono" x-text="'HK$ ' + formatNumber((client.fnaEduAnnual || 0) * (client.fnaEduYears || 0))"></div>
+                                        <div class="text-xl font-bold text-green-600 font-mono" x-text="'HK$ ' + formatNumber(client.summary?.eduTotal || 0)"></div>
                                     </div>
                                 </div>
                             </div>
@@ -499,7 +535,7 @@
                                                     <span x-show="iIndex > 0" class="bg-gray-200 text-gray-600 text-[10px] px-1.5 py-0.5 rounded">附</span>
                                                     <div>
                                                         <div class="font-bold text-gray-800 text-sm" x-text="item.name || '未命名項目'"></div>
-                                                        <div class="text-[10px]" :class="getCategoryColor(item.category)" x-text="item.category"></div>
+                                                        <div class="text-[10px]" :class="getCategoryColor(item.category)" x-text="item.category === 'AccidentMedical' ? 'Accident' : item.category"></div>
                                                     </div>
                                                 </div>
                                                 <button x-show="item.remarks" @click="openClientRemark(item.remarks)" class="w-6 h-6 rounded-full bg-red-50 text-red-500 flex items-center justify-center text-xs border border-red-200 shadow-sm transition active:scale-95"><i class="fa-solid fa-exclamation"></i></button>
@@ -749,32 +785,40 @@
                 
                 <div>
                     <h2 class="text-lg font-bold theme-blue mb-4"><i class="fa-solid fa-shield-cat mr-2"></i>第一層：四大保障基石概覽</h2>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-red-400 flex flex-col justify-center">
-                            <div class="text-xs text-gray-500 mb-1">🏥 醫療保障</div>
-                            <div class="text-lg font-bold text-gray-800" x-text="client.summary?.medicalType || '尚未配置'"></div>
-                        </div>
-                        <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-orange-400">
-                            <div class="text-xs text-gray-500 mb-1">🛡️ 危疾保障 (替代收入)</div>
-                            <div class="text-lg font-bold text-gray-800" x-text="(client.summary?.ciSum > 0) ? 'HK$ ' + formatNumber(client.summary.ciSum) : '尚未配置'"></div>
-                            <div x-show="client.summary?.ciSum > 0" class="text-xs md:text-sm text-red-600 font-bold mt-3 bg-red-50 p-2 rounded border border-red-200 flex items-start gap-1">
-                                <i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 足夠替代 3 年家庭開支嗎？</span>
+                    
+                    <template x-for="(summary, sIndex) in (client.summary?.insuredSummaries || protectionSummaries)" :key="sIndex">
+                        <div class="mb-6 last:mb-0">
+                            <div class="inline-block bg-blue-100 text-blue-800 px-4 py-1.5 rounded-t-lg font-bold text-sm shadow-sm border border-blue-200 border-b-0">
+                                <i class="fa-solid fa-user-shield mr-1"></i> 受保人: <span x-text="summary.name"></span>
+                            </div>
+                            <div class="bg-white p-4 rounded-b-xl rounded-tr-xl shadow-sm border border-blue-100 grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div class="p-3 rounded-xl bg-gray-50 border-t-4 border-red-400 flex flex-col justify-center">
+                                    <div class="text-xs text-gray-500 mb-1">🏥 醫療保障</div>
+                                    <div class="text-lg font-bold text-gray-800" x-text="summary.medicalType"></div>
+                                </div>
+                                <div class="p-3 rounded-xl bg-gray-50 border-t-4 border-orange-400">
+                                    <div class="text-xs text-gray-500 mb-1">🛡️ 危疾保障 (替代收入)</div>
+                                    <div class="text-lg font-bold text-gray-800" x-text="summary.ciSum > 0 ? 'HK$ ' + formatNumber(summary.ciSum) : '尚未配置'"></div>
+                                    <div x-show="summary.ciSum > 0" class="text-xs md:text-[11px] text-red-600 font-bold mt-2 bg-red-50 p-1.5 rounded border border-red-200 flex items-start gap-1">
+                                        <i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 足夠替代 3 年家庭開支嗎？</span>
+                                    </div>
+                                </div>
+                                <div class="p-3 rounded-xl bg-gray-50 border-t-4 border-blue-400">
+                                    <div class="text-xs text-gray-500 mb-1">🕊️ 人壽保障 (家庭責任)</div>
+                                    <div class="text-lg font-bold text-gray-800" x-text="summary.lifeSum > 0 ? 'HK$ ' + formatNumber(summary.lifeSum) : '尚未配置'"></div>
+                                    <div x-show="summary.lifeSum > 0" class="text-xs md:text-[11px] text-blue-600 font-bold mt-2 bg-blue-50 p-1.5 rounded border border-blue-200 flex items-start gap-1">
+                                        <i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 萬一有事，能覆蓋房貸及生活費嗎？</span>
+                                    </div>
+                                </div>
+                                <div class="p-3 rounded-xl bg-gray-50 border-t-4 border-teal-400 flex flex-col justify-center">
+                                    <div class="text-xs text-gray-500 mb-1">🚑 意外保障</div>
+                                    <div class="text-sm font-bold text-gray-800" x-show="summary.accDeathSum > 0">身故: HK$ <span x-text="formatNumber(summary.accDeathSum)"></span></div>
+                                    <div class="text-sm font-bold text-gray-800 mt-1" x-show="summary.accMedicalSum > 0">醫療: HK$ <span x-text="formatNumber(summary.accMedicalSum)"></span></div>
+                                    <div class="text-lg font-bold text-gray-800" x-show="summary.accDeathSum === 0 && summary.accMedicalSum === 0">尚未配置</div>
+                                </div>
                             </div>
                         </div>
-                        <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-blue-400">
-                            <div class="text-xs text-gray-500 mb-1">🕊️ 人壽保障 (家庭責任)</div>
-                            <div class="text-lg font-bold text-gray-800" x-text="(client.summary?.lifeSum > 0) ? 'HK$ ' + formatNumber(client.summary.lifeSum) : '尚未配置'"></div>
-                            <div x-show="client.summary?.lifeSum > 0" class="text-xs md:text-sm text-blue-600 font-bold mt-3 bg-blue-50 p-2 rounded border border-blue-200 flex items-start gap-1">
-                                <i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 萬一有事，能覆蓋房貸及生活費嗎？</span>
-                            </div>
-                        </div>
-                        <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-teal-400 flex flex-col justify-center">
-                            <div class="text-xs text-gray-500 mb-1">🚑 意外保障</div>
-                            <div class="text-sm font-bold text-gray-800" x-show="(client.summary?.accDeathSum > 0)">身故: HK$ <span x-text="formatNumber(client.summary.accDeathSum)"></span></div>
-                            <div class="text-sm font-bold text-gray-800 mt-1" x-show="(client.summary?.accMedicalSum > 0)">醫療: HK$ <span x-text="formatNumber(client.summary.accMedicalSum)"></span></div>
-                            <div class="text-lg font-bold text-gray-800" x-show="(!client.summary?.accDeathSum) && (!client.summary?.accMedicalSum)">尚未配置</div>
-                        </div>
-                    </div>
+                    </template>
                 </div>
 
                 <div>
@@ -849,7 +893,7 @@
                                                 <span x-show="iIndex > 0" class="bg-gray-200 text-gray-600 text-[10px] px-1.5 py-0.5 rounded">附</span>
                                                 <div>
                                                     <div class="font-bold text-gray-800 text-sm" x-text="item.name || '未命名項目'"></div>
-                                                    <div class="text-[10px]" :class="getCategoryColor(item.category)" x-text="item.category"></div>
+                                                    <div class="text-[10px]" :class="getCategoryColor(item.category)" x-text="item.category === 'AccidentMedical' ? 'Accident' : item.category"></div>
                                                 </div>
                                             </div>
                                             <button x-show="item.remarks" @click="openClientRemark(item.remarks)" class="w-6 h-6 rounded-full bg-red-50 text-red-500 flex items-center justify-center text-xs border border-red-200 shadow-sm transition active:scale-95"><i class="fa-solid fa-exclamation"></i></button>
@@ -947,7 +991,7 @@
         // ==================== 管理者 (Admin) JS 邏輯 ====================
         function app() {
             return {
-                version: '1.5.4', // 🌟 強制更新版號
+                version: '1.5.5', // 🌟 強制更新版號
                 view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, 
                 clientRemarkModal: { open: false, text: '' }, // 供 review 模式用
                 showWebActionModal: false, showConfigModal: false, showWebFrame: false, 
@@ -982,7 +1026,7 @@
                     if (savedSettings) this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
                 },
 
-                // 🌟 所有數字顯示必備函數
+                // 所有數字顯示必備函數
                 formatNumber(num) { 
                     if (num === null || num === undefined || num === '') return '-';
                     const nStr = num.toString().replace(/,/g, ''); 
@@ -1007,8 +1051,9 @@
                                 i.effectDate = p.effectDate;
                                 i.insurer = p.insurer;
                                 i.policyNo = p.policyNo;
-                                if (i.category === 'Medical' || i.category === 'Life' || i.category === 'Accident') {
-                                    data[i.category].push(i);
+                                if (i.category === 'Medical' || i.category === 'Life' || i.category === 'Accident' || i.category === 'AccidentMedical') {
+                                    let cat = i.category === 'AccidentMedical' ? 'Accident' : i.category;
+                                    data[cat].push(i);
                                 } else if (i.category === 'CI') {
                                     data.CI.push(i);
                                     let val = parseFloat(String(i.sumAssured || '0').replace(/,/g, ''));
@@ -1079,63 +1124,61 @@
                 hasRenewalMatch(c) { return c.policies && c.policies.some(p => !p.isCancelled && this.isMatchRenewal(p)); },
 
                 getCategoryColor(cat) {
-                    if (['Medical', 'CI', 'Life', 'Accident'].includes(cat)) return 'text-red-600 font-bold';
+                    if (['Medical', 'CI', 'Life', 'Accident', 'AccidentMedical'].includes(cat)) return 'text-red-600 font-bold';
                     if (['Savings', 'Fund', 'MPF'].includes(cat)) return 'text-blue-600 font-bold';
                     return 'text-gray-800 font-bold';
                 },
 
-                // 🌟 Admin 的即時動態保額計算 (專供 Review 模式「互動顯示」使用)
-                get protectionSummary() {
-                    let summary = { medicalType: '尚未配置', ciSum: 0, lifeSum: 0, accDeathSum: 0, accMedicalSum: 0, totalPremium: 0 };
-                    if (!this.client || !this.client.policies) return summary;
-                    this.client.policies.forEach(p => {
-                        if(p.isCancelled) return;
-                        summary.totalPremium += (parseFloat(String(p.premium||'').replace(/,/g, '')) || 0);
+                // 🌟 新增：智能按受保人分拆保障的核心函數
+                buildInsuredSummaries(policies, ownerName) {
+                    let map = {};
+                    policies.forEach(p => {
+                        if (p.isCancelled) return;
+                        let insured = (p.insuredPerson && p.insuredPerson.trim() !== '') ? p.insuredPerson.trim() : (ownerName || '受保人');
+                        if (!map[insured]) {
+                            map[insured] = { name: insured, medicalType: '尚未配置', ciSum: 0, lifeSum: 0, accDeathSum: 0, accMedicalSum: 0 };
+                        }
+                        let s = map[insured];
                         p.items.forEach(i => {
                             let amt = parseFloat(String(i.sumAssured||'0').replace(/,/g, '')) || 0;
                             let remarks = i.remarks || ''; let name = i.name || '';
                             if(i.category === 'Medical') {
-                                if(remarks.includes('高端') || name.includes('高端')) summary.medicalType = '高端醫療';
-                                else if(summary.medicalType === '尚未配置') summary.medicalType = '傳統醫療';
-                            } else if (i.category === 'CI') { summary.ciSum += amt; } 
-                            else if (i.category === 'Life') { summary.lifeSum += amt; } 
+                                if(remarks.includes('高端') || name.includes('高端')) s.medicalType = '高端醫療';
+                                else if(s.medicalType === '尚未配置') s.medicalType = '傳統醫療';
+                            } else if (i.category === 'CI') { s.ciSum += amt; } 
+                            else if (i.category === 'Life') { s.lifeSum += amt; } 
+                            else if (i.category === 'AccidentMedical') { s.accMedicalSum += amt; }
                             else if (i.category === 'Accident') {
-                                if(remarks.includes('費用') || remarks.includes('醫療') || name.includes('費用') || name.includes('醫療')) { summary.accMedicalSum += amt; } 
-                                else { summary.accDeathSum += amt; }
+                                // 向下兼容舊資料
+                                if(remarks.includes('費用') || remarks.includes('醫療') || name.includes('費用') || name.includes('醫療')) { s.accMedicalSum += amt; } 
+                                else { s.accDeathSum += amt; }
                             }
                         });
                     });
-                    return summary;
+                    return Object.values(map);
                 },
 
-                // 🌟 Admin 將最終計算結果「鎖死」並寫入 client.summary，供 QR Code 唯讀客戶使用
+                // 🌟 Admin Review 模式即時互動用的 getter
+                get protectionSummaries() {
+                    if (!this.client) return [];
+                    return this.buildInsuredSummaries(this.client.policies || [], this.client.owner);
+                },
+
+                // Admin 鎖死並寫入 client.summary 供客戶讀取
                 updateSummary() {
                     if (!this.client.summary) this.client.summary = {};
                     let s = this.client.summary;
                     
-                    s.medicalType = '尚未配置'; s.ciSum = 0; s.lifeSum = 0; s.accDeathSum = 0; s.accMedicalSum = 0; s.totalPremium = 0;
+                    s.totalPremium = 0;
                     s.retireTotal = (this.client.fnaRetireMonthly || 0) * 12 * (this.client.fnaRetireYears || 0);
                     s.eduTotal = (this.client.fnaEduAnnual || 0) * (this.client.fnaEduYears || 0);
                     
                     if (this.client.policies) {
                         this.client.policies.forEach(p => {
-                            if (p.isCancelled) return;
-                            s.totalPremium += (parseFloat(String(p.premium||'').replace(/,/g, '')) || 0);
-                            p.items.forEach(i => {
-                                let amt = parseFloat(String(i.sumAssured||'0').replace(/,/g, '')) || 0;
-                                let remarks = i.remarks || ''; let name = i.name || '';
-                                if (i.category === 'Medical') {
-                                    if (remarks.includes('高端') || name.includes('高端')) s.medicalType = '高端醫療';
-                                    else if (s.medicalType === '尚未配置') s.medicalType = '傳統醫療';
-                                } else if (i.category === 'CI') { s.ciSum += amt; } 
-                                else if (i.category === 'Life') { s.lifeSum += amt; } 
-                                else if (i.category === 'Accident') {
-                                    if (remarks.includes('費用') || remarks.includes('醫療') || name.includes('費用') || name.includes('醫療')) { s.accMedicalSum += amt; } 
-                                    else { s.accDeathSum += amt; }
-                                }
-                            });
+                            if (!p.isCancelled) s.totalPremium += (parseFloat(String(p.premium||'').replace(/,/g, '')) || 0);
                         });
                     }
+                    s.insuredSummaries = this.buildInsuredSummaries(this.client.policies || [], this.client.owner);
                 },
 
                 createNewClient() { 
@@ -1448,7 +1491,7 @@
                 },
 
                 getCategoryColor(cat) { 
-                    const protection = ['Medical', 'CI', 'Life', 'Accident'];
+                    const protection = ['Medical', 'CI', 'Life', 'Accident', 'AccidentMedical'];
                     const wealth = ['Savings', 'Fund', 'MPF']; 
                     if (protection.includes(cat)) return 'text-red-500 font-bold'; 
                     if (wealth.includes(cat)) return 'text-blue-500 font-bold'; 
@@ -1457,31 +1500,53 @@
                 
                 openClientRemark(text) { this.clientRemarkModal.text = text; this.clientRemarkModal.open = true; },
 
-                // 客戶端用的向下兼容補救計算
+                // 🌟 Client 端分拆受保人輔助函數
+                buildInsuredSummaries(policies, ownerName) {
+                    let map = {};
+                    policies.forEach(p => {
+                        if (p.isCancelled) return;
+                        let insured = (p.insuredPerson && p.insuredPerson.trim() !== '') ? p.insuredPerson.trim() : (ownerName || '受保人');
+                        if (!map[insured]) {
+                            map[insured] = { name: insured, medicalType: '尚未配置', ciSum: 0, lifeSum: 0, accDeathSum: 0, accMedicalSum: 0 };
+                        }
+                        let s = map[insured];
+                        p.items.forEach(i => {
+                            let amt = parseFloat(String(i.sumAssured||'0').replace(/,/g, '')) || 0;
+                            let remarks = i.remarks || ''; let name = i.name || '';
+                            if(i.category === 'Medical') {
+                                if(remarks.includes('高端') || name.includes('高端')) s.medicalType = '高端醫療';
+                                else if(s.medicalType === '尚未配置') s.medicalType = '傳統醫療';
+                            } else if (i.category === 'CI') { s.ciSum += amt; } 
+                            else if (i.category === 'Life') { s.lifeSum += amt; } 
+                            else if (i.category === 'AccidentMedical') { s.accMedicalSum += amt; }
+                            else if (i.category === 'Accident') {
+                                if(remarks.includes('費用') || remarks.includes('醫療') || name.includes('費用') || name.includes('醫療')) { s.accMedicalSum += amt; } 
+                                else { s.accDeathSum += amt; }
+                            }
+                        });
+                    });
+                    return Object.values(map);
+                },
+
+                // 供唯讀模式畫面取用，防止舊版 summary 無 insuredSummaries 報錯
+                get protectionSummaries() {
+                    if (this.client.summary && this.client.summary.insuredSummaries) {
+                        return this.client.summary.insuredSummaries;
+                    }
+                    return this.buildInsuredSummaries(this.client.policies || [], this.client.owner);
+                },
+
                 fallbackSummary() {
-                    let s = { medicalType: '尚未配置', ciSum: 0, lifeSum: 0, accDeathSum: 0, accMedicalSum: 0, totalPremium: 0 };
+                    let s = { totalPremium: 0 };
                     s.retireTotal = (this.client.fnaRetireMonthly || 0) * 12 * (this.client.fnaRetireYears || 0);
                     s.eduTotal = (this.client.fnaEduAnnual || 0) * (this.client.fnaEduYears || 0);
                     
                     if (this.client.policies) {
                         this.client.policies.forEach(p => {
-                            if (p.isCancelled) return;
-                            s.totalPremium += (parseFloat(String(p.premium||'').replace(/,/g, '')) || 0);
-                            p.items.forEach(i => {
-                                let amt = parseFloat(String(i.sumAssured||'0').replace(/,/g, '')) || 0;
-                                let remarks = i.remarks || ''; let name = i.name || '';
-                                if (i.category === 'Medical') {
-                                    if (remarks.includes('高端') || name.includes('高端')) s.medicalType = '高端醫療';
-                                    else if (s.medicalType === '尚未配置') s.medicalType = '傳統醫療';
-                                } else if (i.category === 'CI') { s.ciSum += amt; } 
-                                else if (i.category === 'Life') { s.lifeSum += amt; } 
-                                else if (i.category === 'Accident') {
-                                    if (remarks.includes('費用') || remarks.includes('醫療') || name.includes('費用') || name.includes('醫療')) { s.accMedicalSum += amt; } 
-                                    else { s.accDeathSum += amt; }
-                                }
-                            });
+                            if (!p.isCancelled) s.totalPremium += (parseFloat(String(p.premium||'').replace(/,/g, '')) || 0);
                         });
                     }
+                    s.insuredSummaries = this.buildInsuredSummaries(this.client.policies || [], this.client.owner);
                     this.client.summary = s;
                 }
             }
