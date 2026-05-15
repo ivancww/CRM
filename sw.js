@@ -1,4 +1,4 @@
-const CACHE_NAME = 'crm-cache-v1.5.3'; // 🌟 改變名稱以強制清除舊緩存
+const CACHE_NAME = 'crm-cache-v1.5.4'; 
 const urlsToCache = [
   '/',
   '/manifest-admin.json',
