@@ -15,8 +15,8 @@
             document.write('<link rel="icon" type="image/png" href="client-logo-192.png">');
             document.write('<link rel="apple-touch-icon" href="client-logo-192.png">');
         } else {
-            // 🌟 版本同步為 1.5.2
-            document.title = "保險管家 v1.5.2 (Admin - Cloud)";
+            // 🌟 版本同步為 1.5.3
+            document.title = "保險管家 v1.5.3 (Admin - Cloud)";
             document.write('<link rel="manifest" href="manifest-admin.json">');
             document.write('<link rel="icon" type="image/png" href="admin-logo-192.png">');
             document.write('<link rel="apple-touch-icon" href="admin-logo-192.png">');
@@ -606,7 +606,7 @@
                                                         生效: <span x-text="i.effectDate || '-'"></span>
                                                         <span x-show="reportClient.dob && i.effectDate" x-text="' (' + getAgeAtDate(reportClient.dob, i.effectDate) + '歲)'"></span>
                                                         | 供款: <span x-text="i.term || '-'"></span>
-                                                        | 保障: <span x-text="i.maturity || '-'"></span>
+                                                        | 保保障: <span x-text="i.maturity || '-'"></span>
                                                     </div>
                                                     
                                                     <span x-show="cat === 'CI' && i.remarks && i.remarks.includes('多次賠償')" class="text-[10px] text-red-500 font-bold mt-0.5">* 支援多次賠償</span>
@@ -947,7 +947,7 @@
         // ==================== 管理者 (Admin) JS 邏輯 ====================
         function app() {
             return {
-                version: '1.5.2', // 🌟 強制更新版號
+                version: '1.5.3', // 🌟 強制更新版號
                 view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, 
                 clientRemarkModal: { open: false, text: '' }, // 供 review 模式用
                 showWebActionModal: false, showConfigModal: false, showWebFrame: false, 
@@ -980,6 +980,14 @@
                     if (savedLinks) this.webLinks = JSON.parse(savedLinks);
                     const savedSettings = localStorage.getItem('crm_settings');
                     if (savedSettings) this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
+                },
+
+                // 🌟 補番呢個函數！所有即時計算需要用！
+                formatNumber(num) { 
+                    if (num === null || num === undefined || num === '') return '-';
+                    const nStr = num.toString().replace(/,/g, ''); 
+                    const n = parseFloat(nStr); 
+                    return isNaN(n) ? num : n.toLocaleString('en-US');
                 },
 
                 get isDuplicateOwner() {
@@ -1419,7 +1427,7 @@
                         this.client = payloadObj ? payloadObj : deepParsed.payload;
                     } else { this.client = deepParsed; }
                     
-                    // 向下兼容：確保舊的資料也有 summary 鎖定計算
+                    // 向下兼容舊的 QR Code，若沒有鎖定的 summary，在背景補救計算
                     if(!this.client.summary) { this.fallbackSummary(); }
                     this.hasData = true;
                 },
