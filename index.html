@@ -15,8 +15,8 @@
             document.write('<link rel="icon" type="image/png" href="client-logo-192.png">');
             document.write('<link rel="apple-touch-icon" href="client-logo-192.png">');
         } else {
-            // 🌟 版本同步為 1.5.1
-            document.title = "保險管家 v1.5.1 (Admin - Cloud)";
+            // 🌟 版本同步為 1.5.2
+            document.title = "保險管家 v1.5.2 (Admin - Cloud)";
             document.write('<link rel="manifest" href="manifest-admin.json">');
             document.write('<link rel="icon" type="image/png" href="admin-logo-192.png">');
             document.write('<link rel="apple-touch-icon" href="admin-logo-192.png">');
@@ -382,27 +382,27 @@
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-red-400 flex flex-col justify-center">
                                 <div class="text-xs text-gray-500 mb-1">🏥 醫療保障</div>
-                                <div class="text-lg font-bold text-gray-800" x-text="protectionSummary.medical.type"></div>
+                                <div class="text-lg font-bold text-gray-800" x-text="protectionSummary.medicalType"></div>
                             </div>
                             <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-orange-400">
                                 <div class="text-xs text-gray-500 mb-1">🛡️ 危疾保障 (替代收入)</div>
-                                <div class="text-lg font-bold text-gray-800" x-text="protectionSummary.ci.sum > 0 ? 'HK$ ' + formatNumber(protectionSummary.ci.sum) : '尚未配置'"></div>
-                                <div x-show="protectionSummary.ci.sum > 0" class="text-xs md:text-sm text-red-600 font-bold mt-3 bg-red-50 p-2 rounded border border-red-200 flex items-start gap-1">
+                                <div class="text-lg font-bold text-gray-800" x-text="protectionSummary.ciSum > 0 ? 'HK$ ' + formatNumber(protectionSummary.ciSum) : '尚未配置'"></div>
+                                <div x-show="protectionSummary.ciSum > 0" class="text-xs md:text-sm text-red-600 font-bold mt-3 bg-red-50 p-2 rounded border border-red-200 flex items-start gap-1">
                                     <i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 足夠替代 3 年家庭開支嗎？</span>
                                 </div>
                             </div>
                             <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-blue-400">
                                 <div class="text-xs text-gray-500 mb-1">🕊️ 人壽保障 (家庭責任)</div>
-                                <div class="text-lg font-bold text-gray-800" x-text="protectionSummary.life.sum > 0 ? 'HK$ ' + formatNumber(protectionSummary.life.sum) : '尚未配置'"></div>
-                                <div x-show="protectionSummary.life.sum > 0" class="text-xs md:text-sm text-blue-600 font-bold mt-3 bg-blue-50 p-2 rounded border border-blue-200 flex items-start gap-1">
+                                <div class="text-lg font-bold text-gray-800" x-text="protectionSummary.lifeSum > 0 ? 'HK$ ' + formatNumber(protectionSummary.lifeSum) : '尚未配置'"></div>
+                                <div x-show="protectionSummary.lifeSum > 0" class="text-xs md:text-sm text-blue-600 font-bold mt-3 bg-blue-50 p-2 rounded border border-blue-200 flex items-start gap-1">
                                     <i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 萬一有事，能覆蓋房貸及生活費嗎？</span>
                                 </div>
                             </div>
                             <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-teal-400 flex flex-col justify-center">
                                 <div class="text-xs text-gray-500 mb-1">🚑 意外保障</div>
-                                <div class="text-sm font-bold text-gray-800" x-show="protectionSummary.accDeath.sum > 0">身故: HK$ <span x-text="formatNumber(protectionSummary.accDeath.sum)"></span></div>
-                                <div class="text-sm font-bold text-gray-800 mt-1" x-show="protectionSummary.accMedical.sum > 0">醫療: HK$ <span x-text="formatNumber(protectionSummary.accMedical.sum)"></span></div>
-                                <div class="text-lg font-bold text-gray-800" x-show="protectionSummary.accDeath.sum === 0 && protectionSummary.accMedical.sum === 0">尚未配置</div>
+                                <div class="text-sm font-bold text-gray-800" x-show="protectionSummary.accDeathSum > 0">身故: HK$ <span x-text="formatNumber(protectionSummary.accDeathSum)"></span></div>
+                                <div class="text-sm font-bold text-gray-800 mt-1" x-show="protectionSummary.accMedicalSum > 0">醫療: HK$ <span x-text="formatNumber(protectionSummary.accMedicalSum)"></span></div>
+                                <div class="text-lg font-bold text-gray-800" x-show="protectionSummary.accDeathSum === 0 && protectionSummary.accMedicalSum === 0">尚未配置</div>
                             </div>
                         </div>
                     </div>
@@ -947,7 +947,7 @@
         // ==================== 管理者 (Admin) JS 邏輯 ====================
         function app() {
             return {
-                version: '1.5.1', // 🌟 強制更新版號
+                version: '1.5.2', // 🌟 強制更新版號
                 view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, 
                 clientRemarkModal: { open: false, text: '' }, // 供 review 模式用
                 showWebActionModal: false, showConfigModal: false, showWebFrame: false, 
@@ -1076,9 +1076,9 @@
                     return 'text-gray-800 font-bold';
                 },
 
-                // 🌟 Admin 的動態保額計算 (專供 Review 模式互動顯示使用)
+                // 🌟 Admin 的即時動態保額計算 (專供 Review 模式「互動顯示」使用)
                 get protectionSummary() {
-                    let summary = { medical: { type: '尚未配置' }, ci: { sum: 0 }, life: { sum: 0 }, accDeath: { sum: 0 }, accMedical: { sum: 0 }, totalPremium: 0 };
+                    let summary = { medicalType: '尚未配置', ciSum: 0, lifeSum: 0, accDeathSum: 0, accMedicalSum: 0, totalPremium: 0 };
                     if (!this.client || !this.client.policies) return summary;
                     this.client.policies.forEach(p => {
                         if(p.isCancelled) return;
@@ -1087,20 +1087,20 @@
                             let amt = parseFloat(String(i.sumAssured||'0').replace(/,/g, '')) || 0;
                             let remarks = i.remarks || ''; let name = i.name || '';
                             if(i.category === 'Medical') {
-                                if(remarks.includes('高端') || name.includes('高端')) summary.medical.type = '高端醫療';
-                                else if(summary.medical.type === '尚未配置') summary.medical.type = '傳統醫療';
-                            } else if (i.category === 'CI') { summary.ci.sum += amt; } 
-                            else if (i.category === 'Life') { summary.life.sum += amt; } 
+                                if(remarks.includes('高端') || name.includes('高端')) summary.medicalType = '高端醫療';
+                                else if(summary.medicalType === '尚未配置') summary.medicalType = '傳統醫療';
+                            } else if (i.category === 'CI') { summary.ciSum += amt; } 
+                            else if (i.category === 'Life') { summary.lifeSum += amt; } 
                             else if (i.category === 'Accident') {
-                                if(remarks.includes('費用') || remarks.includes('醫療') || name.includes('費用') || name.includes('醫療')) { summary.accMedical.sum += amt; } 
-                                else { summary.accDeath.sum += amt; }
+                                if(remarks.includes('費用') || remarks.includes('醫療') || name.includes('費用') || name.includes('醫療')) { summary.accMedicalSum += amt; } 
+                                else { summary.accDeathSum += amt; }
                             }
                         });
                     });
                     return summary;
                 },
 
-                // 🌟 Admin 將最終計算結果鎖死並寫入 client.summary，供 QR Code 客戶使用
+                // 🌟 Admin 將最終計算結果「鎖死」並寫入 client.summary，供 QR Code 唯讀客戶使用
                 updateSummary() {
                     if (!this.client.summary) this.client.summary = {};
                     let s = this.client.summary;
@@ -1154,7 +1154,7 @@
                 },
 
                 saveCurrentClient(stay) { 
-                    this.updateSummary(); 
+                    this.updateSummary(); // 儲存前確保最新
                     const idx = this.clients.findIndex(c => c.id === this.client.id);
                     if (idx > -1) this.clients[idx] = this.client; else this.clients.push(this.client); 
                     this.saveDB(); if(!stay) { alert('已儲存'); this.view = 'list'; }
@@ -1245,6 +1245,7 @@
 
                 uploadToCloud() {
                     this.uploadModal.loading = true;
+                    // 保存輸入的目標數據到 localStorage
                     this.saveCurrentClient(true);
                     
                     const uniqueId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
@@ -1418,7 +1419,7 @@
                         this.client = payloadObj ? payloadObj : deepParsed.payload;
                     } else { this.client = deepParsed; }
                     
-                    // 向下兼容舊的 QR Code，若沒有鎖定的 summary，在背景補救計算
+                    // 向下兼容：確保舊的資料也有 summary 鎖定計算
                     if(!this.client.summary) { this.fallbackSummary(); }
                     this.hasData = true;
                 },
@@ -1448,7 +1449,7 @@
                 
                 openClientRemark(text) { this.clientRemarkModal.text = text; this.clientRemarkModal.open = true; },
 
-                // 補救計算 (只供舊有已生成的 QR code 使用)
+                // 客戶端用的向下兼容補救計算
                 fallbackSummary() {
                     let s = { medicalType: '尚未配置', ciSum: 0, lifeSum: 0, accDeathSum: 0, accMedicalSum: 0, totalPremium: 0 };
                     s.retireTotal = (this.client.fnaRetireMonthly || 0) * 12 * (this.client.fnaRetireYears || 0);
