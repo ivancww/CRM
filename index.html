@@ -40,9 +40,11 @@
                     <div class="relative" x-data="{ open: false }">
                         <button @click="open = !open" class="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded text-sm"><i class="fa-solid fa-database"></i></button>
                         <div x-show="open" @click.away="open = false" class="absolute right-0 mt-2 w-48 bg-white rounded shadow-xl z-50 text-gray-800 overflow-hidden" x-cloak>
-                            <a href="#" @click.prevent="exportAllData(); open = false" class="block px-4 py-3 hover:bg-gray-100 text-sm border-b">備份全部</a>
-                            <a href="#" @click.prevent="document.getElementById('importFile').click(); open = false" class="block px-4 py-3 hover:bg-gray-100 text-sm">還原備份</a>
-                            <input type="file" id="importFile" @change="importAllData($event)" class="hidden" accept=".json, application/json">
+                           <a href="#" @click.prevent="exportAllData(); open = false" class="block px-4 py-3 hover:bg-gray-100 text-sm border-b">備份全部</a>
+                           <label class="block px-4 py-3 hover:bg-gray-100 text-sm cursor-pointer mb-0">
+                               還原備份
+                               <input type="file" @change="importAllData($event); open = false" accept=".json, application/json" class="absolute w-full h-full top-0 left-0 opacity-0 cursor-pointer">
+                           </label>
                         </div>
                     </div>
                     <button @click="handleWebClick()" class="bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded text-sm"><i class="fa-solid fa-globe"></i></button>
