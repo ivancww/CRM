@@ -1,4 +1,4 @@
-const CACHE_NAME = 'crm-cache-v1.6.2'; // 🌟 強制更新
+const CACHE_NAME = 'crm-cache-v1.6.3'; // 🌟 強制更新
 const urlsToCache = [
   '/',
   '/manifest-admin.json',
