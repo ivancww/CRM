@@ -12,7 +12,7 @@
             document.title = "我的財富與保障儀表板";
             document.write('<link rel="manifest" href="manifest-client.json"><link rel="icon" type="image/png" href="client-logo-192.png"><link rel="apple-touch-icon" href="client-logo-192.png">');
         } else {
-            document.title = "保險管家 v1.7.8 (Admin - Cloud)";
+            document.title = "保險管家 v1.7.9 (Admin - Cloud)";
             document.write('<link rel="manifest" href="manifest-admin.json"><link rel="icon" type="image/png" href="admin-logo-192.png"><link rel="apple-touch-icon" href="admin-logo-192.png">');
         }
     </script>
@@ -350,8 +350,16 @@
                                             <template x-if="!person.medicalHighEnd && !person.medicalTraditional"><span class="text-lg text-gray-400">尚未配置</span></template>
                                         </div>
                                     </div>
-                                    <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-orange-400"><div class="text-xs text-gray-500 mb-1">🛡️ 危疾保障 (替代收入)</div><div class="text-lg font-bold text-gray-800" x-text="person.ciSum > 0 ? 'HK$ ' + formatNumber(person.ciSum) : '尚未配置'"></div></div>
-                                    <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-blue-400"><div class="text-xs text-gray-500 mb-1">🕊️ 人壽保障 (家庭責任)</div><div class="text-lg font-bold text-gray-800" x-text="person.lifeSum > 0 ? 'HK$ ' + formatNumber(person.lifeSum) : '尚未配置'"></div></div>
+                                    <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-orange-400">
+                                        <div class="text-xs text-gray-500 mb-1">🛡️ 危疾保障 (替代收入)</div>
+                                        <div class="text-lg font-bold text-gray-800" x-text="person.ciSum > 0 ? 'HK$ ' + formatNumber(person.ciSum) : '尚未配置'"></div>
+                                        <div x-show="person.ciSum > 0" class="text-xs text-red-600 font-bold mt-2 bg-red-50 p-2 rounded border border-red-100 flex items-start gap-1"><i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 足夠替代 3 年家庭開支嗎？</span></div>
+                                    </div>
+                                    <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-blue-400">
+                                        <div class="text-xs text-gray-500 mb-1">🕊️ 人壽保障 (家庭責任)</div>
+                                        <div class="text-lg font-bold text-gray-800" x-text="person.lifeSum > 0 ? 'HK$ ' + formatNumber(person.lifeSum) : '尚未配置'"></div>
+                                        <div x-show="person.lifeSum > 0" class="text-xs text-blue-600 font-bold mt-2 bg-blue-50 p-2 rounded border border-blue-100 flex items-start gap-1"><i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 萬一有事，能覆蓋房貸及生活費嗎？</span></div>
+                                    </div>
                                     <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-teal-400 flex flex-col justify-center">
                                         <div class="text-xs text-gray-500 mb-1">🚑 意外保障</div>
                                         <div class="text-sm font-bold text-gray-800" x-show="person.accDeathSum > 0">身故: HK$ <span x-text="formatNumber(person.accDeathSum)"></span></div>
@@ -365,21 +373,21 @@
                     </div>
 
                     <div>
-                        <h2 class="text-lg font-bold theme-blue mb-4"><i class="fa-solid fa-bullseye mr-2"></i>第二層：人生藍圖與財務探索</h2>
-                        <div x-data="{ open: false }" class="bg-white rounded-xl shadow-sm border border-gray-100 mb-4 overflow-hidden relative">
+                        <h2 class="text-lg font-bold text-[#1E3A8A] mb-4"><i class="fa-solid fa-bullseye mr-2"></i>第二層：人生藍圖與財務探索 <span class="text-xs text-gray-400 font-normal ml-2">(點擊展開輸入)</span></h2>
+                        <div x-data="{ open: true }" class="bg-white rounded-xl shadow-sm border border-gray-100 mb-4 relative">
                             <div class="absolute top-0 right-0 bg-blue-100 text-blue-600 text-[10px] px-2 py-1 rounded-bl font-bold z-10">可編輯</div>
-                            <div @click="open = !open" class="p-5 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-orange-400"><h3 class="font-bold text-gray-700 text-base md:text-lg"><i class="fa-solid fa-mug-hot text-orange-500 mr-2"></i>🌅 尊享未來生活與醫療儲備</h3><i class="fa-solid text-gray-400 transition-transform duration-300" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
-                            <div x-show="open" x-transition class="p-5 border-t border-gray-100 bg-gray-50 space-y-4">
+                            <div @click="open = !open" class="p-5 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-orange-400"><h3 class="font-bold text-gray-700 text-base md:text-lg">🌅 尊享未來生活與醫療儲備</h3><i class="fa-solid text-gray-400" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
+                            <div x-show="open" x-transition class="p-5 border-t border-gray-100 bg-gray-50/50 space-y-4">
                                 <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">理想退休生活</div><textarea x-model="client.fnaRetireVision" class="w-full border-2 border-blue-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="尚未深入探討。"></textarea></div>
                                 <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">醫療保障安排</div><textarea x-model="client.fnaMedicalVision" class="w-full border-2 border-blue-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="-"></textarea></div>
                                 <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">現有財富增值安排 / 或工具</div><textarea x-model="client.fnaRetireTools" class="w-full border-2 border-blue-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="-"></textarea></div>
                                 <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">規劃安排 / 關注點</div><textarea x-model="client.fnaRetireGap" class="w-full border-2 border-blue-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="-"></textarea></div>
                             </div>
                         </div>
-                        <div x-data="{ open: false }" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
+                        <div x-data="{ open: false }" class="bg-white rounded-xl shadow-sm border border-gray-100 mb-4 relative">
                             <div class="absolute top-0 right-0 bg-blue-100 text-blue-600 text-[10px] px-2 py-1 rounded-bl font-bold z-10">可編輯</div>
-                            <div @click="open = !open" class="p-5 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-green-500"><h3 class="font-bold text-gray-700 text-base md:text-lg"><i class="fa-solid fa-graduation-cap text-green-600 mr-2"></i>🎓 栽培下一代教育基金規劃</h3><i class="fa-solid text-gray-400 transition-transform duration-300" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
-                            <div x-show="open" x-transition class="p-5 border-t border-gray-100 bg-gray-50 space-y-4">
+                            <div @click="open = !open" class="p-5 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-green-500"><h3 class="font-bold text-gray-700 text-base md:text-lg">🎓 栽培下一代教育基金規劃</h3><i class="fa-solid text-gray-400" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
+                            <div x-show="open" x-transition class="p-5 border-t border-gray-100 bg-gray-50/50 space-y-4">
                                 <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-green-600 font-bold mb-1">教育目標與期望</div><textarea x-model="client.fnaEduVision" class="w-full border-2 border-green-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="尚未深入探討。"></textarea></div>
                                 <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-green-600 font-bold mb-1">為下一代預備或進行中的財富安排</div><textarea x-model="client.fnaEduTools" class="w-full border-2 border-green-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="-"></textarea></div>
                                 <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-green-600 font-bold mb-1">方向 / 關注點</div><textarea x-model="client.fnaEduGap" class="w-full border-2 border-green-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="-"></textarea></div>
@@ -428,12 +436,11 @@
                         </div>
                     </div>
 
-                    <div x-show="(client.claimEvents && client.claimEvents.length > 0) || client.remarks">
-                        <h2 class="text-xl font-bold text-[#1E3A8A] mb-4 border-l-4 border-purple-500 pl-3">理賠紀錄與備註</h2>
-                        
-                        <div x-show="client.claimEvents && client.claimEvents.length > 0" class="mb-4 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
-                            <div class="p-4 bg-purple-50 border-b border-purple-100"><h3 class="font-bold text-gray-700"><i class="fa-solid fa-file-medical text-purple-500 mr-2"></i>理賠索償紀錄</h3></div>
-                            <div class="p-4 space-y-4">
+                    <div x-show="(client.claimEvents && client.claimEvents.length > 0)">
+                        <h2 class="text-xl font-bold text-[#1E3A8A] mb-4 border-l-4 border-purple-500 pl-3">理賠紀錄</h2>
+                        <div x-data="{ open: false }" class="mb-4 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
+                            <div @click="open = !open" class="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-purple-500"><h3 class="font-bold text-gray-700"><i class="fa-solid fa-file-medical text-purple-500 mr-2"></i>點擊查看理賠詳情</h3><i class="fa-solid text-gray-400" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
+                            <div x-show="open" x-transition class="p-4 border-t border-gray-100 bg-gray-50 space-y-4">
                                 <template x-for="(event, eIndex) in (client.claimEvents || [])" :key="eIndex">
                                     <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 relative">
                                         <div x-show="event.status === 'Completed'" class="absolute right-[-10px] top-[10px] transform rotate-[15deg] border-2 border-green-500 text-green-500 font-bold px-4 py-1 text-[10px] opacity-30">COMPLETED</div>
@@ -449,12 +456,6 @@
                                     </div>
                                 </template>
                             </div>
-                        </div>
-
-                        <div x-show="client.remarks" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
-                            <div class="absolute top-0 right-0 bg-blue-100 text-blue-600 text-[10px] px-2 py-1 rounded-bl font-bold z-10">可編輯</div>
-                            <div class="p-4 bg-gray-50 border-b border-gray-200"><h3 class="font-bold text-gray-700"><i class="fa-solid fa-clipboard-list text-gray-500 mr-2"></i>整體備註及跟進事項</h3></div>
-                            <div class="p-4"><textarea x-model="client.remarks" class="w-full border-2 border-blue-200 rounded p-2 text-sm outline-none" rows="3"></textarea></div>
                         </div>
                     </div>
                 </div>
@@ -480,10 +481,14 @@
 
     <div x-show="window.isClientView" x-data="dashboardApp()" x-cloak>
         <div x-show="!hasData" class="flex items-center justify-center min-h-screen"><div class="text-center text-gray-500"><i class="fa-solid fa-spinner fa-spin text-4xl mb-4 text-blue-500"></i><p class="font-bold" x-text="loadingMsg"></p></div></div>
+        
         <div x-show="hasData" class="max-w-4xl mx-auto md:mt-8 md:mb-8 bg-white md:rounded-2xl shadow-xl overflow-hidden" x-cloak>
             <div class="gradient-bg text-white p-6 md:p-8 flex justify-between items-center">
                 <div><p class="text-blue-200 text-sm mb-1">親愛的 <span x-text="client.owner || client.name || '客戶'"></span>：</p><h1 class="text-2xl md:text-3xl font-bold">您的家庭財富與保障報告</h1></div>
-                <div x-data="{ showTotal: false }" class="bg-white/10 p-3 rounded-xl text-center cursor-pointer" @click="showTotal = !showTotal"><div class="text-xs text-blue-100 mb-1">家庭總保費 (年) <i class="fa-solid ml-1 opacity-70" :class="showTotal ? 'fa-eye-slash' : 'fa-eye'"></i></div><div class="text-xl font-bold text-yellow-300 font-mono" x-text="showTotal ? 'HK$ ' + formatNumber(client.summary?.totalPremium || 0) : '****'"></div></div>
+                <div x-data="{ showTotal: false }" class="bg-white/10 p-3 rounded-xl text-center cursor-pointer" @click="showTotal = !showTotal">
+                    <div class="text-xs text-blue-100 mb-1">家庭總保費 (年) <i class="fa-solid ml-1 opacity-70" :class="showTotal ? 'fa-eye-slash' : 'fa-eye'"></i></div>
+                    <div class="text-xl font-bold text-yellow-300 font-mono" x-text="showTotal ? 'HK$ ' + formatNumber(client.summary?.totalPremium || 0) : '****'"></div>
+                </div>
             </div>
 
             <div class="p-4 md:p-8 space-y-6 md:space-y-8 bg-gray-50">
@@ -493,10 +498,31 @@
                         <div class="mb-6 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                             <div class="bg-indigo-50 px-4 py-2 border-b border-indigo-100"><h3 class="font-bold text-indigo-800 text-md">受保人：<span x-text="person.name"></span></h3></div>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
-                                <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-red-400 flex flex-col justify-center"><div class="text-xs text-gray-500 mb-1">🏥 醫療保障</div><div class="text-sm font-bold text-gray-800 leading-relaxed"><template x-if="person.medicalHighEnd && person.medicalTraditional"><span>1. 高端醫療<br>2. 傳統醫療</span></template><template x-if="person.medicalHighEnd && !person.medicalTraditional"><span class="text-lg">高端醫療</span></template><template x-if="!person.medicalHighEnd && person.medicalTraditional"><span class="text-lg">傳統醫療</span></template><template x-if="!person.medicalHighEnd && !person.medicalTraditional"><span class="text-lg text-gray-400">尚未配置</span></template></div></div>
-                                <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-orange-400"><div class="text-xs text-gray-500 mb-1">🛡️ 危疾保障 (替代收入)</div><div class="text-lg font-bold text-gray-800" x-text="person.ciSum > 0 ? 'HK$ ' + formatNumber(person.ciSum) : '尚未配置'"></div></div>
-                                <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-blue-400"><div class="text-xs text-gray-500 mb-1">🕊️ 人壽保障 (家庭責任)</div><div class="text-lg font-bold text-gray-800" x-text="person.lifeSum > 0 ? 'HK$ ' + formatNumber(person.lifeSum) : '尚未配置'"></div></div>
-                                <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-teal-400 flex flex-col justify-center"><div class="text-xs text-gray-500 mb-1">🚑 意外保障</div><div class="text-sm font-bold text-gray-800" x-show="person.accDeathSum > 0">身故: HK$ <span x-text="formatNumber(person.accDeathSum)"></span></div><div class="text-sm font-bold text-gray-800 mt-1" x-show="person.accMedicalSum > 0">醫療: HK$ <span x-text="formatNumber(person.accMedicalSum)"></span></div><div class="text-lg font-bold text-gray-400" x-show="person.accDeathSum === 0 && person.accMedicalSum === 0">尚未配置</div></div>
+                                <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-red-400 flex flex-col justify-center">
+                                    <div class="text-xs text-gray-500 mb-1">🏥 醫療保障</div>
+                                    <div class="text-sm font-bold text-gray-800 leading-relaxed">
+                                        <template x-if="person.medicalHighEnd && person.medicalTraditional"><span>1. 高端醫療<br>2. 傳統醫療</span></template>
+                                        <template x-if="person.medicalHighEnd && !person.medicalTraditional"><span class="text-lg">高端醫療</span></template>
+                                        <template x-if="!person.medicalHighEnd && person.medicalTraditional"><span class="text-lg">傳統醫療</span></template>
+                                        <template x-if="!person.medicalHighEnd && !person.medicalTraditional"><span class="text-lg text-gray-400">尚未配置</span></template>
+                                    </div>
+                                </div>
+                                <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-orange-400">
+                                    <div class="text-xs text-gray-500 mb-1">🛡️ 危疾保障 (替代收入)</div>
+                                    <div class="text-lg font-bold text-gray-800" x-text="person.ciSum > 0 ? 'HK$ ' + formatNumber(person.ciSum) : '尚未配置'"></div>
+                                    <div x-show="person.ciSum > 0" class="text-xs text-red-600 font-bold mt-2 bg-red-50 p-2 rounded border border-red-100 flex items-start gap-1"><i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 足夠替代 3 年家庭開支嗎？</span></div>
+                                </div>
+                                <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-blue-400">
+                                    <div class="text-xs text-gray-500 mb-1">🕊️ 人壽保障 (家庭責任)</div>
+                                    <div class="text-lg font-bold text-gray-800" x-text="person.lifeSum > 0 ? 'HK$ ' + formatNumber(person.lifeSum) : '尚未配置'"></div>
+                                    <div x-show="person.lifeSum > 0" class="text-xs text-blue-600 font-bold mt-2 bg-blue-50 p-2 rounded border border-blue-100 flex items-start gap-1"><i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 萬一有事，能覆蓋房貸及生活費嗎？</span></div>
+                                </div>
+                                <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-teal-400 flex flex-col justify-center">
+                                    <div class="text-xs text-gray-500 mb-1">🚑 意外保障</div>
+                                    <div class="text-sm font-bold text-gray-800" x-show="person.accDeathSum > 0">身故: HK$ <span x-text="formatNumber(person.accDeathSum)"></span></div>
+                                    <div class="text-sm font-bold text-gray-800 mt-1" x-show="person.accMedicalSum > 0">醫療: HK$ <span x-text="formatNumber(person.accMedicalSum)"></span></div>
+                                    <div class="text-lg font-bold text-gray-400" x-show="person.accDeathSum === 0 && person.accMedicalSum === 0">尚未配置</div>
+                                </div>
                             </div>
                         </div>
                     </template>
@@ -526,6 +552,7 @@
                 <div>
                     <h2 class="text-xl font-bold theme-blue mb-4 border-l-4 border-blue-600 pl-3">保單明細一覽</h2>
                     <div x-data="{ selectedInsured: null, get uniquePersons() { return [...new Set(((client.policies||[]).filter(p=>!p.isCancelled)).map(p => (p.insuredPerson || client.owner || client.name || '未命名').trim()))] } }">
+                        
                         <div class="flex flex-wrap gap-2 mb-4">
                             <template x-for="person in uniquePersons" :key="person"><button @click="selectedInsured = (selectedInsured === person ? null : person)" class="px-4 py-2 rounded-lg font-bold transition-all border shadow-sm" :class="selectedInsured === person ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50'" x-text="person"></button></template>
                         </div>
@@ -560,9 +587,9 @@
                 </div>
 
                 <div x-show="(client.claimEvents || []).length > 0">
-                    <h2 class="text-xl font-bold theme-blue mb-4 border-l-4 border-purple-500 pl-3">理賠索償紀錄</h2>
+                    <h2 class="text-xl font-bold theme-blue mb-4 border-l-4 border-purple-500 pl-3">理賠紀錄</h2>
                     <div x-data="{ open: false }" class="mb-4 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
-                        <div @click="open = !open" class="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-purple-500"><h3 class="font-bold text-gray-700"><i class="fa-solid fa-file-medical text-purple-500 mr-2"></i>點擊查看理賠詳情</h3><i class="fa-solid text-gray-400 transition-transform duration-300" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
+                        <div @click="open = !open" class="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-purple-500"><h3 class="font-bold text-gray-700"><i class="fa-solid fa-file-medical text-purple-500 mr-2"></i>點擊查看理賠詳情</h3><i class="fa-solid text-gray-400" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
                         <div x-show="open" x-transition class="p-4 border-t border-gray-100 bg-gray-50 space-y-4">
                             <template x-for="(event, eIndex) in (client.claimEvents || [])" :key="eIndex">
                                 <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 relative">
@@ -588,7 +615,7 @@
         // Admin 邏輯
         function app() {
             return {
-                version: '1.7.8', view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, clientRemarkModal: { open: false, text: '' },
+                version: '1.7.9', view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, clientRemarkModal: { open: false, text: '' },
                 uploadModal: { open: false, loading: false }, qrModal: { open: false }, linkModal: { url: '' }, itemRemarkModal: { open: false, item: {} },
                 showWebActionModal: false, showConfigModal: false, showWebFrame: false, showSettingsModal: false, showReportModal: false, reportClient: {}, reportData: { Medical: [], CI: [], Life: [], Accident: [], Savings: [] }, showSavingsInReport: true,
                 webLinks: [], calendarModal: { open: false, type: '', data: null }, settings: { waBirthday: '祝您生日快樂！', waRenewal: '溫馨提示保單續保。' },
@@ -682,7 +709,7 @@
             }
         }
 
-        // 🌟 唯讀 Client 邏輯
+        // 🌟 Client 邏輯
         function dashboardApp() {
             return {
                 client: {}, hasData: false, loadingMsg: '載入中...', clientRemarkModal: { open: false, text: '' },
