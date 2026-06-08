@@ -1,6 +1,8 @@
-const CACHE_NAME = 'crm-cache-v1.8.0'; // 🌟 升級版本號，強制客戶端與後台更新快取
+const CACHE_NAME = 'crm-cache-v1.8.0'; // 🌟 強制更新版號
 const urlsToCache = [
   '/',
+  '/index.html',
+  '/client.html',
   '/manifest-admin.json',
   '/manifest-client.json',
   '/admin-logo-192.png',
@@ -8,7 +10,7 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
-  self.skipWaiting(); // 強制跳過等待，立刻啟用新 Service Worker
+  self.skipWaiting(); // 強制立刻啟用新版本
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
@@ -20,14 +22,14 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheName !== CACHE_NAME) {
-            console.log('清除舊緩存並強制更新:', cacheName);
+            console.log('清除舊緩存:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     })
   );
-  self.clients.claim(); // 讓新 Service Worker 立刻控制所有打開的網頁視窗
+  self.clients.claim(); // 立刻接管所有頁面
 });
 
 self.addEventListener('fetch', event => {
