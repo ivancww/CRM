@@ -67,7 +67,7 @@
                                     <div x-show="person.lifeSum > 0" class="text-xs text-blue-600 font-bold mt-2 bg-blue-50 p-2 rounded border border-blue-100 flex items-start gap-1"><i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 萬一有事，能覆蓋房貸及生活費嗎？</span></div>
                                 </div>
                                 <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-teal-400 flex flex-col justify-center">
-                                    <div class="text-xs text-gray-500 mb-1">橫幅 意外保障</div>
+                                    <div class="text-xs text-gray-500 mb-1">🚑 意外保障</div>
                                     <div class="text-sm font-bold text-gray-800" x-show="person.accDeathSum > 0">身故: HK$ <span x-text="formatNumber(person.accDeathSum)"></span></div>
                                     <div class="text-sm font-bold text-gray-800 mt-1" x-show="person.accMedicalSum > 0">醫療: HK$ <span x-text="formatNumber(person.accMedicalSum)"></span></div>
                                     <div class="text-lg font-bold text-gray-400" x-show="person.accDeathSum === 0 && person.accMedicalSum === 0">尚未配置</div>
@@ -162,7 +162,6 @@
             return {
                 client: {}, hasData: false, loadingMsg: '載入中...', clientRemarkModal: { open: false, text: '' },
                 
-                // 🛠️ 核心修正：直接從網址的 data 參數內還原解密 Base64 數據，擺脫對 Google 數據庫的依賴
                 init() {
                     const params = new URLSearchParams(window.location.search);
                     const encodedData = params.get('data');
@@ -173,10 +172,10 @@
                             }).join(''));
                             this.process(JSON.parse(jsonStr));
                         } catch(e) {
-                            this.loadingMsg = "客戶保單資料解析失敗，請重新產生 QR Code";
+                            this.loadingMsg = "保單報告解析失敗";
                         }
                     } else {
-                        this.loadingMsg = "無效的分享連結或尚未載入資料";
+                        this.loadingMsg = "無效的連結";
                     }
                 },
                 process(data) {
@@ -213,10 +212,9 @@
             }
         }
 
-        // 強制更新 Service Worker 註冊碼
         if ('serviceWorker' in navigator) { 
             window.addEventListener('load', () => { 
-                navigator.serviceWorker.register('sw.js?v=1.8.0').then(reg => { 
+                navigator.serviceWorker.register('sw.js?v=1.8.1').then(reg => { 
                     reg.onupdatefound = () => { 
                         const worker = reg.installing; 
                         worker.onstatechange = () => { 
