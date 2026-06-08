@@ -8,14 +8,13 @@
         if (params.has('id')) { localStorage.setItem('client_app_id', params.get('id')); }
         if (params.has('data')) { localStorage.setItem('client_app_data', params.get('data')); }
         
-        // 🌟 修正 PWA 啟動判斷：確保帶有數據時正確進入客戶唯讀頁，且不與 Admin 邏輯相撞
         window.isClientView = params.has('id') || params.has('data') || params.has('client_app');
 
         if (window.isClientView) {
             document.title = "我的財富與保障儀表板";
             document.write('<link rel="manifest" href="manifest-client.json"><link rel="icon" type="image/png" href="client-logo-192.png"><link rel="apple-touch-icon" href="client-logo-192.png">');
         } else {
-            document.title = "保險管家 v1.8.1 (Admin - Cloud)";
+            document.title = "保險管家 v1.8.2 (Admin - Serverless)";
             document.write('<link rel="manifest" href="manifest-admin.json"><link rel="icon" type="image/png" href="admin-logo-192.png"><link rel="apple-touch-icon" href="admin-logo-192.png">');
         }
     </script>
@@ -190,13 +189,15 @@
                                             <template x-for="(item, iIndex) in (event.items || [])" :key="iIndex">
                                                 <tr class="border-t">
                                                     <td class="py-2"><input type="text" x-model="item.desc" class="w-full bg-transparent" placeholder="輸入說明..."></td>
-                                                    <td class="py-2"><div class="relative"><input type="text" x-model="item.amount" @input="item.amount = formatInput($event.target.value)" class="w-full border rounded p-1 text-right pr-6" placeholder="0"><button @click="item.amount = parseFloat((parseFloat(String(item.amount).replace(/,/g, ''))*7.8).toFixed(0)).toLocaleString('en-US')" class="absolute right-0 top-0 h-full bg-gray-100 px-1 text-[8px] text-gray-400 hover:text-purple-600 rounded-r">USD</button></div></td>
+                                                    <td class="py-2">
+                                                        <div class="relative"><input type="text" x-model="item.amount" @input="item.amount = formatInput($event.target.value)" class="w-full border rounded p-1 text-right pr-6" placeholder="0"><button @click="item.amount = parseFloat((parseFloat(String(item.amount).replace(/,/g, ''))*7.8).toFixed(0)).toLocaleString('en-US')" class="absolute right-0 top-0 h-full bg-gray-100 px-1 text-[8px] text-gray-400 hover:text-purple-600 rounded-r">USD</button></div>
+                                                    </td>
                                                     <td class="text-center"><button @click="event.items.splice(iIndex,1)" class="text-red-400 hover:text-red-600"><i class="fa-solid fa-minus-circle"></i></button></td>
                                                 </tr>
                                             </template>
                                         </tbody>
                                     </table>
-                                    <div class="flex justify-between items-center mt-2 pt-2 border-t border-dashed"><button @click="event.items.push({desc:'',amount:''})" class="text-purple-600 text-xs font-bold">+ 新增細項</button><div class="flex gap-2"><button @click="event.status = event.status==='Pending'?'Completed':'Pending'" class="text-xs px-2 py-1 rounded border bg-white shadow-sm" x-text="event.status==='Pending'?'完成檔案':'重開檔案'"></button><button @click="client.claimEvents.splice(eIndex,1)" class="text-xs px-2 py-1 rounded text-red-400 border border-red-50 shadow-sm hover:bg-red-100"><i class="fa-solid fa-trash-can"></i></button></div></div>
+                                    <div class="flex justify-between items-center mt-2 pt-2 border-t border-dashed"><button @click="event.items.push({desc:'',amount:''})" class="text-purple-600 text-xs font-bold">+ 細項</button><div class="flex gap-2"><button @click="event.status = event.status==='Pending'?'Completed':'Pending'" class="text-xs px-2 py-1 rounded border bg-white shadow-sm" x-text="event.status==='Pending'?'完成檔案':'重開檔案'"></button><button @click="client.claimEvents.splice(eIndex,1)" class="text-xs px-2 py-1 rounded text-red-400 border border-red-50 shadow-sm hover:bg-red-100"><i class="fa-solid fa-trash-can"></i></button></div></div>
                                 </div>
                             </template>
                             <button @click="addClaimEvent()" class="w-full py-2 border-2 border-dashed border-purple-300 text-purple-600 rounded text-sm font-bold bg-purple-50 hover:bg-purple-100 transition">+ 新索償檔案</button>
@@ -241,7 +242,7 @@
                                         <div class="text-lg font-bold text-gray-800" x-text="person.lifeSum > 0 ? 'HK$ ' + formatNumber(person.lifeSum) : '尚未配置'"></div>
                                         <div x-show="person.lifeSum > 0" class="text-xs text-blue-600 font-bold mt-2 bg-blue-50 p-2 rounded border border-blue-100 flex items-start gap-1"><i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 萬一有事，能覆蓋房貸及生活費嗎？</span></div>
                                     </div>
-                                    <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-teal-400 flex flex-col justify-center"><div class="text-xs text-gray-500 mb-1">🚑 意外保障</div><div class="text-sm font-bold text-gray-800" x-show="person.accDeathSum > 0">身故: HK$ <span x-text="formatNumber(person.accDeathSum)"></span></div><div class="text-sm font-bold text-gray-800 mt-1" x-show="person.accMedicalSum > 0">醫療: HK$ <span x-text="formatNumber(person.accMedicalSum)"></span></div><div class="text-lg font-bold text-gray-400" x-show="person.accDeathSum === 0 && person.accMedicalSum === 0">尚未配置</div></div>
+                                    <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-teal-400 flex flex-col justify-center"><div class="text-xs text-gray-500 mb-1">🚑 意外保障</div><div class="text-sm text-gray-800" x-show="person.accDeathSum > 0">身故: HK$ <span x-text="formatNumber(person.accDeathSum)"></span></div><div class="text-sm text-gray-800 mt-1" x-show="person.accMedicalSum > 0">醫療: HK$ <span x-text="formatNumber(person.accMedicalSum)"></span></div><div class="text-lg font-bold text-gray-400" x-show="person.accDeathSum === 0 && person.accMedicalSum === 0">尚未配置</div></div>
                                 </div>
                             </div>
                         </template>
@@ -250,7 +251,7 @@
 
                     <div>
                         <h2 class="text-lg font-bold text-[#1E3A8A] mb-4"><i class="fa-solid fa-bullseye mr-2"></i>第二層：人生藍圖與財務探索</h2>
-                        <div x-data="{ open: true }" class="bg-white rounded-xl shadow-sm border border-gray-100 mb-4 relative">
+                        <div x-data Mini blueprint x-data="{ open: true }" class="bg-white rounded-xl shadow-sm border border-gray-100 mb-4 relative">
                             <div class="absolute top-0 right-0 bg-blue-100 text-blue-600 text-[10px] px-2 py-1 rounded-bl font-bold z-10">可編輯</div>
                             <div @click="open = !open" class="p-5 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-orange-400"><h3 class="font-bold text-gray-700 text-base md:text-lg">🌅 尊享未來生活與醫療儲備</h3><i class="fa-solid text-gray-400" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
                             <div x-show="open" x-transition class="p-5 border-t border-gray-100 bg-gray-50/50 space-y-4">
@@ -277,6 +278,7 @@
                             <div class="flex flex-wrap gap-2 mb-4">
                                 <template x-for="person in uniquePersons" :key="person"><button @click="selectedInsured = (selectedInsured === person ? null : person)" class="px-4 py-2 rounded-lg font-bold transition-all border shadow-sm" :class="selectedInsured === person ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50'" x-text="person"></button></template>
                             </div>
+                            <div x-show="uniquePersons.length === 0" class="text-center py-8 bg-white rounded-xl border border-dashed border-gray-300 text-gray-400">尚未輸入保單資料</div>
                             
                             <div x-show="selectedInsured" x-transition>
                                 <template x-for="(policy, index) in (client.policies || []).filter(p => !p.isCancelled && (p.insuredPerson || client.owner || client.name || '未命名').trim() === selectedInsured)" :key="index">
@@ -287,9 +289,9 @@
                                         </div>
                                         <div class="px-4 py-3 bg-gray-50 flex justify-between items-center border-b border-gray-100" x-data="{ showPremium: false }"><div class="flex gap-6"><div><span class="text-[10px] text-gray-500 block">保費 (<span x-text="policy.paymentMode === 'Monthly' ? '月繳' : '年繳'"></span>)</span><div class="flex items-center gap-2"><span class="font-mono font-bold text-gray-800" x-text="showPremium ? (policy.premium ? 'HK$ ' + formatNumber(policy.premium) : '-') : '****'"></span><button @click="showPremium = !showPremium" class="text-gray-400 hover:text-blue-600 transition"><i class="fa-solid" :class="showPremium ? 'fa-eye-slash' : 'fa-eye'"></i></button></div></div></div></div>
                                         <div class="p-2">
-                                            <template x-for="(item, iIndex) in (policy.items || [])">
+                                            <template x-for="(item, iIndex) in (policy.items || [])" :key="iIndex">
                                                 <div class="p-3 border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                                                    <div class="flex justify-between items-start mb-2"><div class="flex items-center gap-2"><span x-show="iIndex===0" class="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">主</span><span x-show="iIndex>0" class="bg-gray-200 text-gray-600 text-[10px] px-1.5 py-0.5 rounded" x-text="iIndex"></span><div><div class="font-bold text-gray-800 text-sm" x-text="item.name || '未命名'"></div><div class="text-[10px]" :class="getCategoryColor(item.category)" x-text="item.category"></div></div></div><button x-show="item.remarks" @click="clientRemarkModal.text=item.remarks; clientRemarkModal.open=true;" class="text-red-500 text-xs bg-red-50 p-1 rounded-full"><i class="fa-solid fa-exclamation px-1"></i></button></div>
+                                                    <div class="flex justify-between items-start mb-2"><div class="flex items-center gap-2"><span x-show="iIndex===0" class="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">主</span><span x-show="iIndex>0" class="bg-gray-200 text-gray-600 text-[10px] px-1.5 py-0.5 rounded" x-text="iIndex"></span><div><div class="font-bold text-gray-800 text-sm" x-text="item.name || '未命名'"></div><div class="text-[10px]" :class="getCategoryColor(item.category)" x-text="item.category"></div></div></div><button x-show="item.remarks" @click="clientRemarkModal.text=item.remarks; clientRemarkModal.open=true;" class="w-6 h-6 rounded-full bg-red-50 text-red-500 text-xs border border-red-200 hover:bg-red-100 transition"><i class="fa-solid fa-exclamation"></i></button></div>
                                                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded border border-gray-100 mt-1">
                                                         <div><span class="text-gray-400">保額:</span> <span class="font-mono font-bold text-gray-700" x-text="item.sumAssured ? '$'+formatNumber(item.sumAssured) : '-'"></span></div>
                                                         <div><span class="text-gray-400">自付:</span> <span class="font-mono font-bold text-gray-700" x-text="item.deductible ? '$'+formatNumber(item.deductible) : '-'"></span></div>
@@ -313,8 +315,8 @@
                                 <template x-for="(event, eIndex) in (client.claimEvents || [])" :key="eIndex">
                                     <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 relative">
                                         <div x-show="event.status === 'Completed'" class="absolute right-[-10px] top-[10px] transform rotate-[15deg] border-2 border-green-500 text-green-500 font-bold px-4 py-1 text-[10px] opacity-30">COMPLETED</div>
-                                        <div class="flex justify-between items-start mb-3 border-b border-gray-100 pb-2"><div><h3 class="font-bold text-gray-800" x-text="event.name"></h3><div class="text-xs text-gray-500">立案日期：<span x-text="event.eventDate"></span></div></div><div class="text-right"><div class="text-[10px] text-gray-500">總獲批金額</div><div class="font-bold text-purple-600 font-mono" x-text="'HK$ ' + formatNumber((event.items || []).reduce((s,i)=>s+Number(String(i.amount||0).replace(/,/g, '')),0))"></div></div></div>
-                                        <div class="space-y-1"><template x-for="(item, iIndex) in (event.items || [])" :key="iIndex"><div class="flex justify-between text-xs"><div class="text-gray-600"><i class="fa-solid fa-receipt text-gray-300 mr-1"></i><span x-text="item.desc"></span></div><div class="font-mono text-gray-700" x-text="'HK$ ' + formatNumber(item.amount)"></div></div></template></div>
+                                        <div class="flex justify-between items-start mb-3 border-b border-gray-100 pb-2"><div><h3 class="font-bold text-gray-800" x-text="event.name"></h3><div class="text-xs text-gray-500" x-text="'立案日期：'+event.eventDate"></div></div><div class="text-right"><div class="text-[10px] text-gray-500">總獲批金額</div><div class="font-bold text-purple-600 font-mono" x-text="'HK$ ' + formatNumber((event.items || []).reduce((s,i)=>s+Number(String(i.amount||0).replace(/,/g, '')),0))"></div></div></div>
+                                        <div class="space-y-1"><template x-for="item in event.items"><div class="flex justify-between text-xs"><div class="text-gray-600"><i class="fa-solid fa-receipt text-gray-300 mr-1"></i><span x-text="item.desc"></span></div><div class="font-mono text-gray-700" x-text="'HK$ ' + formatNumber(item.amount)"></div></div></template></div>
                                     </div>
                                 </template>
                             </div>
@@ -323,12 +325,12 @@
                 </div>
                 <div class="bg-white border-t border-gray-200 p-6 flex flex-col md:flex-row justify-between items-center gap-4"><button @click="view = 'detail'; saveCurrentClient(true);" class="w-full md:w-auto bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-bold transition">🔙 結束並儲存 Review</button><button @click="updateSummary(); openUploadModal();" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-bold shadow-md transition"><i class="fa-solid fa-qrcode mr-2"></i> 生成分享 QR Code</button></div>
             </div>
-            
+
             <div x-show="uploadModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 print:hidden" x-cloak><div class="bg-white w-80 rounded-lg shadow-xl p-6 text-center relative z-50"><h3 class="font-bold text-gray-800 mb-2 text-lg">建立專屬連結</h3><div x-show="uploadModal.loading" class="mb-4 text-blue-600 font-bold text-sm animate-pulse">打包中...</div><button @click="uploadToCloud()" :disabled="uploadModal.loading" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold mb-3 shadow">確認並生成 QR Code</button><button @click="uploadModal.open = false" class="text-gray-400 text-sm">取消</button></div></div>
             <div x-show="qrModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 print:hidden" x-cloak><div class="bg-white w-80 rounded-lg shadow-xl p-6 text-center relative z-50"><h3 class="font-bold text-gray-800 mb-3">專屬連結已建立</h3><div class="flex justify-center mb-2 bg-white p-2 border rounded relative" style="min-height: 200px;"><img id="qr-image-visible" src="" class="w-full h-auto object-contain" style="display:none;"><div id="qr-loading" class="absolute inset-0 flex items-center justify-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i></div><div id="qr-container-hidden" style="position:absolute; top:-9999px;"></div></div><button @click="copyLink()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold mb-3 shadow">複製連結</button><button @click="qrModal.open = false" class="text-gray-400 text-sm">關閉</button></div></div>
             <div x-show="itemRemarkModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-96 rounded-lg p-4 m-4"><h3 class="font-bold mb-2">編輯備註</h3><textarea x-model="itemRemarkModal.item.remarks" class="w-full h-32 border rounded p-2 text-sm mb-4"></textarea><div class="flex justify-end gap-2"><button @click="itemRemarkModal.open = false" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">確定</button></div></div></div>
             <div x-show="clientRemarkModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4" x-cloak><div class="bg-white w-full max-w-sm rounded-2xl overflow-hidden relative"><div class="bg-red-500 p-4 text-center"><div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto text-red-500 text-2xl mb-2"><i class="fa-solid fa-info"></i></div><h3 class="font-bold text-white">保單項目備註</h3></div><div class="p-6"><div class="text-sm text-gray-700 whitespace-pre-line leading-relaxed" x-text="clientRemarkModal.text"></div><button @click="clientRemarkModal.open = false" class="mt-6 w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-xl">關閉</button></div></div></div>
-            <div x-show="showReportModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 overflow-y-auto print:absolute print:inset-0 print:block print:bg-white print:overflow-visible print:z-0" x-cloak><div class="bg-white w-full max-w-2xl rounded-lg shadow-2xl p-6 m-4 max-h-[90vh] overflow-y-auto flex flex-col relative print:max-h-none print:shadow-none print:m-0 print:p-0 print:block"><button @click="showReportModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10 print:hidden"><i class="fa-solid fa-times text-2xl"></i></button><div id="report-content" class="bg-white p-2"><div class="flex justify-between items-center mb-6 border-b pb-4"><h3 class="font-bold text-gray-800 text-xl"><i class="fa-solid fa-chart-pie text-purple-600 mr-2"></i>保障範疇彙整報告</h3></div><div class="mb-4 text-sm text-gray-500">客戶姓名：<span class="font-bold text-gray-800" x-text="reportClient.owner"></span></div><div class="space-y-4"><template x-for="cat in ['Medical', 'CI', 'Life', 'Accident', 'Savings']"><div class="report-section" x-show="reportData[cat] && reportData[cat].length > 0 && (cat !== 'Savings' || showSavingsInReport)" :style="'border-left-color:' + (cat === 'Medical' ? '#ef4444' : (cat === 'CI' ? '#f59e0b' : (cat === 'Life' ? '#3b82f6' : (cat === 'Accident' ? '#14b8a6' : '#10b981'))))"><h4 class="font-bold mb-2 flex justify-between items-center"><span x-text="cat === 'Medical' ? '🏥 醫療' : (cat === 'CI' ? '🛡️ 危疾' : (cat === 'Life' ? '🕊️ 人壽' : (cat === 'Accident' ? '🚑 意外 (含身故及醫療費用)' : '💰 儲蓄')))"></span><div class="text-right"><span x-show="cat === 'CI' && reportData.ciTotal && reportData.ciTotal !== '0'" class="text-xs text-red-600 font-bold mr-2" x-text="'總保額: $' + reportData.ciTotal"></span><span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500" x-text="reportData[cat].length + ' 項'"></span></div></h4><div class="text-sm space-y-2"><template x-for="i in reportData[cat]"><div class="flex justify-between border-b border-dashed pb-2"><div class="flex flex-col"><span x-text="i.name" class="font-bold text-gray-700"></span><div class="text-[10px] text-gray-500 mt-0.5">公司: <span class="font-bold" x-text="i.insurer||'-'"></span> | 保單: <span class="font-bold" x-text="i.policyNo||'-'"></span></div><div class="text-[10px] text-gray-500 mt-0.5">生效: <span x-text="i.effectDate||'-'"></span><span x-show="reportClient.dob&&i.effectDate" x-text="' ('+getAgeAtDate(reportClient.dob,i.effectDate)+'歲)'"></span> | 供款: <span x-text="i.term||'-'"></span> | 保障: <span x-text="i.maturity||'-'"></span></div><span x-show="cat==='CI'&&i.remarks&&i.remarks.includes('多次賠償')" class="text-[10px] text-red-500 font-bold mt-0.5">* 支援多次賠償</span><span x-show="cat==='Savings'&&i.remarks&&i.remarks.includes('目標')" class="text-[10px] text-green-600 font-bold mt-0.5" x-text="'* '+i.remarks"></span></div><div class="text-right"><template x-if="cat === 'Medical'"><div><div class="font-bold text-gray-800" x-show="!i.name.includes('自願醫保')" x-text="i.sumAssured ? '$ ' + i.sumAssured : '全數賠償'"></div><div class="font-bold text-gray-800" x-show="i.name.includes('自願醫保')" x-text="i.deductible ? '應付自付額: $' + i.deductible : '需應付自付額'"></div><div x-show="!i.name.includes('自願醫保') && i.deductible && i.deductible !== '0'" class="text-[10px] text-red-400" x-text="'(自付: ' + i.deductible + ')'"></div></div></template><template x-if="cat === 'Savings'"><div class="font-bold text-gray-800" x-text="i.sumAssured ? '$ ' + i.sumAssured : ''"></div></template><template x-if="cat !== 'Medical' && cat !== 'Savings'"><div class="font-bold text-gray-800" x-text="i.sumAssured ? '$ ' + i.sumAssured : '全數賠償'"></div></template></div></div></template></div></div></template></div></div><div class="mt-6 border-t pt-4 print:hidden"><label class="flex items-center text-sm font-bold cursor-pointer transition select-none text-gray-700 bg-gray-50 p-3 rounded mb-3 border"><input type="checkbox" class="mr-2 w-4 h-4 rounded cursor-pointer accent-purple-600" x-model="showSavingsInReport"><span>報告包含「儲蓄與財富」類別</span></label><button @click="savePDF()" class="w-full bg-slate-800 text-white py-3 rounded-lg font-bold shadow-md hover:bg-slate-700 transition">匯出 PDF (使用系統列印)</button></div></div></div>
+            <div x-show="showReportModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 overflow-y-auto print:absolute print:inset-0 print:block print:bg-white print:overflow-visible print:z-0" x-cloak><div class="bg-white w-full max-w-2xl rounded-lg shadow-2xl p-6 m-4 max-h-[90vh] overflow-y-auto flex flex-col relative print:max-h-none print:shadow-none print:m-0 print:p-0 print:block"><button @click="showReportModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10 print:hidden"><i class="fa-solid fa-times text-2xl"></i></button><div id="report-content" class="bg-white p-2"><div class="flex justify-between items-center mb-6 border-b pb-4"><h3 class="font-bold text-gray-800 text-xl"><i class="fa-solid fa-chart-pie text-purple-600 mr-2"></i>保障範疇彙整報告</h3></div><div class="mb-4 text-sm text-gray-500">客戶姓名：<span class="font-bold text-gray-800" x-text="reportClient.owner"></span></div><div class="space-y-4"><template x-for="cat in ['Medical', 'CI', 'Life', 'Accident', 'Savings']"><div class="report-section" x-show="reportData[cat] && reportData[cat].length > 0 && (cat !== 'Savings' || showSavingsInReport)" :style="'border-left-color:' + (cat === 'Medical' ? '#ef4444' : (cat === 'CI' ? '#f59e0b' : (cat === 'Life' ? '#3b82f6' : (cat === 'Accident' ? '#14b8a6' : '#10b981'))))"><h4 class="font-bold mb-2 flex justify-between items-center"><span x-text="cat === 'Medical' ? '🏥 醫療' : (cat === 'CI' ? '🛡️ 危疾' : (cat === 'Life' ? '🕊️ 人壽' : (cat === 'Accident' ? '🚑 意外' : '💰 儲蓄')))"></span><div class="text-right"><span x-show="cat === 'CI' && reportData.ciTotal && reportData.ciTotal !== '0'" class="text-xs text-red-600 font-bold mr-2" x-text="'總保額: $' + reportData.ciTotal"></span><span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500" x-text="reportData[cat].length + ' 項'"></span></div></h4><div class="text-sm space-y-2"><template x-for="i in reportData[cat]"><div class="flex justify-between border-b border-dashed pb-2"><div class="flex flex-col"><span x-text="i.name" class="font-bold text-gray-700"></span><div class="text-[10px] text-gray-500 mt-0.5">公司: <span class="font-bold" x-text="i.insurer || '-'"></span> | 保單: <span class="font-bold" x-text="i.policyNo || '-'"></span></div><div class="text-[10px] text-gray-500 mt-0.5">生效: <span x-text="i.effectDate || '-'"></span><span x-show="reportClient.dob && i.effectDate" x-text="' (' + getAgeAtDate(reportClient.dob, i.effectDate) + '歲)'"></span> | 供款: <span x-text="i.term || '-'"></span> | 保障: <span x-text="i.maturity || '-'"></span></div><span x-show="cat === 'CI' && i.remarks && i.remarks.includes('多次賠償')" class="text-[10px] text-red-500 font-bold mt-0.5">* 支援多次賠償</span><span x-show="cat === 'Savings' && i.remarks && i.remarks.includes('目標')" class="text-[10px] text-green-600 font-bold mt-0.5" x-text="'* ' + i.remarks"></span></div><div class="text-right"><template x-if="cat === 'Medical'"><div><div class="font-bold text-gray-800" x-show="!i.name.includes('自願醫保')" x-text="i.sumAssured ? '$ ' + i.sumAssured : '全數賠償'"></div><div class="font-bold text-gray-800" x-show="i.name.includes('自願醫保')" x-text="i.deductible ? '應付自付額: $' + i.deductible : '需應付自付額'"></div><div x-show="!i.name.includes('自願醫保') && i.deductible && i.deductible !== '0'" class="text-[10px] text-red-400" x-text="'(自付: ' + i.deductible + ')'"></div></div></template><template x-if="cat === 'Savings'"><div class="font-bold text-gray-800" x-text="i.sumAssured ? '$ ' + i.sumAssured : ''"></div></template><template x-if="cat !== 'Medical' && cat !== 'Savings'"><div class="font-bold text-gray-800" x-text="i.sumAssured ? '$ ' + i.sumAssured : '全數賠償'"></div></template></div></div></template></div></div></template></div></div><div class="mt-6 border-t pt-4 print:hidden"><label class="flex items-center text-sm font-bold cursor-pointer transition select-none text-gray-700 bg-gray-50 p-3 rounded mb-3 border"><input type="checkbox" class="mr-2 w-4 h-4 rounded cursor-pointer accent-purple-600" x-model="showSavingsInReport"><span>報告包含「儲蓄與財富」類別</span></label><button @click="savePDF()" class="w-full bg-slate-800 text-white py-3 rounded-lg font-bold shadow-md hover:bg-slate-700 transition">匯出 PDF (使用系統列印)</button></div></div></div>
             <div x-show="calendarModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-72 rounded-lg p-4 text-center"><h3 class="font-bold mb-4">加入日曆</h3><button @click="addToCalendar('google')" class="w-full bg-blue-600 text-white py-2 rounded mb-2 font-bold">Google Calendar</button><button @click="addToCalendar('ios')" class="w-full bg-gray-700 text-white py-2 rounded font-bold">iOS / Outlook</button><button @click="calendarModal.open = false" class="mt-4 text-gray-400 text-sm">取消</button></div></div>
             <div x-show="showSettingsModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 print:hidden" x-cloak><div class="bg-white w-full max-w-md rounded-lg shadow-xl p-6 m-4 max-h-[90vh] overflow-y-auto"><div class="flex justify-between items-center mb-4 border-b pb-2"><h3 class="font-bold text-gray-800 text-lg"><i class="fa-brands fa-whatsapp text-green-500 mr-2"></i>設定預設訊息</h3><button @click="showSettingsModal = false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-times text-xl"></i></button></div><div class="mb-5"><label class="block text-sm font-bold mb-2 text-gray-700">🎂 生日祝賀範本</label><textarea x-model="settings.waBirthday" class="w-full border rounded p-3 text-sm h-24 focus:ring-2 focus:ring-green-400 outline-none"></textarea></div><div class="mb-5"><label class="block text-sm font-bold mb-2 text-gray-700">📝 續保提醒範本</label><textarea x-model="settings.waRenewal" class="w-full border rounded p-3 text-sm h-32 focus:ring-2 focus:ring-green-400 outline-none"></textarea></div><button @click="saveSettings()" class="w-full bg-slate-800 text-white py-3 rounded-lg font-bold shadow hover:bg-slate-700 transition">儲存設定</button></div></div>
             <div x-show="showWebActionModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-72 rounded-lg p-4 text-center"><h3 class="font-bold mb-4">資訊網操作</h3><template x-if="webLinks.length > 0"><div class="mb-4 text-left"><p class="text-xs text-gray-500 mb-1">開啟網站:</p><template x-for="(link, index) in webLinks"><button @click="openWebFrame(link.url)" class="w-full text-left px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded mb-1 text-indigo-700 font-bold text-sm flex items-center"><i class="fa-solid fa-link mr-2"></i> <span x-text="link.name"></span></button></template></div></template><button @click="showWebActionModal = false; showConfigModal = true" class="w-full bg-gray-600 text-white py-2 rounded font-bold text-sm"><i class="fa-solid fa-gear mr-2"></i> 設定網址列表</button><button @click="showWebActionModal = false" class="mt-4 text-gray-400 text-sm">取消</button></div></div>
@@ -405,18 +407,16 @@
                                         <div><span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded font-bold mr-2" x-text="policy.insurer"></span><span class="font-bold text-gray-800">受保人：<span x-text="policy.insuredPerson||client.owner||client.name"></span></span></div>
                                         <div class="text-sm text-gray-500 text-right"><div><span class="text-xs">保單號碼：</span><span class="font-mono font-bold" x-text="policy.policyNo || '-'"></span></div><div><span class="text-xs">生效日：</span><span class="font-mono" x-text="policy.effectDate || '-'"></span></div></div>
                                     </div>
-                                    <div class="px-4 py-3 bg-gray-50 flex justify-between items-center border-b border-gray-100" x-data="{ showPremium: false }">
-                                        <div class="flex gap-6"><div><span class="text-[10px] text-gray-500 block">保費 (<span x-text="policy.paymentMode === 'Monthly' ? '月繳' : '年繳'"></span>)</span><div class="flex items-center gap-2"><span class="font-mono font-bold text-gray-800" x-text="showPremium ? (policy.premium ? 'HK$ ' + formatNumber(policy.premium) : '-') : '****'"></span><button @click="showPremium = !showPremium" class="text-gray-400 hover:text-blue-600 transition"><i class="fa-solid" :class="showPremium ? 'fa-eye-slash' : 'fa-eye'"></i></button></div></div></div>
-                                    </div>
+                                    <div class="px-4 py-3 bg-gray-50 flex justify-between items-center border-b border-gray-100" x-data="{ showPremium: false }"><div class="flex gap-6"><div><span class="text-[10px] text-gray-500 block">保費 (<span x-text="policy.paymentMode === 'Monthly' ? '月繳' : '年繳'"></span>)</span><div class="flex items-center gap-2"><span class="font-mono font-bold text-gray-800" x-text="showPremium ? (policy.premium ? 'HK$ ' + formatNumber(policy.premium) : '-') : '****'"></span><button @click="showPremium = !showPremium" class="text-gray-400 hover:text-blue-600 transition"><i class="fa-solid" :class="showPremium ? 'fa-eye-slash' : 'fa-eye'"></i></button></div></div></div></div>
                                     <div class="p-2">
                                         <template x-for="(item, iIndex) in (policy.items || [])">
                                             <div class="p-3 border-b last:border-0 hover:bg-gray-50">
-                                                <div class="flex justify-between items-start mb-2"><div class="flex items-center gap-2"><span x-show="iIndex===0" class="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">主</span><span x-show="iIndex>0" class="bg-gray-200 text-gray-600 text-[10px] px-1.5 py-0.5 rounded" x-text="iIndex"></span><div><div class="font-bold text-gray-800 text-sm" x-text="item.name"></div><div class="text-[10px]" :class="getCategoryColor(item.category)" x-text="item.category"></div></div></div><button x-show="item.remarks" @click="clientRemarkModal.text=item.remarks; clientRemarkModal.open=true" class="text-red-500 text-xs bg-red-50 p-1 rounded-full"><i class="fa-solid fa-exclamation px-1"></i></button></div>
+                                                <div class="flex justify-between items-start mb-2"><div class="flex items-center gap-2"><span x-show="iIndex===0" class="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">主</span><span x-show="iIndex>0" class="bg-gray-200 text-gray-600 text-[10px] px-1.5 py-0.5 rounded" x-text="iIndex"></span><div><div class="font-bold text-sm" x-text="item.name"></div><div class="text-[10px]" :class="getCategoryColor(item.category)" x-text="item.category"></div></div></div><button @click="clientRemarkModal.text=item.remarks; clientRemarkModal.open=true" x-show="item.remarks" class="text-red-500 text-xs bg-red-50 p-1 rounded-full"><i class="fa-solid fa-exclamation px-1"></i></button></div>
                                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs bg-gray-50 p-2 rounded border mt-1">
                                                     <div><span class="text-gray-400">保額:</span> <span class="font-mono font-bold text-gray-700" x-text="item.sumAssured ? '$'+formatNumber(item.sumAssured) : '-'"></span></div>
                                                     <div><span class="text-gray-400">自付:</span> <span class="font-mono font-bold text-gray-700" x-text="item.deductible ? '$'+formatNumber(item.deductible) : '-'"></span></div>
-                                                    <div><span class="text-gray-400">保障期:</span> <span class="font-bold text-gray-700" x-text="item.maturity || '-'"></span></div>
-                                                    <div><span class="text-gray-400">供款期:</span> <span class="font-bold text-gray-700" x-text="item.term || '-'"></span></div>
+                                                    <div><span class="text-gray-400">保障期:</span> <span class="font-bold" x-text="item.maturity || '-'"></span></div>
+                                                    <div><span class="text-gray-400">供款期:</span> <span class="font-bold" x-text="item.term || '-'"></span></div>
                                                 </div>
                                             </div>
                                         </template>
@@ -429,14 +429,14 @@
 
                 <div x-show="(client.claimEvents || []).length > 0">
                     <h2 class="text-xl font-bold theme-blue mb-4 border-l-4 border-purple-500 pl-3">理賠索償紀錄</h2>
-                    <div x-data="{ open: false }" class="mb-4 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
+                    <div x-data Canaan-PWA x-data="{ open: false }" class="mb-4 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
                         <div @click="open = !open" class="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-purple-500"><h3 class="font-bold text-gray-700"><i class="fa-solid fa-file-medical text-purple-500 mr-2"></i>點擊查看理賠詳情</h3><i class="fa-solid text-gray-400 transition-transform duration-300" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
                         <div x-show="open" x-transition class="p-4 border-t border-gray-100 bg-gray-50 space-y-4">
                             <template x-for="(event, eIndex) in (client.claimEvents || [])" :key="eIndex">
                                 <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 relative">
                                     <div x-show="event.status === 'Completed'" class="absolute right-[-10px] top-[10px] transform rotate-[15deg] border-2 border-green-500 text-green-500 font-bold px-4 py-1 text-[10px] opacity-30">COMPLETED</div>
                                     <div class="flex justify-between items-start mb-3 border-b border-gray-100 pb-2"><div><h3 class="font-bold text-gray-800" x-text="event.name"></h3><div class="text-xs text-gray-500">立案日期：<span x-text="event.eventDate"></span></div></div><div class="text-right"><div class="text-[10px] text-gray-500">總獲批金額</div><div class="font-bold text-purple-600 font-mono" x-text="'HK$ ' + formatNumber((event.items || []).reduce((s,i)=>s+Number(String(i.amount||0).replace(/,/g, '')),0))"></div></div></div>
-                                    <div class="space-y-1"><template x-for="(item, iIndex) in (event.items || [])"><div class="flex justify-between text-xs"><div class="text-gray-600"><i class="fa-solid fa-receipt text-gray-300 mr-1"></i><span x-text="item.desc"></span></div><div class="font-mono text-gray-700" x-text="'HK$ ' + formatNumber(item.amount)"></div></div></template></div>
+                                    <div class="space-y-1"><template x-for="item in event.items"><div class="flex justify-between text-xs"><div class="text-gray-600"><i class="fa-solid fa-receipt text-gray-300 mr-1"></i><span x-text="item.desc"></span></div><div class="font-mono text-gray-700" x-text="'HK$ ' + formatNumber(item.amount)"></div></div></template></div>
                                 </div>
                             </template>
                         </div>
@@ -450,9 +450,10 @@
     </div>
 
     <script>
+        // 🌟 Admin 邏輯
         function app() {
             return {
-                version: '1.8.1', view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, clientRemarkModal: { open: false, text: '' },
+                version: '1.8.2', view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, clientRemarkModal: { open: false, text: '' },
                 uploadModal: { open: false, loading: false }, qrModal: { open: false }, linkModal: { url: '' }, itemRemarkModal: { open: false, item: {} },
                 showWebActionModal: false, showConfigModal: false, showWebFrame: false, showSettingsModal: false, showReportModal: false, reportClient: {}, reportData: { Medical: [], CI: [], Life: [], Accident: [], Savings: [] }, showSavingsInReport: true,
                 webLinks: [], calendarModal: { open: false, type: '', data: null }, settings: { waBirthday: '祝您生日快樂！', waRenewal: '溫馨提示保單續保。' },
@@ -495,56 +496,61 @@
                 permanentDeleteClient(id) { if(confirm('徹底刪除無法復原！確定？')) { this.clients = this.clients.filter(c => c.id !== id); this.saveDB(); } },
                 saveDB() { localStorage.setItem('crm_db_v8', JSON.stringify(this.clients)); },
                 
-                addPolicy() { if (!this.client.policies) this.client.policies = []; this.client.policies.push({ insurer: 'AIA', items: [{ category: 'Medical', maturity: '', term: '' }], paymentMode: 'Yearly', isCancelled: false }); },
-                removePolicy(i) { if (confirm('刪除這份保單？')) this.client.policies.splice(i, 1); },
+                addPolicy() { if(!this.client.policies) this.client.policies = []; this.client.policies.push({ insurer: 'AIA', items: [{ category: 'Medical', maturity: '', term: '' }], paymentMode: 'Yearly', isCancelled: false }); },
+                removePolicy(i) { if(confirm('刪除這份保單？')) this.client.policies.splice(i,1); },
                 togglePolicyCancel(policy) { policy.cancelDate = policy.isCancelled ? new Date().toISOString().split('T')[0] : ''; },
-                addRider(i) { if (!this.client.policies[i].items) this.client.policies[i].items = []; this.client.policies[i].items.push({ category: 'Medical', maturity: '', term: '' }); },
-                addClaimEvent() { if (!this.client.claimEvents) this.client.claimEvents = []; this.client.claimEvents.push({ name: '', status: 'Pending', eventDate: '', items: [{ desc: '', amount: '' }] }); },
+                addRider(i) { if(!this.client.policies[i].items) this.client.policies[i].items = []; this.client.policies[i].items.push({ category: 'Medical', maturity: '', term: '' }); },
+                addClaimEvent() { if(!this.client.claimEvents) this.client.claimEvents = []; this.client.claimEvents.push({ name: '', status: 'Pending', eventDate: '', items: [{ desc: '', amount: '' }] }); },
                 
                 openUploadModal() { this.uploadModal.open = true; },
-                // 🌟 離線大數據極度打包，直接將全套家庭資料寫入網址編碼，順暢不卡死
+                
+                // 🌟 核心修復：強制對離線大數據實施 URL 安全編碼，根治卡死 Loading 報錯問題
                 uploadToCloud() {
                     this.uploadModal.loading = true; this.saveCurrentClient(true);
                     setTimeout(() => {
                         try {
-                            let dataStr = LZString.compressToEncodedURIComponent(JSON.stringify(this.client));
+                            let rawStr = JSON.stringify(this.client);
+                            let compressed = LZString.compressToEncodedURIComponent(rawStr);
+                            
+                            // 🌟 防死鎖機制：剔除所有對 QRCode 生產器有害的特殊符號
+                            let safeEncoded = btoa(compressed).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
                             this.uploadModal.loading = false;
-                            this.generateQR(dataStr);
+                            this.generateQR(safeEncoded);
                         } catch(e) {
-                            this.uploadModal.loading = false; alert('資料打包出錯，請減少文字再重試！');
+                            this.uploadModal.loading = false;
+                            alert('數據壓縮出錯，請嘗試精簡文字或減少保單！');
                         }
-                    }, 200);
+                    }, 300);
                 },
 
-                generateQR(compressedData) {
+                generateQR(safeCode) {
                     this.uploadModal.open = false; this.qrModal.open = true; let url; 
                     try { 
                         let base = window.location.href.split('?')[0]; 
-                        if(base.endsWith('index.html')) { url = base + '?data=' + compressedData + '&client_app=1'; } 
-                        else if(base.endsWith('/')) { url = base + 'index.html?data=' + compressedData + '&client_app=1'; } 
-                        else { url = base + '/index.html?data=' + compressedData + '&client_app=1'; } 
-                    } catch(e) { url = 'index.html?data=' + compressedData + '&client_app=1'; }
-                    this.linkModal.url = url; 
+                        let append = '?data=' + safeCode + '&client_app=1';
+                        url = base.endsWith('index.html') ? base + append : (base.endsWith('/') ? base + 'index.html' + append : base + '/index.html' + append);
+                    } catch(e) { url = 'index.html?data=' + safeCode + '&client_app=1'; }
                     
+                    this.linkModal.url = url;
                     document.getElementById("qr-loading").style.display = "flex"; 
                     document.getElementById("qr-image-visible").style.display = "none";
                     
-                    setTimeout(() => { 
-                        var qrContainer = document.getElementById("qr-container-hidden"); 
-                        if(qrContainer) { 
-                            qrContainer.innerHTML = ""; 
-                            // 🌟 修正：優化 QR 產生器參數，確保打包順利完成並顯示
-                            new QRCode(qrContainer, { text: url, width: 300, height: 300, correctLevel : QRCode.CorrectLevel.L }); 
-                            setTimeout(() => { 
-                                const canvas = qrContainer.querySelector('canvas'); 
-                                if (canvas) { 
-                                    document.getElementById("qr-image-visible").src = canvas.toDataURL("image/png"); 
-                                    document.getElementById("qr-image-visible").style.display = 'block'; 
-                                    document.getElementById("qr-loading").style.display = "none"; 
-                                } 
-                            }, 300); 
-                        } 
-                    }, 150);
+                    setTimeout(() => {
+                        var qrContainer = document.getElementById("qr-container-hidden");
+                        if(qrContainer) {
+                            qrContainer.innerHTML = "";
+                            // 🌟 離線數據龐大，使用中等(M)糾錯級別，大幅提高產生成功率
+                            new QRCode(qrContainer, { text: url, width: 330, height: 330, correctLevel : QRCode.CorrectLevel.M });
+                            setTimeout(() => {
+                                const canvas = qrContainer.querySelector('canvas');
+                                if (canvas) {
+                                    document.getElementById("qr-image-visible").src = canvas.toDataURL("image/png");
+                                    document.getElementById("qr-image-visible").style.display = 'block';
+                                    document.getElementById("qr-loading").style.display = "none";
+                                }
+                            }, 300);
+                        }
+                    }, 200);
                 },
                 copyLink() { navigator.clipboard.writeText(this.linkModal.url).then(()=>alert('連結已複製!')); },
                 openClientRemark(text) { this.clientRemarkModal.text = text; this.clientRemarkModal.open = true; },
@@ -572,23 +578,28 @@
             }
         }
 
-        // 🌟 Client 唯讀版邏輯 (免伺服器解密版)
+        // 🌟 Client 免伺服器安全解密版
         function dashboardApp() {
             return {
                 client: {}, hasData: false, loadingMsg: '載入中...', clientRemarkModal: { open: false, text: '' },
                 init() {
                     const params = new URLSearchParams(window.location.search);
-                    const dataParam = params.get('data') || localStorage.getItem('client_app_data');
+                    let dataParam = params.get('data') || localStorage.getItem('client_app_data');
                     
                     if (dataParam) {
                         localStorage.setItem('client_app_data', dataParam);
                         try {
-                            let decompressed = LZString.decompressFromEncodedURIComponent(dataParam);
+                            // 🌟 配合 Admin 進行 URL 安全解碼還原
+                            let normalized = dataParam.replace(/-/g, '+').replace(/_/g, '/');
+                            let pad = normalized.length % 4; if (pad) { normalized += '='.repeat(4 - pad); }
+                            let rawCompressed = atob(normalized);
+                            
+                            let decompressed = LZString.decompressFromEncodedURIComponent(rawCompressed);
                             this.client = JSON.parse(decompressed);
                             if(!this.client.summary || !this.client.summary.insured) this.fallbackSummary(); 
                             this.hasData = true;
                         } catch(e) {
-                            this.loadingMsg = "資料解壓失敗";
+                            this.loadingMsg = "客戶離線資料包解析出錯，請聯絡顧問重新生成 QR Code！";
                         }
                     } else { this.loadingMsg = "未偵測到正確數據編碼，請使用新生成的 QR Code 重新掃描！"; }
                 },
