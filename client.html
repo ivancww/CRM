@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <title>我的財富與保障報告</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body>
+    <div x-data="dashboardApp()" x-cloak>
+        <div x-show="!hasData" class="text-center p-10" x-text="loadingMsg"></div>
+        </div>
+
+    <script>
+        function dashboardApp() {
+            return {
+                client: {}, hasData: false, loadingMsg: '載入保單中...',
+                init() {
+                    const params = new URLSearchParams(window.location.search);
+                    const encodedData = params.get('data');
+                    if (encodedData) {
+                        try {
+                            // 解密數據
+                            let jsonStr = decodeURIComponent(atob(encodedData).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+                            this.process(JSON.parse(jsonStr));
+                        } catch(e) { this.loadingMsg = "資料解析失敗"; }
+                    } else { this.loadingMsg = "無效連結"; }
+                },
+                process(data) { this.client = data; this.hasData = true; },
+                // ... (務必補回原本所有的輔助函數: formatNumber, getCategoryColor, fallbackSummary 等) ...
+            }
+        }
+    </script>
+</body>
+</html>
