@@ -1,16 +1,16 @@
-const CACHE_NAME = 'crm-cache-v1.8.0'; // 🌟 強制更新版號
+const CACHE_NAME = 'crm-cache-v1.8.1'; // 🌟 統一升級至 v1.8.1
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/client.html',
-  '/manifest-admin.json',
-  '/manifest-client.json',
-  '/admin-logo-192.png',
-  '/client-logo-192.png'
+  '/CRM/',
+  '/CRM/index.html',
+  '/CRM/client.html',
+  '/CRM/manifest-admin.json',
+  '/CRM/manifest-client.json',
+  '/CRM/admin-logo-192.png',
+  '/CRM/client-logo-192.png'
 ];
 
 self.addEventListener('install', event => {
-  self.skipWaiting(); // 強制立刻啟用新版本
+  self.skipWaiting(); 
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
@@ -29,7 +29,7 @@ self.addEventListener('activate', event => {
       );
     })
   );
-  self.clients.claim(); // 立刻接管所有頁面
+  self.clients.claim(); 
 });
 
 self.addEventListener('fetch', event => {
