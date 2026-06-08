@@ -1,48 +1,5 @@
-const CACHE_NAME = 'crm-cache-v1.8.3'; // 🌟 強制升級版號
-const urlsToCache = [
-  '/CRM/',
-  '/CRM/index.html',
-  '/CRM/client.html',
-  '/CRM/manifest-admin.json',
-  '/CRM/manifest-client.json',
-  '/CRM/admin-logo-192.png',
-  '/CRM/client-logo-192.png'
-];
-
-self.addEventListener('install', event => {
-  self.skipWaiting(); 
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
-  );
-});
-
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('清除舊緩存:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
-  self.clients.claim(); 
-});
-
-self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET') return;
-  event.respondWith(
-    fetch(event.request).then(response => {
-      const responseClone = response.clone();
-      caches.open(CACHE_NAME).then(cache => {
-        cache.put(event.request, responseClone);
-      });
-      return response;
-    }).catch(() => {
-      return caches.match(event.request);
-    })
-  );
-});
+const CACHE_NAME = 'crm-cache-v1.8.6';
+const urlsToCache = ['/CRM/', '/CRM/index.html', '/CRM/client.html'];
+self.addEventListener('install', e => { e.skipWaiting(); e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache))); });
+self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME && caches.delete(k))))); e.waitUntil(self.clients.claim()); });
+self.addEventListener('fetch', e => { if (e.request.method === 'GET') e.respondWith(fetch(e.request).catch(() => caches.match(e.request))); });
