@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>保險管家 v1.8.0 (Admin - Cloud)</title>
+    <title>保險管家 v1.8.1 (Admin - Cloud)</title>
     <link rel="manifest" href="manifest-admin.json">
     <link rel="icon" type="image/png" href="admin-logo-192.png">
     <link rel="apple-touch-icon" href="admin-logo-192.png">
@@ -350,7 +350,7 @@
                                         <div x-show="person.lifeSum > 0" class="text-xs text-blue-600 font-bold mt-2 bg-blue-50 p-2 rounded border border-blue-100 flex items-start gap-1"><i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 萬一有事，能覆蓋房貸及生活費嗎？</span></div>
                                     </div>
                                     <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-teal-400 flex flex-col justify-center">
-                                        <div class="text-xs text-gray-500 mb-1">🚑 意外保障</div>
+                                        <div class="text-xs text-gray-500 mb-1">橫幅 意外保障</div>
                                         <div class="text-sm font-bold text-gray-800" x-show="person.accDeathSum > 0">身故: HK$ <span x-text="formatNumber(person.accDeathSum)"></span></div>
                                         <div class="text-sm font-bold text-gray-800 mt-1" x-show="person.accMedicalSum > 0">醫療: HK$ <span x-text="formatNumber(person.accMedicalSum)"></span></div>
                                         <div class="text-lg font-bold text-gray-400" x-show="person.accDeathSum === 0 && person.accMedicalSum === 0">尚未配置</div>
@@ -470,7 +470,7 @@
     <script>
         function app() {
             return {
-                version: '1.8.0', view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, clientRemarkModal: { open: false, text: '' },
+                version: '1.8.1', view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, clientRemarkModal: { open: false, text: '' },
                 uploadModal: { open: false, loading: false }, qrModal: { open: false }, linkModal: { url: '' }, itemRemarkModal: { open: false, item: {} },
                 showWebActionModal: false, showConfigModal: false, showWebFrame: false, showSettingsModal: false, showReportModal: false, reportClient: {}, reportData: { Medical: [], CI: [], Life: [], Accident: [], Savings: [] }, showSavingsInReport: true,
                 webLinks: [], calendarModal: { open: false, type: '', data: null }, settings: { waBirthday: '祝您生日快樂！', waRenewal: '溫馨提示保單續保。' },
@@ -539,7 +539,6 @@
                 
                 openUploadModal() { this.uploadModal.open = true; },
                 
-                // 🛠️ 核心修正：改為純前端 Base64 數據封裝分享，不連 Google Script
                 uploadToCloud() {
                     this.uploadModal.loading = true;
                     this.saveCurrentClient(true);
@@ -554,33 +553,46 @@
                         this.uploadModal.open = false;
                         this.generateQRFromData(base64Data);
                     } catch(e) {
-                        alert('數據編碼失敗，請重試');
+                        alert('數據封裝失敗');
                         this.uploadModal.loading = false;
                     }
                 },
 
                 generateQRFromData(encodedData) {
                     this.qrModal.open = true;
-                    let baseUrl = window.location.origin + window.location.pathname.replace('index.html', '');
-                    let url = baseUrl + 'client.html?data=' + encodedData;
+                    
+                    // 🌟 精確鎖定絕對路徑，防死鎖
+                    let url = "https://ivancww.github.io/CRM/client.html?data=" + encodedData;
                     this.linkModal.url = url;
                     
                     document.getElementById("qr-loading").style.display = "flex";
                     document.getElementById("qr-image-visible").style.display = "none";
+                    
                     setTimeout(() => { 
-                        var qrContainer = document.getElementById("qr-container-hidden"); 
-                        if(qrContainer) { 
-                            qrContainer.innerHTML = ""; 
-                            new QRCode(qrContainer, { text: url, width: 300, height: 300, correctLevel : QRCode.CorrectLevel.L }); 
-                            setTimeout(() => { 
-                                const canvas = qrContainer.querySelector('canvas'); 
-                                if (canvas) { 
-                                    document.getElementById("qr-image-visible").src = canvas.toDataURL("image/png"); 
-                                    document.getElementById("qr-image-visible").style.display = 'block'; 
-                                    document.getElementById("qr-loading").style.display = "none"; 
-                                } 
-                            }, 200); 
-                        } 
+                        try {
+                            var qrContainer = document.getElementById("qr-container-hidden");
+                            if(qrContainer) { 
+                                qrContainer.innerHTML = ""; 
+                                new QRCode(qrContainer, { text: url, width: 300, height: 300, correctLevel : QRCode.CorrectLevel.L }); 
+                                setTimeout(() => { 
+                                    const canvas = qrContainer.querySelector('canvas');
+                                    if (canvas) { 
+                                        document.getElementById("qr-image-visible").src = canvas.toDataURL("image/png");
+                                        document.getElementById("qr-image-visible").style.display = 'block';
+                                        document.getElementById("qr-loading").style.display = "none";
+                                    } else {
+                                        const qrImg = qrContainer.querySelector('img');
+                                        if (qrImg) {
+                                            document.getElementById("qr-image-visible").src = qrImg.src;
+                                            document.getElementById("qr-image-visible").style.display = 'block';
+                                            document.getElementById("qr-loading").style.display = "none";
+                                        }
+                                    }
+                                }, 250); 
+                            } 
+                        } catch(err) {
+                            document.getElementById("qr-loading").style.display = "none";
+                        }
                     }, 100);
                 },
                 
@@ -604,10 +616,9 @@
             }
         }
 
-        // 強制更新 Service Worker 註冊碼
         if ('serviceWorker' in navigator) { 
             window.addEventListener('load', () => { 
-                navigator.serviceWorker.register('sw.js?v=1.8.0').then(reg => { 
+                navigator.serviceWorker.register('sw.js?v=1.8.1').then(reg => { 
                     reg.onupdatefound = () => { 
                         const worker = reg.installing; 
                         worker.onstatechange = () => { 
