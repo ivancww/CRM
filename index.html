@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>保險管家 v1.8.9 (Admin - Cloud Realtime)</title>
+    <title>保險管家 v1.8.10 (Admin - Realtime LocalQR)</title>
     <link class="no-print" rel="manifest" href="manifest-admin.json">
     <link class="no-print" rel="icon" type="image/png" href="admin-logo-192.png">
     <link class="no-print" rel="apple-touch-icon" href="admin-logo-192.png">
@@ -14,6 +14,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     
     <style>
         [x-cloak] { display: none !important; }
@@ -463,9 +465,9 @@
             <div x-show="qrModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 print:hidden" x-cloak>
                 <div class="bg-white w-80 rounded-lg shadow-xl p-6 text-center relative z-50">
                     <h3 class="font-bold text-gray-800 mb-3">專屬連結已建立</h3>
-                    <div class="flex justify-center mb-2 bg-white p-2 border rounded relative" style="min-height: 200px;">
-                        <img id="qr-image-visible" src="" class="w-full h-auto object-contain mx-auto" style="display:none;">
-                        <div id="qr-loading" class="absolute inset-0 flex items-center justify-center text-gray-400">
+                    <div class="flex justify-center mb-2 bg-white p-2 border rounded relative items-center justify-center" style="min-height: 220px;">
+                        <div id="local-qr-target" class="w-full h-auto flex items-center justify-center mx-auto"></div>
+                        <div id="qr-loading" class="absolute inset-0 flex items-center justify-center text-gray-400" style="display: none;">
                             <i class="fa-solid fa-spinner fa-spin mr-2"></i> 生成中...
                         </div>
                     </div>
@@ -508,11 +510,11 @@
 
         function app() {
             return {
-                version: '1.8.9', view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, clientRemarkModal: { open: false, text: '' },
+                version: '1.8.10', view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, clientRemarkModal: { open: false, text: '' },
                 uploadModal: { open: false, loading: false }, qrModal: { open: false }, linkModal: { url: '' }, itemRemarkModal: { open: false, item: {} },
                 showWebActionModal: false, showConfigModal: false, showWebFrame: false, showSettingsModal: false, showReportModal: false, reportClient: {}, reportData: { Medical: [], CI: [], Life: [], Accident: [], Savings: [] }, showSavingsInReport: true,
                 webLinks: [], calendarModal: { open: false, type: '', data: null }, settings: { waBirthday: '祝您生日快樂！', waRenewal: '溫馨提示保單續保。' },
-                cloudSyncing: false, // 異步雲端上載狀態標識
+                cloudSyncing: false,
 
                 init() { 
                     const storedVersion = localStorage.getItem('crm_version');
@@ -563,7 +565,6 @@
 
                 updateSummary() { if (!this.client) return; if (!this.client.summary) this.client.summary = {}; let cs = this.protectionSummary; this.client.summary.totalPremium = cs.totalPremium; this.client.summary.insured = cs.insured; },
                 createNewClient() { 
-                    // 🌟 新增客戶時即時生成唯一並固定不變的雲端 cID 
                     this.client = { id: 'c' + Date.now(), owner: '', phone: '', policies: [], claimEvents: [], fnaRetireVision: '', fnaMedicalVision: '', fnaRetireTools: '', fnaRetireGap: '', fnaEduVision: '', fnaEduTools: '', fnaEduGap: '', isDeleted: false }; 
                     this.addPolicy(); 
                     this.updateSummary(); 
@@ -571,7 +572,6 @@
                 },
                 openClient(c) { this.client = JSON.parse(JSON.stringify(c)); if(this.client.fnaRetireVision === undefined) this.client.fnaRetireVision = ''; if(this.client.fnaMedicalVision === undefined) this.client.fnaMedicalVision = ''; if(this.client.fnaEduVision === undefined) this.client.fnaEduVision = ''; this.updateSummary(); this.view = 'detail'; },
                 
-                // 🌟 核心進化：現在 saveCurrentClient 兼顧本地保存與後台無感全自動實時上傳
                 saveCurrentClient(stay) { 
                     this.updateSummary(); 
                     if (!this.clients) this.clients = []; 
@@ -580,7 +580,6 @@
                     else this.clients.push(this.client); 
                     this.saveDB(); 
                     
-                    // 🌟 啟動背景實時雲端上載連動
                     this.cloudSyncing = true;
                     fetch(GOOGLE_SCRIPT_URL, {
                         method: 'POST',
@@ -588,14 +587,14 @@
                     })
                     .then(r => r.json())
                     .then(() => { this.cloudSyncing = false; })
-                    .catch(() => { this.cloudSyncing = false; }); // 即使網路失敗也保持可用性，稍後重試即可
+                    .catch(() => { this.cloudSyncing = false; });
 
                     if(!stay) { this.view = 'list'; window.scrollTo(0,0); } 
                 },
 
                 deleteClient(id) { if(confirm('移至垃圾桶？')) { const idx = this.clients.findIndex(c => c.id === id); if(idx > -1) { this.clients[idx].isDeleted = true; this.saveDB(); this.syncSingleDelete(this.clients[idx]); } } },
                 restoreClient(id) { const idx = this.clients.findIndex(c => c.id === id); if(idx > -1) { this.clients[idx].isDeleted = false; this.saveDB(); this.syncSingleDelete(this.clients[idx]); } },
-                permanentDeleteClient(id) { if(confirm('徹底刪除無法復原！確定？')) { this.clients = this.clients.filter(c => c.id !== id); this.saveDB(); /* 雲端保留底層數據防止誤刪 */ } },
+                permanentDeleteClient(id) { if(confirm('徹底刪除無法復原！確定？')) { this.clients = this.clients.filter(c => c.id !== id); this.saveDB(); } },
                 syncSingleDelete(cObj) { fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'save', id: cObj.id, client: cObj }) }); },
                 saveDB() { localStorage.setItem('crm_db_v8', JSON.stringify(this.clients)); },
                 
@@ -612,36 +611,38 @@
                     this.generateQRFromGAS(this.client.id);
                 },
 
+                // 🌟 v1.8.10 終極修復：100% 原生自體生成 SVG 二維碼，完全不連網，拒絕 Google 伺服器限流白畫面問題
                 generateQRFromGAS(id) {
                     this.qrModal.open = true;
                     let url = "https://ivancww.github.io/CRM/client.html?id=" + id;
                     this.linkModal.url = url;
                     
-                    try {
-                        let loadingEl = document.getElementById("qr-loading");
-                        if (loadingEl) loadingEl.style.display = "flex";
-                    } catch(e) {}
+                    // 清空之前的舊 QR Code 或者錯誤字樣
+                    let targetContainer = document.getElementById("local-qr-target");
+                    if (targetContainer) targetContainer.innerHTML = "";
 
-                    let imgElement = document.getElementById("qr-image-visible");
-                    if (imgElement) {
-                        imgElement.style.display = "none";
-                        imgElement.src = "https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=" + encodeURIComponent(url);
-                        
-                        imgElement.onload = () => {
-                            try {
-                                let loadingEl = document.getElementById("qr-loading");
-                                if (loadingEl) loadingEl.style.display = "none";
-                            } catch(e) {}
-                            imgElement.style.display = 'block';
-                        };
-                        
-                        imgElement.onerror = () => {
-                            try {
-                                let loadingEl = document.getElementById("qr-loading");
-                                if (loadingEl) loadingEl.innerHTML = "<span class='text-red-500 font-bold text-xs'>QR生成失敗，請直接複製連結</span>";
-                            } catch(e) {}
-                        };
-                    }
+                    setTimeout(() => {
+                        try {
+                            // 使用 qrcode-generator 本地演算法繪製高精確度 SVG 
+                            var qr = qrcode(0, 'M');
+                            qr.addData(url);
+                            qr.make();
+                            
+                            // 將生成的 SVG 直接塞入 HTML 內
+                            if (targetContainer) {
+                                targetContainer.innerHTML = qr.createSvgTag(6, 4); // 每個單元格 6 像素，外邊距 4 像素
+                                // 修正生成的 SVG 外觀使其美觀自適應
+                                let svgEl = targetContainer.querySelector('svg');
+                                if (svgEl) {
+                                    svgEl.setAttribute('class', 'w-64 h-64 max-w-full shadow-inner border p-1 bg-white rounded-lg');
+                                }
+                            }
+                        } catch (err) {
+                            if (targetContainer) {
+                                targetContainer.innerHTML = "<span class='text-red-500 font-bold text-xs'><i class='fa-solid fa-circle-exclamation mr-1'></i>生成失敗，請直接點擊下方複製連結</span>";
+                            }
+                        }
+                    }, 50);
                 },
 
                 migrateBackupToGAS(jsonArray) {
@@ -652,7 +653,6 @@
                         let count = 0;
                         jsonArray.forEach((c, idx) => {
                             setTimeout(() => {
-                                // 確保舊數據如果原本是純數字 ID 的話，格式化成穩定的字串型 ID
                                 let stableId = String(c.id).startsWith('c') ? c.id : 'c' + c.id;
                                 fetch(GOOGLE_SCRIPT_URL, {
                                     method: 'POST',
@@ -690,7 +690,7 @@
 
         if ('serviceWorker' in navigator) { 
             window.addEventListener('load', () => { 
-                navigator.serviceWorker.register('sw.js?v=1.8.9').then(reg => { 
+                navigator.serviceWorker.register('sw.js?v=1.8.10').then(reg => { 
                     reg.onupdatefound = () => { 
                         const worker = reg.installing; 
                         worker.onstatechange = () => { 
