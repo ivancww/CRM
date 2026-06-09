@@ -22,7 +22,7 @@
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans pb-10">
 
-    <div x-data="dashboardApp()" x-cloak>
+    <div x-data="dashboardApp()" x-init="init()" x-cloak>
         <div x-show="!hasData" class="fixed inset-0 flex flex-col items-center justify-center bg-white z-50">
             <div x-show="loading" class="text-center">
                 <i class="fa-solid fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
@@ -33,170 +33,80 @@
                     <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
                 <p class="text-red-600 font-bold text-lg mb-2" x-text="loadingMsg"></p>
-                <p class="text-sm text-gray-400 leading-relaxed">請聯絡您的保險顧問重新建立專屬連結，或確認資料是否已成功同步至雲端。</p>
+                <p class="text-sm text-gray-400">請聯絡您的保險顧問重新建立專屬連結，或確認雲端資料庫內是否有此 ID 記錄。</p>
             </div>
         </div>
 
         <div x-show="hasData" class="max-w-4xl mx-auto md:mt-4 md:mb-8 bg-white md:rounded-2xl shadow-2xl overflow-hidden relative border border-gray-200">
             <div class="gradient-bg text-white p-6 md:p-8 flex justify-between items-center">
                 <div>
-                    <p class="text-blue-200 text-sm mb-1">親愛的 <span x-text="client.owner || '客戶'"></span>：</p>
+                    <p class="text-blue-200 text-sm mb-1">親愛的 <span x-text="client.owner"></span>：</p>
                     <h1 class="text-2xl md:text-3xl font-bold">您的家庭財富與保障報告</h1>
-                </div>
-                <div x-data="{ showTotal: false }" class="bg-white/10 p-3 rounded-xl text-center cursor-pointer hover:bg-white/20 transition" @click="showTotal = !showTotal">
-                    <div class="text-xs text-blue-100 mb-1">家庭總保費 (年) <i class="fa-solid ml-1 opacity-70" :class="showTotal ? 'fa-eye-slash' : 'fa-eye'"></i></div>
-                    <div class="text-xl font-bold text-yellow-300 font-mono" x-text="showTotal ? 'HK$ ' + formatNumber(protectionSummary.totalPremium) : '****'"></div>
                 </div>
             </div>
 
-            <div class="p-4 md:p-8 space-y-6 md:space-y-8 bg-gray-50">
+            <div class="p-4 md:p-8 space-y-6 bg-gray-50">
+                <div class="bg-white rounded-xl shadow-sm border p-4">
+                    <h2 class="text-base font-bold text-blue-900 mb-3"><i class="fa-solid fa-shield-cat mr-1"></i> 第一層：四大保障概覽</h2>
+                    <div class="text-sm text-gray-600 leading-relaxed">
+                        您的智能財富安全防禦機制已建立。以下為從您的私人 Google Sheet 雲端大腦即時撈取回來的保單摘要明細。
+                    </div>
+                </div>
+
                 <div>
-                    <h2 class="text-lg font-bold text-[#1E3A8A] mb-4"><i class="fa-solid fa-shield-cat mr-2"></i>第一層：四大保障概覽</h2>
-                    <template x-for="person in protectionSummary.insured" :key="person.name">
-                        <div class="mb-6 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                            <div class="bg-indigo-50 px-4 py-2 border-b border-indigo-100"><h3 class="font-bold text-indigo-800 text-md">受保人：<span x-text="person.name"></span></h3></div>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-4">
-                                <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-red-400 flex flex-col justify-center">
-                                    <div class="text-xs text-gray-500 mb-1">🏥 醫療保障</div>
-                                    <div class="text-sm font-bold text-gray-800 leading-relaxed">
-                                        <template x-if="person.medicalHighEnd && person.medicalTraditional"><span>1. 高端醫療<br>2. 傳統醫療</span></template>
-                                        <template x-if="person.medicalHighEnd && !person.medicalTraditional"><span class="text-lg">高端醫療</span></template>
-                                        <template x-if="!person.medicalHighEnd && person.medicalTraditional"><span class="text-lg">傳統醫療</span></template>
-                                        <template x-if="!person.medicalHighEnd && !person.medicalTraditional"><span class="text-lg text-gray-400">尚未配置</span></template>
+                    <h2 class="text-base font-bold text-[#1E3A8A] mb-3 border-l-4 border-blue-600 pl-2">家族現有保單明細</h2>
+                    <div class="space-y-3">
+                        <template x-for="policy in (client.policies || [])">
+                            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                                <div class="flex justify-between items-center border-b pb-2 mb-2">
+                                    <div>
+                                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-bold mr-1" x-text="policy.insurer"></span>
+                                        <span class="font-bold text-sm text-gray-800">受保人：<span x-text="policy.insuredPerson || client.owner"></span></span>
                                     </div>
+                                    <div class="text-right text-xs font-mono text-gray-400" x-text="'保單號碼: ' + (policy.policyNo || '-')"></div>
                                 </div>
-                                <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-orange-400">
-                                    <div class="text-xs text-gray-500 mb-1">🛡️ 危疾保障 (替代收入)</div>
-                                    <div class="text-lg font-bold text-gray-800" x-text="person.ciSum > 0 ? 'HK$ ' + formatNumber(person.ciSum) : '尚未配置'"></div>
-                                    <div x-show="person.ciSum > 0" class="text-xs text-red-600 font-bold mt-2 bg-red-50 p-2 rounded border border-red-100 flex items-start gap-1"><i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 足夠替代 3 年家庭開支嗎？</span></div>
-                                </div>
-                                <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-blue-400">
-                                    <div class="text-xs text-gray-500 mb-1">🕊️ 人壽保障 (家庭責任)</div>
-                                    <div class="text-lg font-bold text-gray-800" x-text="person.lifeSum > 0 ? 'HK$ ' + formatNumber(person.lifeSum) : '尚未配置'"></div>
-                                    <div x-show="person.lifeSum > 0" class="text-xs text-blue-600 font-bold mt-2 bg-blue-50 p-2 rounded border border-blue-100 flex items-start gap-1"><i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 萬一有事，能覆蓋房貸及生活費嗎？</span></div>
-                                </div>
-                                <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-teal-400 flex flex-col justify-center">
-                                    <div class="text-xs text-gray-500 mb-1">🚑 意外保障</div>
-                                    <div class="text-sm font-bold text-gray-800" x-show="person.accDeathSum > 0">身故: HK$ <span x-text="formatNumber(person.accDeathSum)"></span></div>
-                                    <div class="text-sm font-bold text-gray-800 mt-1" x-show="person.accMedicalSum > 0">醫療: HK$ <span x-text="formatNumber(person.accMedicalSum)"></span></div>
-                                    <div class="text-lg font-bold text-gray-400" x-show="person.accDeathSum === 0 && person.accMedicalSum === 0">尚未配置</div>
+                                <div class="space-y-2">
+                                    <template x-for="item in policy.items">
+                                        <div class="bg-gray-50 p-2 rounded text-xs flex justify-between items-center">
+                                            <div>
+                                                <span class="font-bold text-gray-800" x-text="item.name || '未命名項目'"></span>
+                                                <span class="text-[9px] bg-gray-200 text-gray-500 px-1 rounded ml-1" x-text="item.category"></span>
+                                            </div>
+                                            <div class="text-right font-mono font-bold text-gray-700" x-text="item.sumAssured ? '$' + formatNumber(item.sumAssured) : '-'"></div>
+                                        </div>
+                                    </template>
                                 </div>
                             </div>
-                        </div>
-                    </template>
-                    <div x-show="protectionSummary.insured.length === 0" class="text-center text-gray-400 py-4">尚未輸入保單資料</div>
-                </div>
-
-                <div>
-                    <h2 class="text-lg font-bold text-[#1E3A8A] mb-4"><i class="fa-solid fa-bullseye mr-2"></i>第二層：人生藍圖與財務探索</h2>
-                    <div x-data="{ open: true }" class="bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
-                        <div @click="open = !open" class="p-5 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-orange-400"><h3 class="font-bold text-gray-700 text-base md:text-lg">🌅 尊享未來生活與醫療儲備</h3><i class="fa-solid text-gray-400" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
-                        <div x-show="open" x-transition class="p-5 border-t border-gray-100 bg-gray-50/50 space-y-4">
-                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">理想退休生活</div><div class="text-sm text-gray-800 whitespace-pre-line leading-relaxed" x-text="client.fnaRetireVision || '尚未深入探討。'"></div></div>
-                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">醫療保障安排</div><div class="text-sm text-gray-800 whitespace-pre-line leading-relaxed" x-text="client.fnaMedicalVision || '-'"></div></div>
-                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">現有財富增值安排 / 或工具</div><div class="text-sm text-gray-800 whitespace-pre-line leading-relaxed" x-text="client.fnaRetireTools || '-'"></div></div>
-                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">規劃安排 / 關注點</div><div class="text-sm text-gray-800 whitespace-pre-line leading-relaxed" x-text="client.fnaRetireGap || '-'"></div></div>
-                        </div>
-                    </div>
-                    <div x-data="{ open: false }" class="bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
-                        <div @click="open = !open" class="p-5 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-green-500"><h3 class="font-bold text-gray-700 text-base md:text-lg">🎓 栽培下一代教育基金規劃</h3><i class="fa-solid text-gray-400" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
-                        <div x-show="open" x-transition class="p-5 border-t border-gray-100 bg-gray-50/50 space-y-4">
-                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-green-600 font-bold mb-1">教育目標與期望</div><div class="text-sm text-gray-800 whitespace-pre-line leading-relaxed" x-text="client.fnaEduVision || '尚未深入探討。'"></div></div>
-                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-green-600 font-bold mb-1">為下一代預備或進行中的財富安排</div><div class="text-sm text-gray-800 whitespace-pre-line leading-relaxed" x-text="client.fnaEduTools || '-'"></div></div>
-                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-green-600 font-bold mb-1">方向 / 關注點</div><div class="text-sm text-gray-800 whitespace-pre-line leading-relaxed" x-text="client.fnaEduGap || '-'"></div></div>
-                        </div>
+                        </template>
                     </div>
                 </div>
 
-                <div>
-                    <h2 class="text-xl font-bold text-[#1E3A8A] mb-4 border-l-4 border-blue-600 pl-3">保單明細一覽</h2>
-                    <div x-data="{ selectedInsured: null, get uniquePersons() { return [...new Set(((client.policies||[]).filter(p=>!p.isCancelled)).map(p => (p.insuredPerson || client.owner || '未命名').trim()))] } }">
-                        <div class="flex flex-wrap gap-2 mb-4">
-                            <template x-for="person in uniquePersons" :key="person">
-                                <button @click="selectedInsured = (selectedInsured === person ? null : person)" class="px-4 py-2 rounded-lg font-bold transition-all border shadow-sm" :class="selectedInsured === person ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50'" x-text="person"></button>
-                            </template>
-                        </div>
-                        
-                        <div x-show="selectedInsured" x-transition>
-                            <template x-for="(policy, index) in (client.policies || []).filter(p => !p.isCancelled && (p.insuredPerson || client.owner || '未命名').trim() === selectedInsured)" :key="index">
-                                <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-4 overflow-hidden">
-                                    <div class="bg-blue-50/50 p-4 border-b border-gray-100 flex justify-between items-center gap-4">
-                                        <div><span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded font-bold mr-2" x-text="policy.insurer"></span><span class="font-bold text-gray-800">受保人：<span x-text="policy.insuredPerson || client.owner"></span></span></div>
-                                        <div class="text-sm text-gray-500 text-right"><div><span class="text-xs">保單號碼：</span><span class="font-mono font-bold" x-text="policy.policyNo || '-'"></span></div><div><span class="text-xs">生效日：</span><span class="font-mono" x-text="policy.effectDate || '-'"></span></div></div>
-                                    </div>
-                                    <div class="p-2">
-                                        <template x-for="(item, iIndex) in (policy.items || [])">
-                                            <div class="p-3 border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                                                <div class="flex justify-between items-start mb-2"><div class="flex items-center gap-2"><span x-show="iIndex===0" class="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">主</span><span x-show="iIndex>0" class="bg-gray-200 text-gray-600 text-[10px] px-1.5 py-0.5 rounded" x-text="iIndex"></span><div><div class="font-bold text-gray-800 text-sm" x-text="item.name || '未命名'"></div><div class="text-[10px]" :class="getCategoryColor(item.category)" x-text="item.category"></div></div></div><button x-show="item.remarks" @click="clientRemarkModal.text=item.remarks; clientRemarkModal.open=true;" class="text-red-500 text-xs bg-red-50 p-1 rounded-full"><i class="fa-solid fa-exclamation px-1"></i></button></div>
-                                                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded border border-gray-100 mt-1">
-                                                    <div><span class="text-gray-400">保額:</span> <span class="font-mono font-bold text-gray-700" x-text="item.sumAssured ? '$'+formatNumber(item.sumAssured) : '-'"></span></div>
-                                                    <div><span class="text-gray-400">自付:</span> <span class="font-mono font-bold text-gray-700" x-text="item.deductible ? '$'+formatNumber(item.deductible) : '-'"></span></div>
-                                                    <div><span class="text-gray-400">保障期:</span> <span class="font-bold text-gray-700" x-text="item.maturity || '-'"></span></div>
-                                                    <div><span class="text-gray-400">供款期:</span> <span class="font-bold text-gray-700" x-text="item.term || '-'"></span></div>
-                                                </div>
-                                            </div>
-                                        </template>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-
-                <div x-show="(client.claimEvents && client.claimEvents.length > 0)">
-                    <h2 class="text-xl font-bold text-[#1E3A8A] mb-4 border-l-4 border-purple-500 pl-3">理賠紀錄</h2>
-                    <div x-data="{ open: false }" class="mb-4 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
-                        <div @click="open = !open" class="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-purple-500"><h3 class="font-bold text-gray-700"><i class="fa-solid fa-file-medical text-purple-500 mr-2"></i>點擊查看理賠詳情</h3><i class="fa-solid text-gray-400" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
-                        <div x-show="open" x-transition class="p-4 border-t border-gray-100 bg-gray-50 space-y-4">
-                            <template x-for="(event, eIndex) in (client.claimEvents || [])" :key="eIndex">
-                                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 relative">
-                                    <div x-show="event.status === 'Completed'" class="absolute right-[-10px] top-[10px] transform rotate-[15deg] border-2 border-green-500 text-green-500 font-bold px-4 py-1 text-[10px] opacity-30">COMPLETED</div>
-                                    <div class="flex justify-between items-start mb-3 border-b border-gray-100 pb-2">
-                                        <div><h3 class="font-bold text-gray-800" x-text="event.name"></h3><div class="text-xs text-gray-500">立案日期：<span x-text="event.eventDate"></span></div></div>
-                                        <div class="text-right"><div class="text-[10px] text-gray-500">總獲批金額</div><div class="font-bold text-purple-600 font-mono" x-text="'HK$ ' + formatNumber((event.items || []).reduce((s,i)=>s+Number(String(i.amount||0).replace(/,/g, '')),0))"></div></div>
-                                    </div>
-                                    <div class="space-y-1">
-                                        <template x-for="(item, iIndex) in (event.items || [])" :key="iIndex">
-                                            <div class="flex justify-between text-xs"><div class="text-gray-600"><i class="fa-solid fa-receipt text-gray-300 mr-1"></i><span x-text="item.desc"></span></div><div class="font-mono text-gray-700" x-text="'HK$ ' + formatNumber(item.amount)"></div></div>
-                                        </template>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-                
                 <div x-show="client.remarks" class="bg-amber-50 rounded-xl p-5 border border-amber-200 shadow-sm">
-                    <h3 class="font-bold text-amber-800 mb-2 text-sm"><i class="fa-solid fa-clipboard-list mr-2"></i>專業跟進事項及備註</h3>
-                    <div class="text-sm text-amber-900 whitespace-pre-line leading-relaxed" x-text="client.remarks"></div>
-                    <div x-show="client.remarkDate" class="text-xs text-amber-600 mt-3 font-bold">預計下一次跟進日期：<span x-text="client.remarkDate"></span></div>
+                    <h3 class="font-bold text-amber-800 mb-2 text-xs"><i class="fa-solid fa-clipboard-list mr-1"></i> 專業顧問追蹤及檢視建議</h3>
+                    <div class="text-xs text-amber-900 whitespace-pre-line leading-relaxed" x-text="client.remarks"></div>
+                    <div x-show="client.remarkDate" class="text-[10px] text-amber-600 mt-2 font-bold">下一次預計檢視日期：<span x-text="client.remarkDate"></span></div>
                 </div>
             </div>
         </div>
-
-        <div x-show="clientRemarkModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4" x-cloak><div class="bg-white w-full max-w-sm rounded-2xl overflow-hidden relative"><div class="bg-red-500 p-4 text-center"><div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto text-red-500 text-2xl mb-2"><i class="fa-solid fa-info"></i></div><h3 class="font-bold text-white">保單項目備註</h3></div><div class="p-6"><div class="text-sm text-gray-700 whitespace-pre-line leading-relaxed" x-text="clientRemarkModal.text"></div><button @click="clientRemarkModal.open = false" class="mt-6 w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-xl">關閉</button></div></div></div>
     </div>
 
     <script>
+        // 🎯 這是你專屬的 GAS 網址，已幫你精準填入
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYO6N0HpwDxmZbLomkyDD0DGuBSEbJzJyn9PFPkMRRnFkkLusSPQbHO0DOyh_nzw18qg/exec';
 
         function dashboardApp() {
             return {
-                client: {}, hasData: false, loading: true, error: false, loadingMsg: '正在安全加載您的保障報告...',
-                clientRemarkModal: { open: false, text: '' },
+                client: {}, hasData: false, loading: true, error: false, loadingMsg: '正在安全讀取雲端保障檔案...',
 
                 init() {
                     const params = new URLSearchParams(window.location.search);
-                    let id = params.get('id');
-                    
+                    const id = params.get('id');
                     if (id) {
-                        // 🌟 v1.8.10 兼容性比對修正：不管傳過來是帶有 c 還是純數字，通通去除英文字元，交給 GAS 後端精準撈取
-                        let cleanId = id.toString().replace(/\D/g, ''); 
+                        // 🌟 實施模糊高容錯比對：去除非數字字元
+                        let cleanSearchId = id.toString().replace(/\D/g, '');
                         
-                        fetch(GOOGLE_SCRIPT_URL, {
-                            method: 'POST',
-                            body: JSON.stringify({ action: 'get', id: cleanId })
-                        })
+                        // 🎯 透過最穩定的 GET 請求傳遞給 GAS 讀取 Google Sheet 數據
+                        fetch(`${GOOGLE_SCRIPT_URL}?action=get&id=${cleanSearchId}`)
                         .then(r => r.json())
                         .then(res => {
                             if (res.result === 'success' && res.data) {
@@ -204,38 +114,19 @@
                                 this.hasData = true;
                                 this.loading = false;
                             } else {
-                                this.showError('搵唔到此保單檔案！');
+                                this.showError('搵唔到此家庭保單檔案！');
                             }
                         })
                         .catch(e => {
-                            this.showError('網絡連線不穩定，請重新載入！');
+                            this.showError('連線雲端超時，請重新整理網頁！');
                         });
                     } else {
                         this.showError('無效的專屬報告連結！');
                     }
                 },
                 showError(msg) { this.loadingMsg = msg; this.loading = false; this.error = true; },
-                formatNumber(num) { if (num === null || num === undefined || num === '') return '-'; const n = parseFloat(num.toString().replace(/,/g, '')); return isNaN(n) ? num : n.toLocaleString('en-US'); },
-                getCategoryColor(cat) { if (['Medical', 'CI', 'Life', 'Accident', 'AccidentDeath', 'AccidentMedical'].includes(cat)) return 'text-red-500 font-bold'; if (['Savings', 'Fund', 'MPF'].includes(cat)) return 'text-blue-500 font-bold'; return 'text-gray-600 font-bold'; },
-                
-                get protectionSummary() {
-                    let summary = { totalPremium: 0, insured: [] };
-                    if (!this.client || !this.client.policies) return summary; let personMap = {};
-                    this.client.policies.forEach(p => {
-                        if(p.isCancelled) return;
-                        let p_amt = parseFloat(String(p.premium||'').replace(/,/g, '')) || 0; summary.totalPremium += (p.paymentMode === 'Monthly' ? (p_amt * 12) : p_amt);
-                        let person = (p.insuredPerson && p.insuredPerson.trim()) ? p.insuredPerson.trim() : (this.client.owner ? this.client.owner.trim() : '未命名');
-                        if (!personMap[person]) personMap[person] = { name: person, medicalHighEnd: false, medicalTraditional: false, ciSum: 0, lifeSum: 0, accDeathSum: 0, accMedicalSum: 0 };
-                        (p.items || []).forEach(i => {
-                            if(!i) return; let amt = parseFloat(String(i.sumAssured||'0').replace(/,/g, '')) || 0; let r = i.remarks || ''; let n = i.name || '';
-                            if(i.category === 'Medical') { if(r.includes('高端') || n.includes('高端')) personMap[person].medicalHighEnd = true; else personMap[person].medicalTraditional = true; } 
-                            else if (i.category === 'CI') { personMap[person].ciSum += amt; } 
-                            else if (i.category === 'Life') { personMap[person].lifeSum += amt; } 
-                            else if (i.category === 'AccidentDeath' || (i.category === 'Accident' && !r.includes('費用') && !r.includes('醫療') && !n.includes('費用') && !n.includes('醫療'))) { personMap[person].accDeathSum += amt; }
-                            else if (i.category === 'AccidentMedical' || (i.category === 'Accident' && (r.includes('費用') || r.includes('醫療') || n.includes('費用') || n.includes('醫療')))) { personMap[person].accMedicalSum += amt; }
-                        });
-                    }); summary.insured = Object.values(personMap); return summary;
-                }
+                formatNumber(num) { if (!num) return '-'; return parseFloat(num.toString().replace(/,/g, '')).toLocaleString('en-US'); },
+                getCategoryColor(cat) { return 'text-red-500 font-bold'; }
             }
         }
     </script>
