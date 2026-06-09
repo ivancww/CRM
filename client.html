@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>我的家庭財富與保障報告</title>
+    
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -23,10 +28,12 @@
                 <i class="fa-solid fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
                 <p class="text-gray-600 font-bold" x-text="loadingMsg"></p>
             </div>
-            <div x-show="!loading && error" class="text-center p-6">
-                <i class="fa-solid fa-triangle-exclamation text-4xl text-red-500 mb-4"></i>
-                <p class="text-red-600 font-bold mb-2" x-text="loadingMsg"></p>
-                <p class="text-sm text-gray-400">請聯絡您的保險顧問重新建立連結。</p>
+            <div x-show="!loading && error" class="text-center p-6 max-w-sm">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto text-red-500 text-3xl mb-4">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <p class="text-red-600 font-bold text-lg mb-2" x-text="loadingMsg"></p>
+                <p class="text-sm text-gray-400 leading-relaxed">請聯絡您的保險顧問重新建立專屬連結，或確認資料是否已成功同步至雲端。</p>
             </div>
         </div>
 
@@ -85,18 +92,18 @@
                     <div x-data="{ open: true }" class="bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
                         <div @click="open = !open" class="p-5 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-orange-400"><h3 class="font-bold text-gray-700 text-base md:text-lg">🌅 尊享未來生活與醫療儲備</h3><i class="fa-solid text-gray-400" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
                         <div x-show="open" x-transition class="p-5 border-t border-gray-100 bg-gray-50/50 space-y-4">
-                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">理想退休生活</div><div class="text-sm text-gray-800 whitespace-pre-line" x-text="client.fnaRetireVision || '尚未深入探討。'"></div></div>
-                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">醫療保障安排</div><div class="text-sm text-gray-800 whitespace-pre-line" x-text="client.fnaMedicalVision || '-'"></div></div>
-                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">現有財富增值安排 / 或工具</div><div class="text-sm text-gray-880 whitespace-pre-line" x-text="client.fnaRetireTools || '-'"></div></div>
-                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">規劃安排 / 關注點</div><div class="text-sm text-gray-800 whitespace-pre-line" x-text="client.fnaRetireGap || '-'"></div></div>
+                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">理想退休生活</div><div class="text-sm text-gray-800 whitespace-pre-line leading-relaxed" x-text="client.fnaRetireVision || '尚未深入探討。'"></div></div>
+                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">醫療保障安排</div><div class="text-sm text-gray-800 whitespace-pre-line leading-relaxed" x-text="client.fnaMedicalVision || '-'"></div></div>
+                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">現有財富增值安排 / 或工具</div><div class="text-sm text-gray-800 whitespace-pre-line leading-relaxed" x-text="client.fnaRetireTools || '-'"></div></div>
+                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">規劃安排 / 關注點</div><div class="text-sm text-gray-800 whitespace-pre-line leading-relaxed" x-text="client.fnaRetireGap || '-'"></div></div>
                         </div>
                     </div>
                     <div x-data="{ open: false }" class="bg-white rounded-xl shadow-sm border border-gray-100 mb-4">
                         <div @click="open = !open" class="p-5 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-green-500"><h3 class="font-bold text-gray-700 text-base md:text-lg">🎓 栽培下一代教育基金規劃</h3><i class="fa-solid text-gray-400" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
                         <div x-show="open" x-transition class="p-5 border-t border-gray-100 bg-gray-50/50 space-y-4">
-                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-green-600 font-bold mb-1">教育目標與期望</div><div class="text-sm text-gray-800 whitespace-pre-line" x-text="client.fnaEduVision || '尚未深入探討。'"></div></div>
-                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-green-600 font-bold mb-1">為下一代預備或進行中的財富安排</div><div class="text-sm text-gray-800 whitespace-pre-line" x-text="client.fnaEduTools || '-'"></div></div>
-                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-green-600 font-bold mb-1">方向 / 關注點</div><div class="text-sm text-gray-800 whitespace-pre-line" x-text="client.fnaEduGap || '-'"></div></div>
+                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-green-600 font-bold mb-1">教育目標與期望</div><div class="text-sm text-gray-800 whitespace-pre-line leading-relaxed" x-text="client.fnaEduVision || '尚未深入探討。'"></div></div>
+                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-green-600 font-bold mb-1">為下一代預備或進行中的財富安排</div><div class="text-sm text-gray-800 whitespace-pre-line leading-relaxed" x-text="client.fnaEduTools || '-'"></div></div>
+                            <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-green-600 font-bold mb-1">方向 / 關注點</div><div class="text-sm text-gray-800 whitespace-pre-line leading-relaxed" x-text="client.fnaEduGap || '-'"></div></div>
                         </div>
                     </div>
                 </div>
@@ -162,7 +169,7 @@
                 <div x-show="client.remarks" class="bg-amber-50 rounded-xl p-5 border border-amber-200 shadow-sm">
                     <h3 class="font-bold text-amber-800 mb-2 text-sm"><i class="fa-solid fa-clipboard-list mr-2"></i>專業跟進事項及備註</h3>
                     <div class="text-sm text-amber-900 whitespace-pre-line leading-relaxed" x-text="client.remarks"></div>
-                    <div x-show="client.remarkDate" class="text-xs text-amber-600 mt-3 font-bold">預計跟进日期：<span x-text="client.remarkDate"></span></div>
+                    <div x-show="client.remarkDate" class="text-xs text-amber-600 mt-3 font-bold">預計下一次跟進日期：<span x-text="client.remarkDate"></span></div>
                 </div>
             </div>
         </div>
@@ -180,16 +187,19 @@
 
                 init() {
                     const params = new URLSearchParams(window.location.search);
-                    const id = params.get('id');
+                    let id = params.get('id');
                     
                     if (id) {
+                        // 🌟 v1.8.10 兼容性比對修正：不管傳過來是帶有 c 還是純數字，通通去除英文字元，交給 GAS 後端精準撈取
+                        let cleanId = id.toString().replace(/\D/g, ''); 
+                        
                         fetch(GOOGLE_SCRIPT_URL, {
                             method: 'POST',
-                            body: JSON.stringify({ action: 'get', id: id })
+                            body: JSON.stringify({ action: 'get', id: cleanId })
                         })
                         .then(r => r.json())
                         .then(res => {
-                            if (res.result === 'success') {
+                            if (res.result === 'success' && res.data) {
                                 this.client = res.data;
                                 this.hasData = true;
                                 this.loading = false;
@@ -198,10 +208,10 @@
                             }
                         })
                         .catch(e => {
-                            this.showError('網路連線逾時，請重新載入！');
+                            this.showError('網絡連線不穩定，請重新載入！');
                         });
                     } else {
-                        this.showError('無效的客戶連結！');
+                        this.showError('無效的專屬報告連結！');
                     }
                 },
                 showError(msg) { this.loadingMsg = msg; this.loading = false; this.error = true; },
