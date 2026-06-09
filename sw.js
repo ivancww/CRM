@@ -1,4 +1,4 @@
-const CACHE_NAME = 'crm-cache-v1.8.7';
+const CACHE_NAME = 'crm-cache-v1.8.9';
 const urlsToCache = [
   '/CRM/',
   '/CRM/index.html',
