@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>保險管家 v1.8.8 (Admin - Cloud)</title>
+    <title>保險管家 v1.8.9 (Admin - Cloud Realtime)</title>
     <link class="no-print" rel="manifest" href="manifest-admin.json">
     <link class="no-print" rel="icon" type="image/png" href="admin-logo-192.png">
     <link class="no-print" rel="apple-touch-icon" href="admin-logo-192.png">
@@ -41,6 +41,11 @@
             <div class="container mx-auto flex justify-between items-center">
                 <h1 class="text-lg font-bold cursor-pointer" @click="view = 'list'"><i class="fa-solid fa-cloud mr-2"></i>保險管家<span class="text-[10px] bg-blue-600 px-2 py-0.5 rounded ml-1" x-text="'v' + version"></span></h1>
                 <div class="flex items-center gap-2">
+                    <div x-show="view === 'detail'" class="flex items-center text-xs mr-2 transition-all duration-300">
+                        <span x-show="cloudSyncing" class="text-blue-400 animate-pulse"><i class="fa-solid fa-arrows-rotate fa-spin mr-1"></i> 雲端同步中...</span>
+                        <span x-show="!cloudSyncing" class="text-green-400"><i class="fa-solid fa-cloud-arrow-up mr-1"></i> 已實時儲存</span>
+                    </div>
+
                     <button @click="showSettingsModal = true" class="text-gray-300 hover:text-white px-2"><i class="fa-solid fa-gear"></i></button>
                     <div x-show="view === 'list'" class="flex gap-2">
                         <div class="relative" x-data="{ open: false }">
@@ -100,13 +105,13 @@
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                         <div class="md:col-span-2">
                             <label class="block text-sm font-bold mb-1 text-blue-600">持有人 / 戶口名稱</label>
-                            <input type="text" x-model="client.owner" @blur="client.owner = formatName(client.owner)" class="w-full border rounded p-2">
+                            <input type="text" x-model="client.owner" @blur="client.owner = formatName(client.owner); saveCurrentClient(true);" class="w-full border rounded p-2">
                             <span x-show="isDuplicateOwner" class="text-xs text-red-500 font-bold mt-1 block" x-cloak><i class="fa-solid fa-triangle-exclamation mr-1"></i>系統已存在相同名稱！</span>
                         </div>
                         <div>
                             <label class="block text-sm font-bold mb-1 text-blue-600">生日 <span x-show="client.dob" class="text-xs text-gray-400" x-text="'(' + getAge(client.dob) + '歲)'"></span></label>
                             <div class="flex gap-1">
-                                <input type="date" x-model="client.dob" class="w-full border rounded p-2 text-sm">
+                                <input type="date" x-model="client.dob" @change="saveCurrentClient(true)" class="w-full border rounded p-2 text-sm">
                                 <button @click="sendWhatsappMessage('birthday', client)" class="bg-[#25D366] hover:bg-green-600 px-2 rounded text-white shadow-sm transition"><i class="fa-brands fa-whatsapp"></i></button>
                                 <button @click="openCalendarMenu('birthday', client)" class="bg-white hover:bg-gray-100 px-2 rounded border border-gray-300 text-gray-600 text-xs transition"><i class="fa-solid fa-calendar-plus"></i></button>
                             </div>
@@ -114,21 +119,21 @@
                         <div>
                             <label class="block text-sm font-bold mb-1">電話</label>
                             <div class="flex gap-1">
-                                <input type="tel" x-model="client.phone" class="w-full border rounded p-2">
+                                <input type="tel" x-model="client.phone" @blur="saveCurrentClient(true)" class="w-full border rounded p-2">
                                 <a :href="getWhatsappLink()" target="_blank" class="bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded text-gray-700 transition"><i class="fa-solid fa-message"></i></a>
                             </div>
                         </div>
                         <div>
                             <label class="block text-sm font-bold mb-1">家庭</label>
-                            <select x-model="client.marital" class="w-full border rounded p-2"><option value="Single">未婚</option><option value="Married">已婚</option></select>
+                            <select x-model="client.marital" @change="saveCurrentClient(true)" class="w-full border rounded p-2"><option value="Single">未婚</option><option value="Married">已婚</option></select>
                         </div>
                         <div>
                             <label class="block text-sm font-bold mb-1">小朋友</label>
-                            <select x-model="client.children" class="w-full border rounded p-2"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4+">4+</option></select>
+                            <select x-model="client.children" @change="saveCurrentClient(true)" class="w-full border rounded p-2"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4+">4+</option></select>
                         </div>
                         <div class="md:col-span-2">
                             <label class="block text-sm font-bold mb-1">職業</label>
-                            <input type="text" x-model="client.occupation" class="w-full border rounded p-2">
+                            <input type="text" x-model="client.occupation" @blur="saveCurrentClient(true)" class="w-full border rounded p-2">
                         </div>
                     </div>
                     <div class="border-t border-dashed border-gray-300 pt-4 mt-2" x-data="{ showFNA: false }">
@@ -137,10 +142,10 @@
                             <div class="text-gray-400 text-xs"><span x-show="!showFNA">顯示詳情 <i class="fa-solid fa-chevron-down ml-1"></i></span><span x-show="showFNA">隱藏 <i class="fa-solid fa-chevron-up ml-1"></i></span></div>
                         </div>
                         <div x-show="showFNA" x-transition class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div><label class="block text-xs font-bold mb-1">每月收入</label><input type="text" x-model="client.income" @input="client.income = formatInput($event.target.value)" class="w-full border rounded p-2 text-sm" placeholder="0"></div>
-                            <div><label class="block text-xs font-bold mb-1">流動資產</label><input type="text" x-model="client.liquidAssets" @input="client.liquidAssets = formatInput($event.target.value)" class="w-full border rounded p-2 text-sm" placeholder="Cash/Stock"></div>
-                            <div><label class="block text-xs font-bold mb-1">物業市值</label><input type="text" x-model="client.property" @input="client.property = formatInput($event.target.value)" class="w-full border rounded p-2 text-sm" placeholder="0"></div>
-                            <div><label class="block text-xs font-bold mb-1">其他投資</label><input type="text" x-model="client.investment" @input="client.investment = formatInput($event.target.value)" class="w-full border rounded p-2 text-sm" placeholder="0"></div>
+                            <div><label class="block text-xs font-bold mb-1">每月收入</label><input type="text" x-model="client.income" @input="client.income = formatInput($event.target.value)" @blur="saveCurrentClient(true)" class="w-full border rounded p-2 text-sm" placeholder="0"></div>
+                            <div><label class="block text-xs font-bold mb-1">流動資產</label><input type="text" x-model="client.liquidAssets" @input="client.liquidAssets = formatInput($event.target.value)" @blur="saveCurrentClient(true)" class="w-full border rounded p-2 text-sm" placeholder="Cash/Stock"></div>
+                            <div><label class="block text-xs font-bold mb-1">物業市值</label><input type="text" x-model="client.property" @input="client.property = formatInput($event.target.value)" @blur="saveCurrentClient(true)" class="w-full border rounded p-2 text-sm" placeholder="0"></div>
+                            <div><label class="block text-xs font-bold mb-1">其他投資</label><input type="text" x-model="client.investment" @input="client.investment = formatInput($event.target.value)" @blur="saveCurrentClient(true)" class="w-full border rounded p-2 text-sm" placeholder="0"></div>
                         </div>
                     </div>
                 </div>
@@ -153,21 +158,21 @@
                             
                             <div class="flex flex-wrap items-end gap-3 mb-4 pr-8 border-b pb-3">
                                 <h2 class="text-xl font-bold whitespace-nowrap mb-1" :class="policy.isCancelled ? 'text-gray-600' : 'text-green-700'">保單 (#<span x-text="pIndex + 1"></span>)</h2>
-                                <div class="flex-1 min-w-[140px]"><label class="block text-[10px] font-bold mb-1">保險公司</label><input type="text" list="insurer-list" x-model="policy.insurer" :disabled="policy.isCancelled" class="w-full border rounded py-1.5 px-2 text-sm font-bold bg-white"></div>
-                                <div class="w-40"><label class="block text-[10px] font-bold mb-1">保單號碼</label><input type="text" x-model="policy.policyNo" :disabled="policy.isCancelled" class="w-full border rounded py-1.5 px-2 text-sm font-mono bg-white"></div>
+                                <div class="flex-1 min-w-[140px]"><label class="block text-[10px] font-bold mb-1">保險公司</label><input type="text" list="insurer-list" x-model="policy.insurer" @blur="saveCurrentClient(true)" :disabled="policy.isCancelled" class="w-full border rounded py-1.5 px-2 text-sm font-bold bg-white"></div>
+                                <div class="w-40"><label class="block text-[10px] font-bold mb-1">保單號碼</label><input type="text" x-model="policy.policyNo" @blur="saveCurrentClient(true)" :disabled="policy.isCancelled" class="w-full border rounded py-1.5 px-2 text-sm font-mono bg-white"></div>
                             </div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-7 gap-3 mb-4 p-4 rounded-lg items-end" :class="policy.isCancelled ? 'bg-gray-200' : 'bg-green-50'">
                                 <div class="md:col-span-2 relative">
-                                    <label class="block text-xs font-bold mb-1 text-purple-600 flex justify-between">受保人<button @click="policy.insuredPerson = client.owner" class="text-[10px] bg-purple-100 text-purple-600 px-2 rounded hover:bg-purple-200 transition">同持有人</button></label>
-                                    <input type="text" x-model="policy.insuredPerson" @blur="policy.insuredPerson = formatName(policy.insuredPerson)" :disabled="policy.isCancelled" class="w-full border rounded p-2 text-sm bg-white">
+                                    <label class="block text-xs font-bold mb-1 text-purple-600 flex justify-between">受保人<button @click="policy.insuredPerson = client.owner; saveCurrentClient(true);" class="text-[10px] bg-purple-100 text-purple-600 px-2 rounded hover:bg-purple-200 transition">同持有人</button></label>
+                                    <input type="text" x-model="policy.insuredPerson" @blur="policy.insuredPerson = formatName(policy.insuredPerson); saveCurrentClient(true);" :disabled="policy.isCancelled" class="w-full border rounded p-2 text-sm bg-white">
                                 </div>
-                                <div class="md:col-span-1"><label class="block text-xs font-bold mb-1">生效日</label><input type="date" x-model="policy.effectDate" :disabled="policy.isCancelled" class="w-full border rounded p-2 text-sm"></div>
-                                <div class="md:col-span-1"><label class="block text-xs font-bold mb-1">繳費</label><select x-model="policy.paymentMode" :disabled="policy.isCancelled" class="w-full border rounded p-2 text-sm"><option value="Yearly">年</option><option value="Monthly">月</option></select></div>
+                                <div class="md:col-span-1"><label class="block text-xs font-bold mb-1">生效日</label><input type="date" x-model="policy.effectDate" @change="saveCurrentClient(true)" :disabled="policy.isCancelled" class="w-full border rounded p-2 text-sm"></div>
+                                <div class="md:col-span-1"><label class="block text-xs font-bold mb-1">繳費</label><select x-model="policy.paymentMode" @change="saveCurrentClient(true)" :disabled="policy.isCancelled" class="w-full border rounded p-2 text-sm"><option value="Yearly">年</option><option value="Monthly">月</option></select></div>
                                 <div class="md:col-span-2" :class="policy.paymentMode === 'Yearly' && checkDueDate(policy.dueDate) && !policy.isCancelled ? 'gold-alert p-1 rounded' : ''">
                                     <label class="block text-xs font-bold mb-1">續保日期 <span x-show="policy.paymentMode === 'Yearly' && checkDueDate(policy.dueDate) && !policy.isCancelled" class="text-red-600 animate-pulse">!</span></label>
                                     <div class="flex gap-1">
-                                        <input type="date" x-model="policy.dueDate" :disabled="policy.paymentMode === 'Monthly' || policy.isCancelled" class="w-full border rounded p-2 text-sm">
+                                        <input type="date" x-model="policy.dueDate" @change="saveCurrentClient(true)" :disabled="policy.paymentMode === 'Monthly' || policy.isCancelled" class="w-full border rounded p-2 text-sm">
                                         <button @click="sendWhatsappMessage('renewal', client, policy)" x-show="!policy.isCancelled" :disabled="policy.paymentMode === 'Monthly'" class="bg-[#25D366] hover:bg-green-600 px-2 rounded text-white shadow-sm transition disabled:opacity-50"><i class="fa-brands fa-whatsapp"></i></button>
                                         <button @click="openCalendarMenu('renewal', policy)" x-show="!policy.isCancelled" :disabled="policy.paymentMode === 'Monthly'" class="bg-white px-2 rounded border border-gray-300 text-gray-600 text-xs hover:bg-gray-100 disabled:opacity-50"><i class="fa-solid fa-calendar-plus"></i></button>
                                     </div>
@@ -175,8 +180,8 @@
                                 <div class="md:col-span-1">
                                     <label class="block text-xs font-bold mb-1">保費(HK$)</label>
                                     <div class="relative">
-                                        <input type="text" x-model="policy.premium" :disabled="policy.isCancelled" @input="policy.premium = formatInput($event.target.value)" class="w-full border rounded p-2 text-sm pr-10">
-                                        <button @click="policy.premium = parseFloat((parseFloat(String(policy.premium).replace(/,/g, ''))*7.8).toFixed(0)).toLocaleString('en-US')" x-show="!policy.isCancelled" class="absolute right-0 top-0 h-full bg-gray-100 hover:bg-gray-200 text-[8px] px-1 text-gray-500 rounded-r border-l">USD</button>
+                                        <input type="text" x-model="policy.premium" :disabled="policy.isCancelled" @input="policy.premium = formatInput($event.target.value)" @blur="saveCurrentClient(true)" class="w-full border rounded p-2 text-sm pr-10">
+                                        <button @click="policy.premium = parseFloat((parseFloat(String(policy.premium).replace(/,/g, ''))*7.8).toFixed(0)).toLocaleString('en-US'); saveCurrentClient(true);" x-show="!policy.isCancelled" class="absolute right-0 top-0 h-full bg-gray-100 hover:bg-gray-200 text-[8px] px-1 text-gray-500 rounded-r border-l">USD</button>
                                     </div>
                                 </div>
                             </div>
@@ -185,7 +190,7 @@
                                 <div class="flex-1 max-w-sm">
                                     <label class="block text-xs font-bold mb-1 text-purple-700">受保人 (<span x-text="policy.insuredPerson"></span>) 生日 <span x-show="policy.insuredDob" class="font-normal text-purple-500" x-text="'(' + getAge(policy.insuredDob) + ' 歲)'"></span></label>
                                     <div class="flex gap-1">
-                                        <input type="date" x-model="policy.insuredDob" :disabled="policy.isCancelled" class="w-full border rounded p-2 text-sm bg-white">
+                                        <input type="date" x-model="policy.insuredDob" @change="saveCurrentClient(true)" :disabled="policy.isCancelled" class="w-full border rounded p-2 text-sm bg-white">
                                         <button @click="sendWhatsappMessage('insuredBirthday', client, policy)" x-show="!policy.isCancelled" class="bg-[#25D366] hover:bg-green-600 px-3 rounded text-white shadow-sm transition"><i class="fa-brands fa-whatsapp"></i></button>
                                         <button @click="openCalendarMenu('insuredBirthday', {client: client, policy: policy})" x-show="!policy.isCancelled" class="bg-white hover:bg-gray-100 px-3 rounded border border-gray-300 text-gray-600 text-xs transition"><i class="fa-solid fa-calendar-plus"></i></button>
                                     </div>
@@ -202,7 +207,7 @@
                                             <tr class="border-b hover:bg-gray-50">
                                                 <td class="px-2 py-2 text-center align-middle"><div x-show="iIndex === 0" class="w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center mx-auto shadow-sm">主</div><div x-show="iIndex > 0" class="w-6 h-6 rounded-full bg-gray-200 text-gray-600 text-[10px] font-bold flex items-center justify-center mx-auto" x-text="iIndex"></div></td>
                                                 <td class="px-2 py-2">
-                                                    <select x-model="item.category" :disabled="policy.isCancelled" :class="getCategoryColor(item.category)" class="w-full border rounded p-1 text-xs font-bold">
+                                                    <select x-model="item.category" @change="saveCurrentClient(true)" :disabled="policy.isCancelled" :class="getCategoryColor(item.category)" class="w-full border rounded p-1 text-xs font-bold">
                                                         <optgroup label="保障">
                                                             <option value="Medical">醫療</option>
                                                             <option value="CI">危疾</option>
@@ -222,23 +227,23 @@
                                                         </optgroup>
                                                     </select>
                                                 </td>
-                                                <td class="px-2 py-2"><input type="text" x-model="item.name" :disabled="policy.isCancelled" :class="item.category === 'Medical' ? 'text-red-600 font-bold' : getCategoryColor(item.category)" class="w-full border rounded p-1 text-xs"></td>
+                                                <td class="px-2 py-2"><input type="text" x-model="item.name" @blur="saveCurrentClient(true)" :disabled="policy.isCancelled" :class="item.category === 'Medical' ? 'text-red-600 font-bold' : getCategoryColor(item.category)" class="w-full border rounded p-1 text-xs"></td>
                                                 <td class="px-2 py-2">
                                                     <div class="relative">
-                                                        <input type="text" x-model="item.sumAssured" :disabled="policy.isCancelled" @input="item.sumAssured = formatInput($event.target.value)" class="w-full border rounded p-1 text-xs pr-8">
-                                                        <button @click="item.sumAssured = parseFloat((parseFloat(String(item.sumAssured).replace(/,/g, ''))*7.8).toFixed(0)).toLocaleString('en-US')" x-show="!policy.isCancelled" class="absolute right-0 top-0 h-full bg-gray-100 hover:bg-gray-200 text-[8px] px-1 text-gray-500 rounded-r">USD</button>
+                                                        <input type="text" x-model="item.sumAssured" :disabled="policy.isCancelled" @input="item.sumAssured = formatInput($event.target.value)" @blur="saveCurrentClient(true)" class="w-full border rounded p-1 text-xs pr-8">
+                                                        <button @click="item.sumAssured = parseFloat((parseFloat(String(item.sumAssured).replace(/,/g, ''))*7.8).toFixed(0)).toLocaleString('en-US'); saveCurrentClient(true);" x-show="!policy.isCancelled" class="absolute right-0 top-0 h-full bg-gray-100 hover:bg-gray-200 text-[8px] px-1 text-gray-500 rounded-r">USD</button>
                                                     </div>
                                                 </td>
-                                                <td class="px-2 py-2"><input type="text" x-model="item.deductible" :disabled="policy.isCancelled" @input="item.deductible = formatInput($event.target.value)" class="w-full border rounded p-1 text-xs"></td>
-                                                <td class="px-2 py-2"><input type="text" x-model="item.term" :disabled="policy.isCancelled" class="w-full border rounded p-1 text-xs"></td>
+                                                <td class="px-2 py-2"><input type="text" x-model="item.deductible" @input="item.deductible = formatInput($event.target.value)" @blur="saveCurrentClient(true)" :disabled="policy.isCancelled" class="w-full border rounded p-1 text-xs"></td>
+                                                <td class="px-2 py-2"><input type="text" x-model="item.term" @blur="saveCurrentClient(true)" :disabled="policy.isCancelled" class="w-full border rounded p-1 text-xs"></td>
                                                 <td class="px-2 py-2">
-                                                    <select x-model="item.maturity" :disabled="policy.isCancelled" class="w-full border rounded p-1 text-xs">
+                                                    <select x-model="item.maturity" @change="saveCurrentClient(true)" :disabled="policy.isCancelled" class="w-full border rounded p-1 text-xs">
                                                         <option value="">-</option><option value="終身">終身</option><option value="100歲">100歲</option><option value="85歲">85歲</option><option value="80歲">80歲</option><option value="75歲">75歲</option><option value="70歲">70歲</option><option value="65歲">65歲</option>
                                                     </select>
                                                 </td>
                                                 <td class="px-2 py-2 text-center flex justify-center gap-1">
                                                     <button @click="openRemarkModal(item)" x-show="!policy.isCancelled" class="w-6 h-6 rounded-full border text-xs font-bold" :class="item.remarks ? 'bg-red-100 text-red-600 border-red-300' : 'bg-gray-100 border-gray-300 hover:bg-gray-200'">!</button>
-                                                    <button x-show="iIndex > 0 && !policy.isCancelled" @click="policy.items.splice(iIndex, 1)" class="w-6 h-6 rounded-full border border-red-200 bg-red-50 text-red-500 text-xs hover:bg-red-100"><i class="fa-solid fa-trash-can"></i></button>
+                                                    <button x-show="iIndex > 0 && !policy.isCancelled" @click="policy.items.splice(iIndex, 1); saveCurrentClient(true);" class="w-6 h-6 rounded-full border border-red-200 bg-red-50 text-red-500 text-xs hover:bg-red-100"><i class="fa-solid fa-trash-can"></i></button>
                                                 </td>
                                             </tr>
                                         </template>
@@ -246,12 +251,12 @@
                                 </table>
                             </div>
                             <div class="mt-4 flex justify-between items-center">
-                                <label class="flex items-center text-sm font-bold text-red-500 cursor-pointer"><input type="checkbox" class="mr-2 w-4 h-4 rounded" x-model="policy.isCancelled" @change="togglePolicyCancel(policy)">終止此保單</label>
-                                <button x-show="!policy.isCancelled" @click="addRider(pIndex)" class="text-blue-600 text-sm font-semibold hover:bg-blue-50 px-2 py-1 rounded transition">+ 附約</button>
+                                <label class="flex items-center text-sm font-bold text-red-500 cursor-pointer"><input type="checkbox" class="mr-2 w-4 h-4 rounded" x-model="policy.isCancelled" @change="togglePolicyCancel(policy); saveCurrentClient(true);">終止此保單</label>
+                                <button x-show="!policy.isCancelled" @click="addRider(pIndex); saveCurrentClient(true);" class="text-blue-600 text-sm font-semibold hover:bg-blue-50 px-2 py-1 rounded transition">+ 附約</button>
                             </div>
                         </div>
                     </template>
-                    <button @click="addPolicy()" class="w-full py-3 border-2 border-dashed border-green-300 text-green-600 rounded-lg hover:bg-green-50 mb-6 font-bold">+ 新保單</button>
+                    <button @click="addPolicy(); saveCurrentClient(true);" class="w-full py-3 border-2 border-dashed border-green-300 text-green-600 rounded-lg hover:bg-green-50 mb-6 font-bold">+ 新保單</button>
 
                     <div class="bg-white rounded-lg shadow-md p-6 mb-6 border-t-4 border-purple-500">
                         <h2 class="text-xl font-bold mb-4 text-purple-700">索償紀錄</h2>
@@ -259,51 +264,51 @@
                             <template x-for="(event, eIndex) in (client.claimEvents || [])" :key="eIndex">
                                 <div class="border rounded p-3" :class="event.status === 'Completed' ? 'bg-gray-50' : 'bg-white border-purple-200'">
                                     <div class="flex justify-between items-center mb-2">
-                                        <input type="text" x-model="event.name" class="font-bold border-b border-dashed flex-1 mr-2" placeholder="事件名稱 (例如: 意外住院)">
+                                        <input type="text" x-model="event.name" @blur="saveCurrentClient(true)" class="font-bold border-b border-dashed flex-1 mr-2" placeholder="事件名稱 (例如: 意外住院)">
                                         <div class="font-bold text-purple-600 text-right" x-text="'HK$' + formatNumber((event.items || []).reduce((s,i)=>s+Number(String(i.amount||0).replace(/,/g, '')),0))"></div>
                                     </div>
                                     <div class="flex items-center gap-2 mb-3">
                                         <span class="text-xs font-bold text-gray-500">索償日期:</span>
-                                        <input type="date" x-model="event.eventDate" class="border rounded p-1 text-xs">
+                                        <input type="date" x-model="event.eventDate" @change="saveCurrentClient(true)" class="border rounded p-1 text-xs">
                                     </div>
                                     <table class="w-full text-xs mb-2">
                                         <thead><tr class="text-gray-400"><th class="text-left py-1">項次說明</th><th class="text-right py-1" width="100">金額 (HK$)</th><th width="30"></th></tr></thead>
                                         <tbody>
                                             <template x-for="(item, iIndex) in (event.items || [])" :key="iIndex">
                                                 <tr class="border-t">
-                                                    <td class="py-2"><input type="text" x-model="item.desc" class="w-full bg-transparent" placeholder="輸入說明..."></td>
+                                                    <td class="py-2"><input type="text" x-model="item.desc" @blur="saveCurrentClient(true)" class="w-full bg-transparent" placeholder="輸入說明..."></td>
                                                     <td class="py-2">
                                                         <div class="relative">
-                                                            <input type="text" x-model="item.amount" @input="item.amount = formatInput($event.target.value)" class="w-full border rounded p-1 text-right pr-6" placeholder="0">
-                                                            <button @click="item.amount = parseFloat((parseFloat(String(item.amount).replace(/,/g, ''))*7.8).toFixed(0)).toLocaleString('en-US')" class="absolute right-0 top-0 h-full bg-gray-100 px-1 text-[8px] text-gray-400 hover:text-purple-600 rounded-r">USD</button>
+                                                            <input type="text" x-model="item.amount" @input="item.amount = formatInput($event.target.value)" @blur="saveCurrentClient(true)" class="w-full border rounded p-1 text-right pr-6" placeholder="0">
+                                                            <button @click="item.amount = parseFloat((parseFloat(String(item.amount).replace(/,/g, ''))*7.8).toFixed(0)).toLocaleString('en-US'); saveCurrentClient(true);" class="absolute right-0 top-0 h-full bg-gray-100 px-1 text-[8px] text-gray-400 hover:text-purple-600 rounded-r">USD</button>
                                                         </div>
                                                     </td>
-                                                    <td class="text-center"><button @click="event.items.splice(iIndex,1)" class="text-red-400 hover:text-red-600"><i class="fa-solid fa-minus-circle"></i></button></td>
+                                                    <td class="text-center"><button @click="event.items.splice(iIndex,1); saveCurrentClient(true);" class="text-red-400 hover:text-red-600"><i class="fa-solid fa-minus-circle"></i></button></td>
                                                 </tr>
                                             </template>
                                         </tbody>
                                     </table>
                                     <div class="flex justify-between items-center mt-2 pt-2 border-t border-dashed">
-                                        <button @click="event.items.push({desc:'',amount:''})" class="text-purple-600 text-xs font-bold">+ 新增細項</button>
+                                        <button @click="event.items.push({desc:'',amount:''}); saveCurrentClient(true);" class="text-purple-600 text-xs font-bold">+ 新增細項</button>
                                         <div class="flex gap-2">
-                                            <button @click="event.status = event.status==='Pending'?'Completed':'Pending'" class="text-xs px-2 py-1 rounded border bg-white shadow-sm" x-text="event.status==='Pending'?'完成檔案':'重開檔案'"></button>
-                                            <button @click="client.claimEvents.splice(eIndex,1)" class="text-xs px-2 py-1 rounded text-red-400 border border-red-50 shadow-sm hover:bg-red-100"><i class="fa-solid fa-trash-can"></i></button>
+                                            <button @click="event.status = event.status==='Pending'?'Completed':'Pending'; saveCurrentClient(true);" class="text-xs px-2 py-1 rounded border bg-white shadow-sm" x-text="event.status==='Pending'?'完成檔案':'重開檔案'"></button>
+                                            <button @click="client.claimEvents.splice(eIndex,1); saveCurrentClient(true);" class="text-xs px-2 py-1 rounded text-red-400 border border-red-50 shadow-sm hover:bg-red-100"><i class="fa-solid fa-trash-can"></i></button>
                                         </div>
                                     </div>
                                 </div>
                             </template>
-                            <button @click="addClaimEvent()" class="w-full py-2 border-2 border-dashed border-purple-300 text-purple-600 rounded text-sm font-bold bg-purple-50 hover:bg-purple-100 transition">+ 新索償檔案</button>
+                            <button @click="addClaimEvent(); saveCurrentClient(true);" class="w-full py-2 border-2 border-dashed border-purple-300 text-purple-600 rounded text-sm font-bold bg-purple-50 hover:bg-purple-100 transition">+ 新索償檔案</button>
                         </div>
                         <div class="border-t pt-4">
                             <div class="flex justify-between items-center mb-1">
                                 <label class="block text-sm font-bold text-gray-700">整體備註及跟進事項</label>
                                 <div class="flex items-center gap-2">
                                     <label class="text-xs text-gray-500 font-bold hidden sm:inline-block">跟進日期:</label>
-                                    <input type="date" x-model="client.remarkDate" class="border rounded p-1 text-xs">
+                                    <input type="date" x-model="client.remarkDate" @change="saveCurrentClient(true)" class="border rounded p-1 text-xs">
                                     <button @click="openCalendarMenu('remark', client)" class="bg-white hover:bg-gray-100 px-2 py-1 rounded border border-gray-300 text-gray-600 text-xs shadow-sm transition"><i class="fa-solid fa-calendar-plus mr-1"></i>加至日曆</button>
                                 </div>
                             </div>
-                            <textarea x-model="client.remarks" class="w-full border rounded p-2 h-24" placeholder="輸入備註或跟進事項..."></textarea>
+                            <textarea x-model="client.remarks" @blur="saveCurrentClient(true)" class="w-full border rounded p-2 h-24" placeholder="輸入備註或跟進事項..."></textarea>
                         </div>
                     </div>
 
@@ -366,19 +371,19 @@
                             <div class="absolute top-0 right-0 bg-blue-100 text-blue-600 text-[10px] px-2 py-1 rounded-bl font-bold z-10">可編輯</div>
                             <div @click="open = !open" class="p-5 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-orange-400"><h3 class="font-bold text-gray-700 text-base md:text-lg">🌅 尊享未來生活與醫療儲備</h3><i class="fa-solid text-gray-400" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
                             <div x-show="open" x-transition class="p-5 border-t border-gray-100 bg-gray-50/50 space-y-4">
-                                <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">理想退休生活</div><textarea x-model="client.fnaRetireVision" class="w-full border-2 border-blue-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="尚未深入探討。"></textarea></div>
-                                <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">醫療保障安排</div><textarea x-model="client.fnaMedicalVision" class="w-full border-2 border-blue-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="-"></textarea></div>
-                                <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">現有財富增值安排 / 或工具</div><textarea x-model="client.fnaRetireTools" class="w-full border-2 border-blue-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="-"></textarea></div>
-                                <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">規劃安排 / 關注點</div><textarea x-model="client.fnaRetireGap" class="w-full border-2 border-blue-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="-"></textarea></div>
+                                <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">理想退休生活</div><textarea x-model="client.fnaRetireVision" @blur="saveCurrentClient(true)" class="w-full border-2 border-blue-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="尚未深入探討。"></textarea></div>
+                                <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">醫療保障安排</div><textarea x-model="client.fnaMedicalVision" @blur="saveCurrentClient(true)" class="w-full border-2 border-blue-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="-"></textarea></div>
+                                <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">現有財富增值安排 / 或工具</div><textarea x-model="client.fnaRetireTools" @blur="saveCurrentClient(true)" class="w-full border-2 border-blue-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="-"></textarea></div>
+                                <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">規劃安排 / 關注點</div><textarea x-model="client.fnaRetireGap" @blur="saveCurrentClient(true)" class="w-full border-2 border-blue-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="-"></textarea></div>
                             </div>
                         </div>
                         <div x-data="{ open: false }" class="bg-white rounded-xl shadow-sm border border-gray-100 mb-4 relative">
                             <div class="absolute top-0 right-0 bg-blue-100 text-blue-600 text-[10px] px-2 py-1 rounded-bl font-bold z-10">可編輯</div>
                             <div @click="open = !open" class="p-5 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-green-500"><h3 class="font-bold text-gray-700 text-base md:text-lg">🎓 栽培下一代教育基金規劃</h3><i class="fa-solid text-gray-400" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
                             <div x-show="open" x-transition class="p-5 border-t border-gray-100 bg-gray-50/50 space-y-4">
-                                <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-green-600 font-bold mb-1">教育目標與期望</div><textarea x-model="client.fnaEduVision" class="w-full border-2 border-green-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="尚未深入探討。"></textarea></div>
-                                <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-green-600 font-bold mb-1">為下一代預備或進行中的財富安排</div><textarea x-model="client.fnaEduTools" class="w-full border-2 border-green-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="-"></textarea></div>
-                                <div class="bg-white p-3 rounded-lg border border-green-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="-"></textarea></div>
+                                <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-green-600 font-bold mb-1">教育目標與期望</div><textarea x-model="client.fnaEduVision" @blur="saveCurrentClient(true)" class="w-full border-2 border-green-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="尚未深入探討。"></textarea></div>
+                                <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-green-600 font-bold mb-1">為下一代預備或進行中的財富安排</div><textarea x-model="client.fnaEduTools" @blur="saveCurrentClient(true)" class="w-full border-2 border-green-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="-"></textarea></div>
+                                <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-green-600 font-bold mb-1">方向 / 關注點</div><textarea x-model="client.fnaEduGap" @blur="saveCurrentClient(true)" class="w-full border-2 border-green-200 rounded p-2 text-sm text-gray-800 outline-none" rows="2" placeholder="-"></textarea></div>
                             </div>
                         </div>
                     </div>
@@ -455,7 +460,6 @@
             
             <div x-show="uploadModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 print:hidden" x-cloak><div class="bg-white w-80 rounded-lg shadow-xl p-6 text-center relative z-50"><h3 class="font-bold text-gray-800 mb-2 text-lg">建立專屬連結</h3><div x-show="uploadModal.loading" class="mb-4 text-blue-600 font-bold text-sm animate-pulse">上傳中...</div><button @click="uploadToCloud()" :disabled="uploadModal.loading" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold mb-3 shadow">確認並生成 QR Code</button><button @click="uploadModal.open = false" class="text-gray-400 text-sm">取消</button></div></div>
             
-            <!-- 二維碼彈窗 (經過極度安全的 try-catch 與元件保護設計) -->
             <div x-show="qrModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 print:hidden" x-cloak>
                 <div class="bg-white w-80 rounded-lg shadow-xl p-6 text-center relative z-50">
                     <h3 class="font-bold text-gray-800 mb-3">專屬連結已建立</h3>
@@ -470,12 +474,11 @@
                 </div>
             </div>
 
-            <div x-show="itemRemarkModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-96 rounded-lg p-4 m-4"><h3 class="font-bold mb-2">編輯備註</h3><textarea x-model="itemRemarkModal.item.remarks" class="w-full h-32 border rounded p-2 text-sm mb-4"></textarea><div class="flex justify-end gap-2"><button @click="itemRemarkModal.open = false" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">確定</button></div></div></div>
+            <div x-show="itemRemarkModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-96 rounded-lg p-4 m-4"><h3 class="font-bold mb-2">編輯備註</h3><textarea x-model="itemRemarkModal.item.remarks" class="w-full h-32 border rounded p-2 text-sm mb-4"></textarea><div class="flex justify-end gap-2"><button @click="itemRemarkModal.open = false; saveCurrentClient(true);" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">確定</button></div></div></div>
             <div x-show="clientRemarkModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4" x-cloak><div class="bg-white w-full max-w-sm rounded-2xl overflow-hidden relative"><div class="bg-red-500 p-4 text-center"><div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto text-red-500 text-2xl mb-2"><i class="fa-solid fa-info"></i></div><h3 class="font-bold text-white">保單項目備註</h3></div><div class="p-6"><div class="text-sm text-gray-700 whitespace-pre-line leading-relaxed" x-text="clientRemarkModal.text"></div><button @click="clientRemarkModal.open = false" class="mt-6 w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-xl">關閉</button></div></div></div>
-            <div x-show="showReportModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 overflow-y-auto print:absolute print:inset-0 print:block print:bg-white print:overflow-visible print:z-0" x-cloak><div class="bg-white w-full max-w-2xl rounded-lg shadow-2xl p-6 m-4 max-h-[90vh] overflow-y-auto flex flex-col relative print:max-h-none print:shadow-none print:m-0 print:p-0 print:block"><button @click="showReportModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10 print:hidden"><i class="fa-solid fa-times text-2xl"></i></button><div id="report-content" class="bg-white p-2"><div class="flex justify-between items-center mb-6 border-b pb-4"><h3 class="font-bold text-gray-800 text-xl"><i class="fa-solid fa-chart-pie text-purple-600 mr-2"></i>保障範疇彙整報告</h3></div><div class="mb-4 text-sm text-gray-500">客戶姓名：<span class="font-bold text-gray-800" x-text="reportClient.owner"></span></div><div class="space-y-4"><template x-for="cat in ['Medical', 'CI', 'Life', 'Accident', 'Savings']"><div class="report-section" x-show="reportData[cat] && reportData[cat].length > 0 && (cat !== 'Savings' || showSavingsInReport)" :style="'border-left-color:' + (cat === 'Medical' ? '#ef4444' : (cat === 'CI' ? '#f59e0b' : (cat === 'Life' ? '#3b82f6' : (cat === 'Accident' ? '#14b8a6' : '#10b981'))))"><h4 class="font-bold mb-2 flex justify-between items-center"><span x-text="cat === 'Medical' ? '🏥 醫療' : (cat === 'CI' ? '🛡️ 危疾' : (cat === 'Life' ? '🕊️ 人壽' : (cat === 'Accident' ? '邊度有事 (含身故及醫療費用)' : '💰 儲蓄')))"></span><div class="text-right"><span x-show="cat === 'CI' && reportData.ciTotal && reportData.ciTotal !== '0'" class="text-xs text-red-600 font-bold mr-2" x-text="'總保額: $' + reportData.ciTotal"></span><span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500" x-text="reportData[cat].length + ' 項'"></span></div></h4><div class="text-sm space-y-2"><template x-for="i in reportData[cat]"><div class="flex justify-between border-b border-dashed pb-2"><div class="flex flex-col"><span x-text="i.name" class="font-bold text-gray-700"></span><div class="text-[10px] text-gray-500 mt-0.5">公司: <span class="font-bold" x-text="i.insurer || '-'"></span> | 保單: <span class="font-bold" x-text="i.policyNo || '-'"></span></div><div class="text-[10px] text-gray-500 mt-0.5">生效: <span x-text="i.effectDate || '-'"></span><span x-show="reportClient.dob && i.effectDate" x-text="' (' + getAgeAtDate(reportClient.dob, i.effectDate) + '歲)'"></span> | 供款: <span x-text="i.term || '-'"></span> | 保障: <span x-text="i.maturity || '-'"></span></div><span x-show="cat === 'CI' && i.remarks && i.remarks.includes('多次賠償')" class="text-[10px] text-red-500 font-bold mt-0.5">* 支援多次賠償</span><span x-show="cat === 'Savings' && i.remarks && i.remarks.includes('目標')" class="text-[10px] text-green-600 font-bold mt-0.5" x-text="'* ' + i.remarks"></span></div><div class="text-right"><template x-if="cat === 'Medical'"><div><div class="font-bold text-gray-800" x-show="!i.name.includes('自願醫保')" x-text="i.sumAssured ? '$ ' + i.sumAssured : '全數賠償'"></div><div class="font-bold text-gray-800" x-show="i.name.includes('自願醫保')" x-text="i.deductible ? '應付自付額: $' + i.deductible : '需應付自付額'"></div><div x-show="!i.name.includes('自願醫保') && i.deductible && i.deductible !== '0'" class="text-[10px] text-red-400" x-text="'(自付: ' + i.deductible + ')'"></div></div></template><template x-if="cat === 'Savings'"><div class="font-bold text-gray-800" x-text="i.sumAssured ? '$ ' + i.sumAssured : ''"></div></template><template x-if="cat !== 'Medical' && cat !== 'Savings'"><div class="font-bold text-gray-800" x-text="i.sumAssured ? '$ ' + i.sumAssured : '全數賠償'"></div></template></div></div></template></div></div></template></div></div><div class="mt-6 border-t pt-4 print:hidden"><label class="flex items-center text-sm font-bold cursor-pointer transition select-none text-gray-700 bg-gray-50 p-3 rounded mb-3 border"><input type="checkbox" class="mr-2 w-4 h-4 rounded cursor-pointer accent-purple-600" x-model="showSavingsInReport"><span>報告包含「儲蓄與財富」類別</span></label><button @click="savePDF()" class="w-full bg-slate-800 text-white py-3 rounded-lg font-bold shadow-md hover:bg-slate-700 transition"><i class="fa-solid fa-file-pdf mr-2"></i>匯出 PDF (使用系統列印)</button></div></div></div>
+            <div x-show="showReportModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 overflow-y-auto print:absolute print:inset-0 print:block print:bg-white print:overflow-visible print:z-0" x-cloak><div class="bg-white w-full max-w-2xl rounded-lg shadow-2xl p-6 m-4 max-h-[90vh] overflow-y-auto flex flex-col relative print:max-h-none print:shadow-none print:m-0 print:p-0 print:block"><button @click="showReportModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10 print:hidden"><i class="fa-solid fa-times text-2xl"></i></button><div id="report-content" class="bg-white p-2"><div class="flex justify-between items-center mb-6 border-b pb-4"><h3 class="font-bold text-gray-800 text-xl"><i class="fa-solid fa-chart-pie text-purple-600 mr-2"></i>保障範疇彙整報告</h3></div><div class="mb-4 text-sm text-gray-500">客戶姓名：<span class="font-bold text-gray-800" x-text="reportClient.owner"></span></div><div class="space-y-4"><template x-for="cat in ['Medical', 'CI', 'Life', 'Accident', 'Savings']"><div class="report-section" x-show="reportData[cat] && reportData[cat].length > 0 && (cat !== 'Savings' || showSavingsInReport)" :style="'border-left-color:' + (cat === 'Medical' ? '#ef4444' : (cat === 'CI' ? '#f59e0b' : (cat === 'Life' ? '#3b82f6' : (cat === 'Accident' ? '#14b8a6' : '#10b981'))))"><h4 class="font-bold mb-2 flex justify-between items-center"><span x-text="cat === 'Medical' ? '🏥 醫療' : (cat === 'CI' ? '🛡️ 危疾' : (cat === 'Life' ? '🕊️ 人壽' : (cat === 'Accident' ? '🚑 意外 (含身故及醫療費用)' : '💰 儲蓄')))"></span><div class="text-right"><span x-show="cat === 'CI' && reportData.ciTotal && reportData.ciTotal !== '0'" class="text-xs text-red-600 font-bold mr-2" x-text="'總保額: $' + reportData.ciTotal"></span><span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500" x-text="reportData[cat].length + ' 項'"></span></div></h4><div class="text-sm space-y-2"><template x-for="i in reportData[cat]"><div class="flex justify-between border-b border-dashed pb-2"><div class="flex flex-col"><span x-text="i.name" class="font-bold text-gray-700"></span><div class="text-[10px] text-gray-500 mt-0.5">公司: <span class="font-bold" x-text="i.insurer || '-'"></span> | 保單: <span class="font-bold" x-text="i.policyNo || '-'"></span></div><div class="text-[10px] text-gray-500 mt-0.5">生效: <span x-text="i.effectDate || '-'"></span><span x-show="reportClient.dob && i.effectDate" x-text="' (' + getAgeAtDate(reportClient.dob, i.effectDate) + '歲)'"></span> | 供款: <span x-text="i.term || '-'"></span> | 保障: <span x-text="i.maturity || '-'"></span></div><span x-show="cat === 'CI' && i.remarks && i.remarks.includes('多次賠償')" class="text-[10px] text-red-500 font-bold mt-0.5">* 支援多次賠償</span><span x-show="cat === 'Savings' && i.remarks && i.remarks.includes('目標')" class="text-[10px] text-green-600 font-bold mt-0.5" x-text="'* ' + i.remarks"></span></div><div class="text-right"><template x-if="cat === 'Medical'"><div><div class="font-bold text-gray-800" x-show="!i.name.includes('自願醫保')" x-text="i.sumAssured ? '$ ' + i.sumAssured : '全數賠償'"></div><div class="font-bold text-gray-800" x-show="i.name.includes('自願醫保')" x-text="i.deductible ? '應付自付額: $' + i.deductible : '需應付自付額'"></div><div x-show="!i.name.includes('自願醫保') && i.deductible && i.deductible !== '0'" class="text-[10px] text-red-400" x-text="'(自付: ' + i.deductible + ')'"></div></div></template><template x-if="cat === 'Savings'"><div class="font-bold text-gray-800" x-text="i.sumAssured ? '$ ' + i.sumAssured : ''"></div></template><template x-if="cat !== 'Medical' && cat !== 'Savings'"><div class="font-bold text-gray-800" x-text="i.sumAssured ? '$ ' + i.sumAssured : '全數賠償'"></div></template></div></div></template></div></div></template></div></div><div class="mt-6 border-t pt-4 print:hidden"><label class="flex items-center text-sm font-bold cursor-pointer transition select-none text-gray-700 bg-gray-50 p-3 rounded mb-3 border"><input type="checkbox" class="mr-2 w-4 h-4 rounded cursor-pointer accent-purple-600" x-model="showSavingsInReport"><span>報告包含「儲蓄與財富」類別</span></label><button @click="savePDF()" class="w-full bg-slate-800 text-white py-3 rounded-lg font-bold shadow-md hover:bg-slate-700 transition"><i class="fa-solid fa-file-pdf mr-2"></i>匯出 PDF (使用系統列印)</button></div></div></div>
             <div x-show="calendarModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-72 rounded-lg p-4 text-center"><h3 class="font-bold mb-4">加入日曆</h3><button @click="addToCalendar('google')" class="w-full bg-blue-600 text-white py-2 rounded mb-2 font-bold">Google Calendar</button><button @click="addToCalendar('ios')" class="w-full bg-gray-700 text-white py-2 rounded font-bold">iOS / Outlook</button><button @click="calendarModal.open = false" class="mt-4 text-gray-400 text-sm">取消</button></div></div>
             
-            <!-- ⚙️ 齒輪設定視窗 (一鍵同步與快取強制優化版) -->
             <div x-show="showSettingsModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 print:hidden" x-cloak>
                 <div class="bg-white w-full max-w-md rounded-lg shadow-xl p-6 m-4 max-h-[90vh] overflow-y-auto">
                     <div class="flex justify-between items-center mb-4 border-b pb-2">
@@ -505,11 +508,12 @@
 
         function app() {
             return {
-                version: '1.8.8', view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, clientRemarkModal: { open: false, text: '' },
+                version: '1.8.9', view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, clientRemarkModal: { open: false, text: '' },
                 uploadModal: { open: false, loading: false }, qrModal: { open: false }, linkModal: { url: '' }, itemRemarkModal: { open: false, item: {} },
                 showWebActionModal: false, showConfigModal: false, showWebFrame: false, showSettingsModal: false, showReportModal: false, reportClient: {}, reportData: { Medical: [], CI: [], Life: [], Accident: [], Savings: [] }, showSavingsInReport: true,
                 webLinks: [], calendarModal: { open: false, type: '', data: null }, settings: { waBirthday: '祝您生日快樂！', waRenewal: '溫馨提示保單續保。' },
-                
+                cloudSyncing: false, // 異步雲端上載狀態標識
+
                 init() { 
                     const storedVersion = localStorage.getItem('crm_version');
                     if (storedVersion && storedVersion !== this.version) { localStorage.setItem('crm_version', this.version); window.location.reload(true); return; } 
@@ -558,16 +562,45 @@
                 },
 
                 updateSummary() { if (!this.client) return; if (!this.client.summary) this.client.summary = {}; let cs = this.protectionSummary; this.client.summary.totalPremium = cs.totalPremium; this.client.summary.insured = cs.insured; },
-                createNewClient() { this.client = { id: Date.now(), owner: '', phone: '', policies: [], claimEvents: [], fnaRetireVision: '', fnaMedicalVision: '', fnaRetireTools: '', fnaRetireGap: '', fnaEduVision: '', fnaEduTools: '', fnaEduGap: '', isDeleted: false }; this.addPolicy(); this.updateSummary(); this.view = 'detail'; },
+                createNewClient() { 
+                    // 🌟 新增客戶時即時生成唯一並固定不變的雲端 cID 
+                    this.client = { id: 'c' + Date.now(), owner: '', phone: '', policies: [], claimEvents: [], fnaRetireVision: '', fnaMedicalVision: '', fnaRetireTools: '', fnaRetireGap: '', fnaEduVision: '', fnaEduTools: '', fnaEduGap: '', isDeleted: false }; 
+                    this.addPolicy(); 
+                    this.updateSummary(); 
+                    this.view = 'detail'; 
+                },
                 openClient(c) { this.client = JSON.parse(JSON.stringify(c)); if(this.client.fnaRetireVision === undefined) this.client.fnaRetireVision = ''; if(this.client.fnaMedicalVision === undefined) this.client.fnaMedicalVision = ''; if(this.client.fnaEduVision === undefined) this.client.fnaEduVision = ''; this.updateSummary(); this.view = 'detail'; },
-                saveCurrentClient(stay) { this.updateSummary(); if (!this.clients) this.clients = []; const idx = this.clients.findIndex(c => c.id === this.client.id); if (idx > -1) this.clients[idx] = this.client; else this.clients.push(this.client); this.saveDB(); if(!stay) { alert('已儲存'); this.view = 'list'; window.scrollTo(0,0); } },
-                deleteClient(id) { if(confirm('移至垃圾桶？')) { const idx = this.clients.findIndex(c => c.id === id); if(idx > -1) { this.clients[idx].isDeleted = true; this.saveDB(); } } },
-                restoreClient(id) { const idx = this.clients.findIndex(c => c.id === id); if(idx > -1) { this.clients[idx].isDeleted = false; this.saveDB(); } },
-                permanentDeleteClient(id) { if(confirm('徹底刪除無法復原！確定？')) { this.clients = this.clients.filter(c => c.id !== id); this.saveDB(); } },
+                
+                // 🌟 核心進化：現在 saveCurrentClient 兼顧本地保存與後台無感全自動實時上傳
+                saveCurrentClient(stay) { 
+                    this.updateSummary(); 
+                    if (!this.clients) this.clients = []; 
+                    const idx = this.clients.findIndex(c => c.id === this.client.id); 
+                    if (idx > -1) this.clients[idx] = this.client; 
+                    else this.clients.push(this.client); 
+                    this.saveDB(); 
+                    
+                    // 🌟 啟動背景實時雲端上載連動
+                    this.cloudSyncing = true;
+                    fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'save', id: this.client.id, client: this.client })
+                    })
+                    .then(r => r.json())
+                    .then(() => { this.cloudSyncing = false; })
+                    .catch(() => { this.cloudSyncing = false; }); // 即使網路失敗也保持可用性，稍後重試即可
+
+                    if(!stay) { this.view = 'list'; window.scrollTo(0,0); } 
+                },
+
+                deleteClient(id) { if(confirm('移至垃圾桶？')) { const idx = this.clients.findIndex(c => c.id === id); if(idx > -1) { this.clients[idx].isDeleted = true; this.saveDB(); this.syncSingleDelete(this.clients[idx]); } } },
+                restoreClient(id) { const idx = this.clients.findIndex(c => c.id === id); if(idx > -1) { this.clients[idx].isDeleted = false; this.saveDB(); this.syncSingleDelete(this.clients[idx]); } },
+                permanentDeleteClient(id) { if(confirm('徹底刪除無法復原！確定？')) { this.clients = this.clients.filter(c => c.id !== id); this.saveDB(); /* 雲端保留底層數據防止誤刪 */ } },
+                syncSingleDelete(cObj) { fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'save', id: cObj.id, client: cObj }) }); },
                 saveDB() { localStorage.setItem('crm_db_v8', JSON.stringify(this.clients)); },
                 
                 addPolicy() { if(!this.client.policies) this.client.policies = []; this.client.policies.push({ insurer: 'AIA', items: [{ category: 'Medical', maturity: '', term: '' }], paymentMode: 'Yearly', isCancelled: false }); },
-                removePolicy(i) { if(confirm('刪除這份保單？')) this.client.policies.splice(i,1); },
+                removePolicy(i) { if(confirm('刪除這份保單？')) { this.client.policies.splice(i,1); this.saveCurrentClient(true); } },
                 togglePolicyCancel(policy) { policy.cancelDate = policy.isCancelled ? new Date().toISOString().split('T')[0] : ''; },
                 addRider(i) { if(!this.client.policies[i].items) this.client.policies[i].items = []; this.client.policies[i].items.push({ category: 'Medical', maturity: '', term: '' }); },
                 addClaimEvent() { if(!this.client.claimEvents) this.client.claimEvents = []; this.client.claimEvents.push({ name: '', status: 'Pending', eventDate: '', items: [{ desc: '', amount: '' }] }); },
@@ -575,27 +608,10 @@
                 openUploadModal() { this.uploadModal.open = true; },
                 
                 uploadToCloud() {
-                    this.uploadModal.loading = true;
-                    this.saveCurrentClient(true);
-                    let id = 'c' + Date.now();
-                    
-                    fetch(GOOGLE_SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: 'save', id: id, client: this.client })
-                    })
-                    .then(r => r.json())
-                    .then(data => {
-                        this.uploadModal.loading = false;
-                        this.uploadModal.open = false;
-                        this.generateQRFromGAS(id);
-                    })
-                    .catch(e => {
-                        alert('同步雲端資料庫失敗，請確認後端部署權限及網路！');
-                        this.uploadModal.loading = false;
-                    });
+                    this.uploadModal.open = false;
+                    this.generateQRFromGAS(this.client.id);
                 },
 
-                // 🌟 v1.8.8 終極防錯加載 QR Code 函數
                 generateQRFromGAS(id) {
                     this.qrModal.open = true;
                     let url = "https://ivancww.github.io/CRM/client.html?id=" + id;
@@ -636,10 +652,11 @@
                         let count = 0;
                         jsonArray.forEach((c, idx) => {
                             setTimeout(() => {
-                                let randomId = 'c' + (Date.now() + idx + Math.floor(Math.random() * 1000));
+                                // 確保舊數據如果原本是純數字 ID 的話，格式化成穩定的字串型 ID
+                                let stableId = String(c.id).startsWith('c') ? c.id : 'c' + c.id;
                                 fetch(GOOGLE_SCRIPT_URL, {
                                     method: 'POST',
-                                    body: JSON.stringify({ action: 'save', id: randomId, client: c })
+                                    body: JSON.stringify({ action: 'save', id: stableId, client: c })
                                 }).then(() => {
                                     count++;
                                     if(count === jsonArray.length) {
@@ -673,7 +690,7 @@
 
         if ('serviceWorker' in navigator) { 
             window.addEventListener('load', () => { 
-                navigator.serviceWorker.register('sw.js?v=1.8.8').then(reg => { 
+                navigator.serviceWorker.register('sw.js?v=1.8.9').then(reg => { 
                     reg.onupdatefound = () => { 
                         const worker = reg.installing; 
                         worker.onstatechange = () => { 
