@@ -11,7 +11,8 @@
             document.title = "我的財富與保障儀表板";
             document.write('<link rel="manifest" href="manifest-client.json"><link rel="icon" type="image/png" href="client-logo-192.png"><link rel="apple-touch-icon" href="client-logo-192.png">');
         } else {
-            document.title = "保險管家 v1.7.9 (Admin - Cloud)";
+            // 🌟 標題版本號已同步更新為 v1.8.0
+            document.title = "保險管家 v1.8.0 (Admin - Cloud)";
             document.write('<link rel="manifest" href="manifest-admin.json"><link rel="icon" type="image/png" href="admin-logo-192.png"><link rel="apple-touch-icon" href="admin-logo-192.png">');
         }
     </script>
@@ -531,7 +532,7 @@
                                             <template x-for="(item, iIndex) in (policy.items || [])">
                        
                                                 <div class="p-3 border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                                                    <div class="flex justify-between items-start mb-2"><div class="flex items-center gap-2"><span x-show="iIndex===0" class="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">主</span><span x-show="iIndex>0" class="bg-gray-200 text-gray-600 text-[10px] px-1.5 py-0.5 rounded" x-text="iIndex"></span><div><div class="font-bold text-gray-800 text-sm" x-text="item.name || '未命名'"></div><div class="text-[10px]" :class="getCategoryColor(item.category)" x-text="item.category"></div></div></div><button x-show="item.remarks" @click="clientRemarkModal.text=item.remarks; clientRemarkModal.open=true;" class="text-red-500 text-xs bg-red-50 p-1 rounded-full"><i class="fa-solid fa-exclamation px-1"></i></button></div>
+                                                    <div class="flex justify-between items-start mb-2"><div class="flex items-center gap-2"><span x-show="iIndex===0" class="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">主</span><span x-show="iIndex>0" class="bg-gray-200 text-gray-600 text-[10px] px-1.5 py-0.5 rounded" x-text="iIndex"></span><div><div class="font-bold text-gray-800 text-sm" x-text="item.name || '未命名'"></div><div class="text-[10px]" :class="getCategoryColor(item.category)" x-text="item.category"></div></div></div><button @click="clientRemarkModal.text=item.remarks; clientRemarkModal.open=true;" class="text-red-500 text-xs bg-red-50 p-1 rounded-full" x-show="item.remarks"><i class="fa-solid fa-exclamation px-1"></i></button></div>
                                                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded border border-gray-100 mt-1">
                             
                                                         <div><span class="text-gray-400">保額:</span> <span class="font-mono font-bold text-gray-700" x-text="item.sumAssured ? '$'+formatNumber(item.sumAssured) : '-'"></span></div>
@@ -590,26 +591,26 @@
             </div>
             
             <div x-show="uploadModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 print:hidden" x-cloak><div class="bg-white w-80 rounded-lg shadow-xl p-6 text-center relative z-50"><h3 class="font-bold text-gray-800 mb-2 text-lg">建立專屬連結</h3><div x-show="uploadModal.loading" class="mb-4 text-blue-600 font-bold text-sm animate-pulse">上傳中...</div><button @click="uploadToCloud()" :disabled="uploadModal.loading" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold mb-3 shadow">確認並生成 QR Code</button><button @click="uploadModal.open = false" class="text-gray-400 text-sm">取消</button></div></div>
-            <div x-show="qrModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 print:hidden" x-cloak><div class="bg-white w-80 rounded-lg shadow-xl p-6 text-center relative z-50"><h3 class="font-bold text-gray-800 mb-3">專屬連結已建立（可長按掃描）</h3><div class="flex justify-center mb-2 bg-white p-2 border rounded relative" style="min-height: 200px;"><img id="qr-image-visible" src="" class="w-full h-auto object-contain select-all" style="display:none;"><div id="qr-loading" class="absolute inset-0 flex items-center justify-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i></div><div id="qr-container-hidden" style="position:absolute; top:-9999px;"></div></div><button @click="copyLink()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold mb-3 shadow">複製連結</button><button @click="qrModal.open = false" class="text-gray-400 text-sm">關閉</button></div></div>
+            <div x-show="qrModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 print:hidden" x-cloak><div class="bg-white w-80 rounded-lg shadow-xl p-6 text-center relative z-50"><h3 class="font-bold text-gray-800 mb-3">專屬連結已建立（可長按直接掃描）</h3><div class="flex justify-center mb-2 bg-white p-2 border rounded relative" style="min-height: 200px;"><img id="qr-image-visible" src="" class="w-full h-auto object-contain select-all" style="display:none;"><div id="qr-loading" class="absolute inset-0 flex items-center justify-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i></div><div id="qr-container-hidden" style="position:absolute; top:-9999px;"></div></div><button @click="copyLink()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold mb-3 shadow">複製連結</button><button @click="qrModal.open = false" class="text-gray-400 text-sm">關閉</button></div></div>
             <div x-show="itemRemarkModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-96 rounded-lg p-4 m-4"><h3 class="font-bold mb-2">編輯備註</h3><textarea x-model="itemRemarkModal.item.remarks" class="w-full h-32 border rounded p-2 text-sm mb-4"></textarea><div class="flex justify-end gap-2"><button @click="itemRemarkModal.open = false" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">確定</button></div></div></div>
             <div x-show="clientRemarkModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4" x-cloak><div class="bg-white w-full max-w-sm rounded-2xl overflow-hidden relative"><div class="bg-red-500 p-4 text-center"><div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto text-red-500 text-2xl mb-2"><i class="fa-solid fa-info"></i></div><h3 class="font-bold text-white">保單項目備註</h3></div><div class="p-6"><div class="text-sm text-gray-700 whitespace-pre-line leading-relaxed" x-text="clientRemarkModal.text"></div><button @click="clientRemarkModal.open = false" class="mt-6 w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-xl">關閉</button></div></div></div>
             <div x-show="showReportModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 overflow-y-auto print:absolute print:inset-0 print:block print:bg-white print:overflow-visible print:z-0" x-cloak><div class="bg-white w-full max-w-2xl rounded-lg shadow-2xl p-6 m-4 max-h-[90vh] overflow-y-auto flex flex-col relative print:max-h-none print:shadow-none print:m-0 print:p-0 print:block"><button @click="showReportModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 z-10 print:hidden"><i class="fa-solid fa-times text-2xl"></i></button><div id="report-content" class="bg-white p-2"><div class="flex justify-between items-center mb-6 border-b pb-4"><h3 class="font-bold text-gray-800 text-xl"><i class="fa-solid fa-chart-pie text-purple-600 mr-2"></i>保障範疇彙整報告</h3></div><div class="mb-4 text-sm text-gray-500">客戶姓名：<span class="font-bold text-gray-800" x-text="reportClient.owner"></span></div><div class="space-y-4"><template x-for="cat in ['Medical', 'CI', 'Life', 'Accident', 'Savings']"><div class="report-section" x-show="reportData[cat] && reportData[cat].length > 0 && (cat !== 'Savings' || showSavingsInReport)" :style="'border-left-color:' + (cat === 'Medical' ? '#ef4444' : (cat === 'CI' ? '#f59e0b' : (cat === 'Life' ? '#3b82f6' : (cat === 'Accident' ? '#14b8a6' : '#10b981'))))"><h4 class="font-bold mb-2 flex justify-between items-center"><span x-text="cat === 'Medical' ? '🏥 醫療' : (cat === 'CI' ? '🛡️ 危疾' : (cat === 'Life' ? '🕊️ 人壽' : (cat === 'Accident' ? '🚑 意外 (含身故及醫療費用)' : '💰 儲蓄')))"></span><div class="text-right"><span x-show="cat === 'CI' && reportData.ciTotal && reportData.ciTotal !== '0'" class="text-xs text-red-600 font-bold mr-2" x-text="'總保額: $' + reportData.ciTotal"></span><span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500" x-text="reportData[cat].length + ' 項'"></span></div></h4><div class="text-sm space-y-2"><template x-for="i in reportData[cat]"><div class="flex justify-between border-b border-dashed pb-2"><div class="flex flex-col"><span x-text="i.name" class="font-bold text-gray-700"></span><div class="text-[10px] text-gray-500 mt-0.5">公司: <span class="font-bold" x-text="i.insurer || '-'"></span> | 保單: <span class="font-bold" x-text="i.policyNo || '-'"></span></div><div class="text-[10px] text-gray-500 mt-0.5">生效: <span x-text="i.effectDate || '-'"></span><span x-show="reportClient.dob && i.effectDate" x-text="' (' + getAgeAtDate(reportClient.dob, i.effectDate) + '歲)'"></span> | 供款: <span x-text="i.term || '-'"></span> | 保障: <span x-text="i.maturity || '-'"></span></div><span x-show="cat === 'CI' && i.remarks && i.remarks.includes('多次賠償')" class="text-[10px] text-red-500 font-bold mt-0.5">* 支援多次賠償</span><span x-show="cat === 'Savings' && i.remarks && i.remarks.includes('目標')" class="text-[10px] text-green-600 font-bold mt-0.5" x-text="'* ' + i.remarks"></span></div><div class="text-right"><template x-if="cat === 'Medical'"><div><div class="font-bold text-gray-800" x-show="!i.name.includes('自願醫保')" x-text="i.sumAssured ? '$ ' + i.sumAssured : '全數賠償'"></div><div class="font-bold text-gray-800" x-show="i.name.includes('自願醫保')" x-text="i.deductible ? '應付自付額: $' + i.deductible : '需應付自付額'"></div><div x-show="!i.name.includes('自願醫保') && i.deductible && i.deductible !== '0'" class="text-[10px] text-red-400" x-text="'(自付: ' + i.deductible + ')'"></div></div></template><template x-if="cat === 'Savings'"><div class="font-bold text-gray-800" x-text="i.sumAssured ? '$ ' + i.sumAssured : ''"></div></template><template x-if="cat !== 'Medical' && cat !== 'Savings'"><div class="font-bold text-gray-800" x-text="i.sumAssured ? '$ ' + i.sumAssured : '全數賠償'"></div></template></div></div></template></div></div></template></div></div><div class="mt-6 border-t pt-4 print:hidden"><label class="flex items-center text-sm font-bold cursor-pointer transition select-none text-gray-700 bg-gray-50 p-3 rounded mb-3 border"><input type="checkbox" class="mr-2 w-4 h-4 rounded cursor-pointer accent-purple-600" x-model="showSavingsInReport"><span>報告包含「儲蓄與財富」類別</span></label><button @click="savePDF()" class="w-full bg-slate-800 text-white py-3 rounded-lg font-bold shadow-md hover:bg-slate-700 transition"><i class="fa-solid fa-file-pdf mr-2"></i>匯出 PDF (使用系統列印)</button></div></div></div>
-            <div x-show="calendarModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-72 rounded-lg p-4 text-center"><h3 class="font-bold mb-4">加入日曆</h3><button @click="addToCalendar('google')" class="w-full bg-blue-600 text-white py-2 rounded mb-2 font-bold">Google Calendar</button><button @click="addToCalendar('ios')" class="w-full bg-gray-700 text-white py-2 rounded font-bold">iOS / Outlook</button><button @click="calendarModal.open = false" class="mt-4 text-gray-400 text-sm">取消</button></div></div>
-            <div x-show="showSettingsModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 print:hidden" x-cloak><div class="bg-white w-full max-w-md rounded-lg shadow-xl p-6 m-4 max-h-[90vh] overflow-y-auto"><div class="flex justify-between items-center mb-4 border-b pb-2"><h3 class="font-bold text-gray-800 text-lg"><i class="fa-brands fa-whatsapp text-green-500 mr-2"></i>設定預設訊息</h3><button @click="showSettingsModal = false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-times text-xl"></i></button></div><div class="mb-5"><label class="block text-sm font-bold mb-2 text-gray-700">🎂 生日祝賀範本</label><textarea x-model="settings.waBirthday" class="w-full border rounded p-3 text-sm h-24 focus:ring-2 focus:ring-green-400 outline-none"></textarea></div><div class="mb-5"><label class="block text-sm font-bold mb-2 text-gray-700">📝 續保提醒範本</label><textarea x-model="settings.waRenewal" class="w-full border rounded p-3 text-sm h-32 focus:ring-2 focus:ring-green-400 outline-none"></textarea></div><button @click="saveSettings()" class="w-full bg-slate-800 text-white py-3 rounded-lg font-bold shadow hover:bg-slate-700 transition">儲存設定</button></div></div>
+            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" style="display: none;" x-show="calendarModal.open" x-cloak><div class="bg-white w-72 rounded-lg p-4 text-center"><h3 class="font-bold mb-4">加入日曆</h3><button @click="addToCalendar('google')" class="w-full bg-blue-600 text-white py-2 rounded mb-2 font-bold">Google Calendar</button><button @click="addToCalendar('ios')" class="w-full bg-gray-700 text-white py-2 rounded font-bold">iOS / Outlook</button><button @click="calendarModal.open = false" class="mt-4 text-gray-400 text-sm">取消</button></div></div>
+            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 print:hidden" style="display: none;" x-show="showSettingsModal" x-cloak><div class="bg-white w-full max-w-md rounded-lg shadow-xl p-6 m-4 max-h-[90vh] overflow-y-auto"><div class="flex justify-between items-center mb-4 border-b pb-2"><h3 class="font-bold text-gray-800 text-lg"><i class="fa-brands fa-whatsapp text-green-500 mr-2"></i>設定預設訊息</h3><button @click="showSettingsModal = false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-times text-xl"></i></button></div><div class="mb-5"><label class="block text-sm font-bold mb-2 text-gray-700">🎂 生日祝賀範本</label><textarea x-model="settings.waBirthday" class="w-full border rounded p-3 text-sm h-24 focus:ring-2 focus:ring-green-400 outline-none"></textarea></div><div class="mb-5"><label class="block text-sm font-bold mb-2 text-gray-700">📝 續保提醒範本</label><textarea x-model="settings.waRenewal" class="w-full border rounded p-3 text-sm h-32 focus:ring-2 focus:ring-green-400 outline-none"></textarea></div><button @click="saveSettings()" class="w-full bg-slate-800 text-white py-3 rounded-lg font-bold shadow hover:bg-slate-700 transition">儲存設定</button></div></div>
  
-            <div x-show="showWebActionModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-72 rounded-lg p-4 text-center"><h3 class="font-bold mb-4">資訊網操作</h3><template x-if="webLinks.length > 0"><div class="mb-4 text-left"><p class="text-xs text-gray-500 mb-1">開啟網站:</p><template x-for="(link, index) in webLinks"><button @click="openWebFrame(link.url)" class="w-full text-left px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded mb-1 text-indigo-700 font-bold text-sm flex items-center"><i class="fa-solid fa-link mr-2"></i> <span x-text="link.name"></span></button></template></div></template><button @click="showWebActionModal = false; showConfigModal = true" class="w-full bg-gray-600 text-white py-2 rounded font-bold text-sm"><i class="fa-solid fa-gear mr-2"></i> 設定網址列表</button><button @click="showWebActionModal = false" class="mt-4 text-gray-400 text-sm">取消</button></div></div>
-            <div x-show="showConfigModal" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-96 rounded-lg shadow-xl p-4 max-h-[90vh] overflow-hidden flex flex-col"><h3 class="font-bold text-gray-800 mb-2">管理資訊網列表</h3><div class="flex-1 overflow-y-auto space-y-3 mb-4 p-1"><template x-for="(link, index) in webLinks"><div class="border rounded p-2 bg-gray-50"><div class="flex justify-between mb-1"><span class="text-xs font-bold text-gray-500">項目 #<span x-text="index+1"></span></span><button @click="webLinks.splice(index, 1)" class="text-red-500 text-xs"><i class="fa-solid fa-times"></i> 移除</button></div><input type="text" x-model="link.name" class="border rounded p-1 text-xs w-full mb-2" placeholder="顯示名稱"><div class="flex gap-2 items-center"><select x-model="link.type" class="border rounded p-1 text-xs" x-init="link.type = link.type || 'url'"><option value="url">網址</option><option value="image">圖片/QR</option></select><template x-if="link.type === 'url'"><input type="text" x-model="link.url" class="border rounded p-1 text-xs w-full" placeholder="https://..."></template><template x-if="link.type === 'image'"><div class="flex-1"><label class="block w-full text-center bg-white border border-dashed border-gray-300 rounded p-1 text-xs cursor-pointer hover:bg-gray-100"><span x-text="link.url ? '已上傳' : '上傳圖片'"></span><input type="file" class="hidden" accept="image/*" @change="uploadImage($event, link)"></label></div></template></div></div></template></div><button @click="webLinks.push({name:'', url:'', type:'url'})" class="text-blue-600 text-xs font-bold block mb-4 text-center">+ 新增項目</button><button @click="saveLinks(); showConfigModal = false" class="w-full bg-blue-600 text-white py-2 rounded font-bold text-sm">儲存設定</button></div></div>
-            <div x-show="showWebFrame" style="display: none;" class="fixed inset-0 z-50 overflow-hidden flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-full max-w-6xl h-[90vh] rounded-lg shadow-2xl flex flex-col relative"><div class="flex justify-between items-center p-3 bg-indigo-600 text-white rounded-t-lg"><h3 class="font-bold">瀏覽器</h3><button @click="showWebFrame = false" class="px-2"><i class="fa-solid fa-times text-xl"></i></button></div><div class="flex-1 bg-gray-100 relative"><iframe :src="currentWebUrl" class="web-frame" frameborder="0"></iframe></div></div></div>
+            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" style="display: none;" x-show="showWebActionModal" x-cloak><div class="bg-white w-72 rounded-lg p-4 text-center"><h3 class="font-bold mb-4">資訊網操作</h3><template x-if="webLinks.length > 0"><div class="mb-4 text-left"><p class="text-xs text-gray-500 mb-1">開啟網站:</p><template x-for="(link, index) in webLinks"><button @click="openWebFrame(link.url)" class="w-full text-left px-3 py-2 bg-indigo-50 hover:bg-indigo-100 rounded mb-1 text-indigo-700 font-bold text-sm flex items-center"><i class="fa-solid fa-link mr-2"></i> <span x-text="link.name"></span></button></template></div></template><button @click="showWebActionModal = false; showConfigModal = true" class="w-full bg-gray-600 text-white py-2 rounded font-bold text-sm"><i class="fa-solid fa-gear mr-2"></i> 設定網址列表</button><button @click="showWebActionModal = false" class="mt-4 text-gray-400 text-sm">取消</button></div></div>
+            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" style="display: none;" x-show="showConfigModal" x-cloak><div class="bg-white w-96 rounded-lg shadow-xl p-4 max-h-[90vh] overflow-hidden flex flex-col"><h3 class="font-bold text-gray-800 mb-2">管理資訊網列表</h3><div class="flex-1 overflow-y-auto space-y-3 mb-4 p-1"><template x-for="(link, index) in webLinks"><div class="border rounded p-2 bg-gray-50"><div class="flex justify-between mb-1"><span class="text-xs font-bold text-gray-500">項目 #<span x-text="index+1"></span></span><button @click="webLinks.splice(index, 1)" class="text-red-500 text-xs"><i class="fa-solid fa-times"></i> 移除</button></div><input type="text" x-model="link.name" class="border rounded p-1 text-xs w-full mb-2" placeholder="顯示名稱"><div class="flex gap-2 items-center"><select x-model="link.type" class="border rounded p-1 text-xs" x-init="link.type = link.type || 'url'"><option value="url">網址</option><option value="image">圖片/QR</option></select><template x-if="link.type === 'url'"><input type="text" x-model="link.url" class="border rounded p-1 text-xs w-full" placeholder="https://..."></template><template x-if="link.type === 'image'"><div class="flex-1"><label class="block w-full text-center bg-white border border-dashed border-gray-300 rounded p-1 text-xs cursor-pointer hover:bg-gray-100"><span x-text="link.url ? '已上傳' : '上傳圖片'"></span><input type="file" class="hidden" accept="image/*" @change="uploadImage($event, link)"></label></div></template></div></div></template></div><button @click="webLinks.push({name:'', url:'', type:'url'})" class="text-blue-600 text-xs font-bold block mb-4 text-center">+ 新增項目</button><button @click="saveLinks(); showConfigModal = false" class="w-full bg-blue-600 text-white py-2 rounded font-bold text-sm">儲存設定</button></div></div>
+            <div class="fixed inset-0 z-50 overflow-hidden flex items-center justify-center bg-black bg-opacity-75" style="display: none;" x-show="showWebFrame" x-cloak><div class="bg-white w-full max-w-6xl h-[90vh] rounded-lg shadow-2xl flex flex-col relative"><div class="flex justify-between items-center p-3 bg-indigo-600 text-white rounded-t-lg"><h3 class="font-bold">瀏覽器</h3><button @click="showWebFrame = false" class="px-2"><i class="fa-solid fa-times text-xl"></i></button></div><div class="flex-1 bg-gray-100 relative"><iframe :src="currentWebUrl" class="web-frame" frameborder="0"></iframe></div></div></div>
         </div>
     </div>
 
     <div x-show="window.isClientView" x-data="dashboardApp()" x-cloak>
         <div x-show="!hasData" class="flex items-center justify-center min-h-screen"><div class="text-center text-gray-500"><i class="fa-solid fa-spinner fa-spin text-4xl mb-4 text-blue-500"></i><p class="font-bold" x-text="loadingMsg"></p></div></div>
         
-        <div x-show="hasData" class="max-w-4xl mx-auto md:mt-8 md:mb-8 bg-white md:rounded-2xl shadow-xl overflow-hidden" x-cloak>
+        <div class="max-w-4xl mx-auto md:mt-8 md:mb-8 bg-white md:rounded-2xl shadow-xl overflow-hidden" x-show="hasData" x-cloak>
             <div class="gradient-bg text-white p-6 md:p-8 flex justify-between items-center">
                 <div><p class="text-blue-200 text-sm mb-1">親愛的 <span x-text="client.owner || client.name || '客戶'"></span>：</p><h1 class="text-2xl md:text-3xl font-bold">您的家庭財富與保障報告</h1></div>
-                <div x-data="{ showTotal: false }" class="bg-white/10 p-3 rounded-xl text-center cursor-pointer" @click="showTotal = !showTotal">
+                <div class="bg-white/10 p-3 rounded-xl text-center cursor-pointer" x-data="{ showTotal: false }" @click="showTotal = !showTotal">
                     <div class="text-xs text-blue-100 mb-1">家庭總保費 (年) <i class="fa-solid ml-1 opacity-70" :class="showTotal ? 'fa-eye-slash' : 'fa-eye'"></i></div>
                     <div class="text-xl font-bold text-yellow-300 font-mono" x-text="showTotal ? 'HK$ ' + formatNumber(client.summary?.totalPremium || 0) : '****'"></div>
                 </div>
@@ -639,14 +640,14 @@
                                     <div class="text-xs text-gray-500 mb-1">🛡️ 危疾保障 (替代收入)</div>
                    
                                     <div class="text-lg font-bold text-gray-800" x-text="person.ciSum > 0 ? 'HK$ ' + formatNumber(person.ciSum) : '尚未配置'"></div>
-                                    <div x-show="person.ciSum > 0" class="text-xs text-red-600 font-bold mt-2 bg-red-50 p-2 rounded border border-red-100 flex items-start gap-1"><i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 足夠替代 3 年家庭開支嗎？</span></div>
+                                    <div class="text-xs text-red-600 font-bold mt-2 bg-red-50 p-2 rounded border border-red-100 flex items-start gap-1" x-show="person.ciSum > 0"><i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 足夠替代 3 年家庭開支嗎？</span></div>
              
                                 </div>
                                 <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-blue-400">
                                     <div class="text-xs text-gray-500 mb-1">🕊️ 人壽保障 (家庭責任)</div>
   
                                     <div class="text-lg font-bold text-gray-800" x-text="person.lifeSum > 0 ? 'HK$ ' + formatNumber(person.lifeSum) : '尚未配置'"></div>
-                                    <div x-show="person.lifeSum > 0" class="text-xs text-blue-600 font-bold mt-2 bg-blue-50 p-2 rounded border border-blue-100 flex items-start gap-1"><i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 萬一有事，能覆蓋房貸及生活費嗎？</span></div>
+                                    <div class="text-xs text-blue-600 font-bold mt-2 bg-blue-50 p-2 rounded border border-blue-100 flex items-start gap-1" x-show="person.lifeSum > 0"><i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 萬一有事，能覆蓋房貸及生活費嗎？</span></div>
                                 </div>
         
                                 <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-teal-400 flex flex-col justify-center">
@@ -665,18 +666,18 @@
 
                 <div>
                     <h2 class="text-lg font-bold theme-blue mb-4"><i class="fa-solid fa-bullseye mr-2"></i>第二層：人生藍圖與財務探索</h2>
-                    <div x-data="{ open: false }" class="bg-white rounded-xl shadow-sm border border-gray-100 mb-4 overflow-hidden">
-                        <div @click="open = !open" class="p-5 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-orange-400"><h3 class="font-bold text-gray-700 text-base md:text-lg"><i class="fa-solid fa-mug-hot text-orange-500 mr-2"></i>🌅 尊享未來生活與醫療儲備</h3><i class="fa-solid text-gray-400 transition-transform duration-300" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
-                        <div x-show="open" x-transition class="p-5 border-t border-gray-100 bg-gray-50 space-y-4">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-4 overflow-hidden" x-data="{ open: false }">
+                        <div class="p-5 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-orange-400" @click="open = !open"><h3 class="font-bold text-gray-700 text-base md:text-lg"><i class="fa-solid fa-mug-hot text-orange-500 mr-2"></i>🌅 尊享未來生活與醫療儲備</h3><i class="fa-solid text-gray-400 transition-transform duration-300" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
+                        <div class="p-5 border-t border-gray-100 bg-gray-50 space-y-4" x-show="open" x-transition>
                             <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">理想退休生活</div><div class="text-sm text-gray-800 whitespace-pre-line" x-text="client.fnaRetireVision || '尚未深入探討。'"></div></div>
                             <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">醫療保障安排</div><div class="text-sm text-gray-800 whitespace-pre-line" x-text="client.fnaMedicalVision || '-'"></div></div>
                             <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">現有財富增值安排 / 或工具</div><div class="text-sm text-gray-800 whitespace-pre-line" x-text="client.fnaRetireTools || '-'"></div></div>
                             <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-blue-500 font-bold mb-1">規劃安排 / 關注點</div><div class="text-sm text-gray-800 whitespace-pre-line" x-text="client.fnaRetireGap || '-'"></div></div>
                         </div>
                     </div>
-                    <div x-data="{ open: false }" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div @click="open = !open" class="p-5 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-green-500"><h3 class="font-bold text-gray-700 text-base md:text-lg"><i class="fa-solid fa-graduation-cap text-green-600 mr-2"></i>🎓 栽培下一代教育基金規劃</h3><i class="fa-solid text-gray-400 transition-transform duration-300" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
-                        <div x-show="open" x-transition class="p-5 border-t border-gray-100 bg-gray-50 space-y-4">
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" x-data="{ open: false }">
+                        <div class="p-5 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-green-500" @click="open = !open"><h3 class="font-bold text-gray-700 text-base md:text-lg"><i class="fa-solid fa-graduation-cap text-green-600 mr-2"></i>🎓 栽培下一代教育基金規劃</h3><i class="fa-solid text-gray-400 transition-transform duration-300" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
+                        <div class="p-5 border-t border-gray-100 bg-gray-50 space-y-4" x-show="open" x-transition>
                             <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-green-600 font-bold mb-1">教育目標與期望</div><div class="text-sm text-gray-800 whitespace-pre-line" x-text="client.fnaEduVision || '尚未深入探討。'"></div></div>
                             <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-green-600 font-bold mb-1">為下一代預備或進行中的財富安排</div><div class="text-sm text-gray-800 whitespace-pre-line" x-text="client.fnaEduTools || '-'"></div></div>
                             <div class="bg-white p-3 rounded-lg border border-gray-100"><div class="text-xs text-green-600 font-bold mb-1">方向 / 關注點</div><div class="text-sm text-gray-800 whitespace-pre-line" x-text="client.fnaEduGap || '-'"></div></div>
@@ -711,7 +712,7 @@
                                         <template x-for="(item, iIndex) in (policy.items || [])">
                                             <div class="p-3 border-b border-gray-100 last:border-0 hover:bg-gray-50">
                               
-                                                <div class="flex justify-between items-start mb-2"><div class="flex items-center gap-2"><span x-show="iIndex===0" class="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">主</span><span x-show="iIndex>0" class="bg-gray-200 text-gray-600 text-[10px] px-1.5 py-0.5 rounded" x-text="iIndex"></span><div><div class="font-bold text-gray-800 text-sm" x-text="item.name || '未命名'"></div><div class="text-[10px]" :class="getCategoryColor(item.category)" x-text="item.category"></div></div></div><button x-show="item.remarks" @click="clientRemarkModal.text=item.remarks; clientRemarkModal.open=true" class="text-red-500 text-xs bg-red-50 p-1 rounded-full"><i class="fa-solid fa-exclamation px-1"></i></button></div>
+                                                <div class="flex justify-between items-start mb-2"><div class="flex items-center gap-2"><span x-show="iIndex===0" class="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">主</span><span x-show="iIndex>0" class="bg-gray-200 text-gray-600 text-[10px] px-1.5 py-0.5 rounded" x-text="iIndex"></span><div><div class="font-bold text-gray-800 text-sm" x-text="item.name || '未命名'"></div><div class="text-[10px]" :class="getCategoryColor(item.category)" x-text="item.category"></div></div></div><button @click="clientRemarkModal.text=item.remarks; clientRemarkModal.open=true" class="text-red-500 text-xs bg-red-50 p-1 rounded-full" x-show="item.remarks"><i class="fa-solid fa-exclamation px-1"></i></button></div>
                                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded border border-gray-100 mt-1">
                           
                                                     <div><span class="text-gray-400">保額:</span> <span class="font-mono font-bold text-gray-700" x-text="item.sumAssured ? '$'+formatNumber(item.sumAssured) : '-'"></span></div>
@@ -733,13 +734,13 @@
             
                 <div x-show="(client.claimEvents || []).length > 0">
                     <h2 class="text-xl font-bold theme-blue mb-4 border-l-4 border-purple-500 pl-3">理賠紀錄</h2>
-                    <div x-data="{ open: false }" class="mb-4 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative">
-                        <div @click="open = !open" class="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-purple-500"><h3 class="font-bold text-gray-700"><i class="fa-solid fa-file-medical text-purple-500 mr-2"></i>點擊查看理賠詳情</h3><i class="fa-solid text-gray-400" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
-                        <div x-show="open" x-transition class="p-4 border-t border-gray-100 bg-gray-50 space-y-4">
+                    <div class="mb-4 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative" x-data="{ open: false }">
+                        <div class="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50 border-l-4 border-purple-500" @click="open = !open"><h3 class="font-bold text-gray-700"><i class="fa-solid fa-file-medical text-purple-500 mr-2"></i>點擊查看理賠詳情</h3><i class="fa-solid text-gray-400" :class="open ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
+                        <div class="p-4 border-t border-gray-100 bg-gray-50 space-y-4" x-show="open" x-transition>
                             <template x-for="(event, eIndex) in (client.claimEvents || [])" :key="eIndex">
                                 
                                 <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200 relative">
-                                    <div x-show="event.status === 'Completed'" class="absolute right-[-10px] top-[10px] transform rotate-[15deg] border-2 border-green-500 text-green-500 font-bold px-4 py-1 text-[10px] opacity-30">COMPLETED</div>
+                                    <div class="absolute right-[-10px] top-[10px] transform rotate-[15deg] border-2 border-green-500 text-green-500 font-bold px-4 py-1 text-[10px] opacity-30" x-show="event.status === 'Completed'">COMPLETED</div>
                                     <div class="flex justify-between items-start mb-3 border-b border-gray-100 pb-2"><div><h3 class="font-bold text-gray-800" x-text="event.name"></h3><div class="text-xs text-gray-500">立案日期：<span x-text="event.eventDate"></span></div></div><div class="text-right"><div class="text-[10px] text-gray-500">總獲批金額</div><div class="font-bold text-purple-600 font-mono" x-text="'HK$ ' + formatNumber((event.items || []).reduce((s,i)=>s+Number(String(i.amount||0).replace(/,/g, '')),0))"></div></div></div>
                                     <div class="space-y-1"><template x-for="(item, iIndex) in (event.items || [])" :key="iIndex"><div class="flex justify-between text-xs"><div class="text-gray-600"><i class="fa-solid fa-receipt text-gray-300 mr-1"></i><span x-text="item.desc"></span></div><div class="font-mono text-gray-700" x-text="'HK$ ' + formatNumber(item.amount)"></div></div></template></div>
                                 </div>
@@ -753,7 +754,7 @@
         
             <div class="bg-white border-t p-6 flex justify-between items-center"><div class="flex items-center gap-4"><div class="w-12 h-12 bg-blue-100 text-blue-600 flex items-center justify-center rounded-full text-xl"><i class="fa-solid fa-user-tie"></i></div><div><p class="text-sm font-bold">您的理財顧問</p><p class="text-xs text-gray-500">有問題隨時聯絡</p></div></div><a href="https://wa.me/85253995596" class="bg-[#25D366] text-white font-bold py-3 px-6 rounded-lg shadow-md"><i class="fa-brands fa-whatsapp text-xl mr-2"></i> 查詢</a></div>
             
-            <div x-show="clientRemarkModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4" x-cloak><div class="bg-white w-full max-w-sm rounded-2xl overflow-hidden relative"><div class="bg-red-500 p-4 text-center"><div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto text-red-500 text-2xl mb-2"><i class="fa-solid fa-info"></i></div><h3 class="font-bold text-white">保單項目備註</h3></div><div class="p-6"><div class="text-sm text-gray-700 whitespace-pre-line leading-relaxed" x-text="clientRemarkModal.text"></div><button @click="clientRemarkModal.open = false" class="mt-6 w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-xl">關閉</button></div></div></div>
+            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4" style="display: none;" x-show="clientRemarkModal.open" x-cloak><div class="bg-white w-full max-w-sm rounded-2xl overflow-hidden relative"><div class="bg-red-500 p-4 text-center"><div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto text-red-500 text-2xl mb-2"><i class="fa-solid fa-info"></i></div><h3 class="font-bold text-white">保單項目備註</h3></div><div class="p-6"><div class="text-sm text-gray-700 whitespace-pre-line leading-relaxed" x-text="clientRemarkModal.text"></div><button @click="clientRemarkModal.open = false" class="mt-6 w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-xl">關閉</button></div></div></div>
         </div>
     </div>
 
@@ -767,21 +768,22 @@
                 // ==========================================
                 ADMIN_SECRET_KEY: 'YOUR_SECRET_SECRET_KEY_HERE',
 
-                version: '1.7.9', view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, clientRemarkModal: { open: false, text: '' },
-                uploadModal: { open: false, loading: false }, qrModal: { open: false }, linkModal: { url: '' }, itemRemarkModal: { open: false, item: {} },
-                showWebActionModal: false, showConfigModal: false, showWebFrame: false, showSettingsModal: false, showReportModal: false, reportClient: {}, reportData: { Medical: [], CI: [], Life: [], Accident: [], Savings: [] }, showSavingsInReport: true,
-                webLinks: [], calendarModal: { open: false, type: '', data: null }, settings: { waBirthday: '祝您生日快樂！', waRenewal: '溫馨提示保單續保。' },
+                [span_2](start_span)// 🌟 版本號已正式更新為 1.8.0[span_2](end_span)
+                [span_3](start_span)version: '1.8.0', view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, clientRemarkModal: { open: false, text: '' },[span_3](end_span)
+                [span_4](start_span)uploadModal: { open: false, loading: false }, qrModal: { open: false }, linkModal: { url: '' }, itemRemarkModal: { open: false, item: {} },[span_4](end_span)
+                [span_5](start_span)showWebActionModal: false, showConfigModal: false, showWebFrame: false, showSettingsModal: false, showReportModal: false, reportClient: {}, reportData: { Medical: [], CI: [], Life: [], Accident: [], Savings: [] }, showSavingsInReport: true,[span_5](end_span)
+                [span_6](start_span)webLinks: [], calendarModal: { open: false, type: '', data: null }, settings: { waBirthday: '祝您生日快樂！', waRenewal: '溫馨提示保單續保。' },[span_6](end_span)
                 
                 init() { 
-                    const storedVersion = localStorage.getItem('crm_version');
-                    if (storedVersion && storedVersion !== this.version) { localStorage.setItem('crm_version', this.version); window.location.reload(true); return; } localStorage.setItem('crm_version', this.version); 
+                    [span_7](start_span)const storedVersion = localStorage.getItem('crm_version');[span_7](end_span)
+                    if (storedVersion && storedVersion !== this.version) { localStorage.setItem('crm_version', this.version); window.location.reload(true); return; [span_8](start_span)} localStorage.setItem('crm_version', this.version);[span_8](end_span)
                     
                     // 先利用本地快取緩衝秒開畫面
-                    const saved = localStorage.getItem('crm_db_v8');
-                    if (saved) { this.clients = JSON.parse(saved); } 
+                    [span_9](start_span)const saved = localStorage.getItem('crm_db_v8');[span_9](end_span)
+                    if (saved) { this.clients = JSON.parse(saved); [span_10](start_span)}
                     
-                    const savedLinks = localStorage.getItem('crm_web_links'); if (savedLinks) this.webLinks = JSON.parse(savedLinks); const savedSettings = localStorage.getItem('crm_settings');
-                    if (savedSettings) this.settings = { ...this.settings, ...JSON.parse(savedSettings) };
+                    const savedLinks = localStorage.getItem('crm_web_links'); if (savedLinks) this.webLinks = JSON.parse(savedLinks); const savedSettings = localStorage.getItem('crm_settings');[span_10](end_span)
+                    [span_11](start_span)if (savedSettings) this.settings = { ...this.settings, ...JSON.parse(savedSettings) };[span_11](end_span)
                     
                     //【方案 A 初始化即時讀取】背後默默去 GAS 拿雲端最新全表覆蓋本地快取
                     fetch(GOOGLE_SCRIPT_URL, {
@@ -798,88 +800,88 @@
                     })
                     .catch(e => console.error('雲端同步失敗，系統目前正在運作離線快取模式', e));
                 },
-                formatNumber(num) { if (num === null || num === undefined || num === '') return '-';
-                const n = parseFloat(num.toString().replace(/,/g, '')); return isNaN(n) ? num : n.toLocaleString('en-US');
+                [span_12](start_span)formatNumber(num) { if (num === null || num === undefined || num === '') return '-';[span_12](end_span)
+                [span_13](start_span)const n = parseFloat(num.toString().replace(/,/g, '')); return isNaN(n) ? num : n.toLocaleString('en-US');[span_13](end_span)
                 },
-                formatInput(v) { if (!v) return '';
-                let str = String(v).replace(/[^0-9.]/g, ''); let parts = str.split('.'); if (parts.length > 2) { parts[1] = parts.slice(1).join(''); parts.length = 2;
-                } parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ","); return parts.length > 1 ? parts[0] + '.' + parts[1] : parts[0];
+                [span_14](start_span)formatInput(v) { if (!v) return '';[span_14](end_span)
+                [span_15](start_span)let str = String(v).replace(/[^0-9.]/g, ''); let parts = str.split('.'); if (parts.length > 2) { parts[1] = parts.slice(1).join(''); parts.length = 2;[span_15](end_span)
+                } parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ","); return parts.length > 1 ? parts[0] + '.' + [span_16](start_span)parts[1] : parts[0];[span_16](end_span)
                 },
-                getCategoryColor(cat) { if (['Medical', 'CI', 'Life', 'Accident', 'AccidentDeath', 'AccidentMedical'].includes(cat)) return 'text-red-500 font-bold';
-                if (['Savings', 'Fund', 'MPF'].includes(cat)) return 'text-blue-500 font-bold'; return 'text-gray-600 font-bold';
+                [span_17](start_span)getCategoryColor(cat) { if (['Medical', 'CI', 'Life', 'Accident', 'AccidentDeath', 'AccidentMedical'].includes(cat)) return 'text-red-500 font-bold';[span_17](end_span)
+                [span_18](start_span)if (['Savings', 'Fund', 'MPF'].includes(cat)) return 'text-blue-500 font-bold'; return 'text-gray-600 font-bold';[span_18](end_span)
                 },
-                formatName(s) { return s ?
-                s.replace(/\b([a-zA-Z])([a-zA-Z]*)\b/g, (m, p1, p2) => p1.toUpperCase() + p2.toLowerCase()) : '';
+                [span_19](start_span)formatName(s) { return s ?[span_19](end_span)
+                [span_20](start_span)s.replace(/\b([a-zA-Z])([a-zA-Z]*)\b/g, (m, p1, p2) => p1.toUpperCase() + p2.toLowerCase()) : '';[span_20](end_span)
                 },
-                getAge(dob) { if (!dob) return '';
-                const b = new Date(dob); const t = new Date(); let age = t.getFullYear() - b.getFullYear();
-                const m = t.getMonth() - b.getMonth(); if (m < 0 || (m === 0 && t.getDate() < b.getDate())) { age--;
-                } return age >= 0 ? age : 0; },
-                checkDueDate(d) { if (!d) return false;
-                const diff = Math.ceil((new Date(d) - new Date()) / 86400000); return diff >= -20 && diff <= 30;
+                [span_21](start_span)getAge(dob) { if (!dob) return '';[span_21](end_span)
+                [span_22](start_span)const b = new Date(dob); const t = new Date(); let age = t.getFullYear() - b.getFullYear();[span_22](end_span)
+                [span_23](start_span)const m = t.getMonth() - b.getMonth(); if (m < 0 || (m === 0 && t.getDate() < b.getDate())) { age--;[span_23](end_span)
+                } return age >= 0 ? age : 0; [span_24](start_span)},[span_24](end_span)
+                [span_25](start_span)checkDueDate(d) { if (!d) return false;[span_25](end_span)
+                [span_26](start_span)const diff = Math.ceil((new Date(d) - new Date()) / 86400000); return diff >= -20 && diff <= 30;[span_26](end_span)
                 },
                 
-                get filteredClients() { 
-                    let res = (this.clients || []).filter(c => !c.isDeleted);
-                    if (this.searchQuery) { const q = this.searchQuery.toLowerCase(); res = res.filter(c => (c.owner||'').toLowerCase().includes(q) || (c.phone||'').includes(q));
+                [span_27](start_span)get filteredClients() {[span_27](end_span)
+                    [span_28](start_span)let res = (this.clients || []).filter(c => !c.isDeleted);[span_28](end_span)
+                    [span_29](start_span)if (this.searchQuery) { const q = this.searchQuery.toLowerCase(); res = res.filter(c => (c.owner||'').toLowerCase().includes(q) || (c.phone||'').includes(q));[span_29](end_span)
                     }
-                    if (this.typeFilter) res = res.filter(c => (c.policies || []).some(p => !p.isCancelled && (p.items || []).some(i => i.category === this.typeFilter)));
-                    if (this.renewalFilter) res = res.filter(c => (c.policies || []).some(p => !p.isCancelled && p.paymentMode !== 'Monthly' && p.dueDate && (new Date(p.dueDate).getMonth() + 1).toString() === this.renewalFilter));
-                    if (this.birthdayFilter) res = res.filter(c => c.dob && (new Date(c.dob).getMonth() + 1).toString() === this.birthdayFilter); return res;
+                    [span_30](start_span)if (this.typeFilter) res = res.filter(c => (c.policies || []).some(p => !p.isCancelled && (p.items || []).some(i => i.category === this.typeFilter)));[span_30](end_span)
+                    [span_31](start_span)if (this.renewalFilter) res = res.filter(c => (c.policies || []).some(p => !p.isCancelled && p.paymentMode !== 'Monthly' && p.dueDate && (new Date(p.dueDate).getMonth() + 1).toString() === this.renewalFilter));[span_31](end_span)
+                    [span_32](start_span)if (this.birthdayFilter) res = res.filter(c => c.dob && (new Date(c.dob).getMonth() + 1).toString() === this.birthdayFilter); return res;[span_32](end_span)
                 },
-                get isDuplicateOwner() { if (!this.client || !this.client.owner) return false;
-                const currentName = this.client.owner.trim().toLowerCase(); if (currentName === '') return false;
-                return (this.clients || []).some(c => c.id !== this.client.id && c.owner && c.owner.trim().toLowerCase() === currentName);
+                [span_33](start_span)get isDuplicateOwner() { if (!this.client || !this.client.owner) return false;[span_33](end_span)
+                [span_34](start_span)const currentName = this.client.owner.trim().toLowerCase(); if (currentName === '') return false;[span_34](end_span)
+                [span_35](start_span)return (this.clients || []).some(c => c.id !== this.client.id && c.owner && c.owner.trim().toLowerCase() === currentName);[span_35](end_span)
                 },
-                hasRenewalMatch(c) { return (c.policies || []).some(p => !p.isCancelled && p.paymentMode !== 'Monthly' && p.dueDate && (new Date(p.dueDate).getMonth() + 1).toString() === this.renewalFilter);
+                [span_36](start_span)hasRenewalMatch(c) { return (c.policies || []).some(p => !p.isCancelled && p.paymentMode !== 'Monthly' && p.dueDate && (new Date(p.dueDate).getMonth() + 1).toString() === this.renewalFilter);[span_36](end_span)
                 },
 
-                get protectionSummary() {
-                    let summary = { totalPremium: 0, insured: [] };
-                    if (!this.client || !this.client.policies) return summary; let personMap = {};
-                    this.client.policies.forEach(p => {
-                        if(p.isCancelled) return;
-                        let p_amt = parseFloat(String(p.premium||'').replace(/,/g, '')) || 0; summary.totalPremium += (p.paymentMode === 'Monthly' ? (p_amt * 12) : p_amt);
-                        let person = (p.insuredPerson && p.insuredPerson.trim()) ? p.insuredPerson.trim() : (this.client.owner ? this.client.owner.trim() : '未命名');
-                        if (!personMap[person]) personMap[person] = { name: person, medicalHighEnd: false, medicalTraditional: false, ciSum: 0, lifeSum: 0, accDeathSum: 0, accMedicalSum: 0 };
-                        (p.items || []).forEach(i => {
+                [span_37](start_span)get protectionSummary() {[span_37](end_span)
+                    [span_38](start_span)let summary = { totalPremium: 0, insured: [] };[span_38](end_span)
+                    [span_39](start_span)if (!this.client || !this.client.policies) return summary; let personMap = {};[span_39](end_span)
+                    [span_40](start_span)this.client.policies.forEach(p => {[span_40](end_span)
+                        [span_41](start_span)if(p.isCancelled) return;[span_41](end_span)
+                        let p_amt = parseFloat(String(p.premium||'').replace(/,/g, '')) || [span_42](start_span)0; summary.totalPremium += (p.paymentMode === 'Monthly' ? (p_amt * 12) : p_amt);[span_42](end_span)
+                        [span_43](start_span)let person = (p.insuredPerson && p.insuredPerson.trim()) ? p.insuredPerson.trim() : (this.client.owner ? this.client.owner.trim() : '未命名');[span_43](end_span)
+                        [span_44](start_span)if (!personMap[person]) personMap[person] = { name: person, medicalHighEnd: false, medicalTraditional: false, ciSum: 0, lifeSum: 0, accDeathSum: 0, accMedicalSum: 0 };[span_44](end_span)
+                        (p.items || [])[span_45](start_span).forEach(i => {[span_45](end_span)
                         
-                            if(!i) return; let amt = parseFloat(String(i.sumAssured||'0').replace(/,/g, '')) || 0; let r = i.remarks || ''; let n = i.name || '';
-                            if(i.category === 'Medical') { if(r.includes('高端') || n.includes('高端')) personMap[person].medicalHighEnd = true; else personMap[person].medicalTraditional = true;
+                            if(!i) return; let amt = parseFloat(String(i.sumAssured||'0').replace(/,/g, '')) || 0; let r = i.remarks || ''; let n = i.name || [span_46](start_span)'';[span_46](end_span)
+                            [span_47](start_span)if(i.category === 'Medical') { if(r.includes('高端') || n.includes('高端')) personMap[person].medicalHighEnd = true; else personMap[person].medicalTraditional = true;[span_47](end_span)
                             } 
-                            else if (i.category === 'CI') { personMap[person].ciSum += amt;
-                            } else if (i.category === 'Life') { personMap[person].lifeSum += amt;
-                            } 
-                            else if (i.category === 'AccidentDeath' || (i.category === 'Accident' && !r.includes('費用') && !r.includes('醫療') && !n.includes('費用') && !n.includes('醫療'))) { personMap[person].accDeathSum += amt;
+                            [span_48](start_span)else if (i.category === 'CI') { personMap[person].ciSum += amt;[span_48](end_span)
+                            [span_49](start_span)} else if (i.category === 'Life') { personMap[person].lifeSum += amt;[span_49](end_span)
+                            [span_50](start_span)}
+                            else if (i.category === 'AccidentDeath' || (i.category === 'Accident' && !r.includes('費用') && !r.includes('醫療') && !n.includes('費用') && !n.includes('醫療'))) { personMap[person].accDeathSum += amt;[span_50](end_span)
                             }
-                            else if (i.category === 'AccidentMedical' || (i.category === 'Accident' && (r.includes('費用') || r.includes('醫療') || n.includes('費用') || n.includes('醫療')))) { personMap[person].accMedicalSum += amt;
+                            [span_51](start_span)else if (i.category === 'AccidentMedical' || (i.category === 'Accident' && (r.includes('費用') || r.includes('醫療') || n.includes('費用') || n.includes('醫療')))) { personMap[person].accMedicalSum += amt;[span_51](end_span)
                             }
                         });
-                    }); summary.insured = Object.values(personMap); return summary;
+                    [span_52](start_span)}); summary.insured = Object.values(personMap); return summary;[span_52](end_span)
                 },
 
-                updateSummary() { if (!this.client) return;
-                if (!this.client.summary) this.client.summary = {}; let cs = this.protectionSummary; this.client.summary.totalPremium = cs.totalPremium; this.client.summary.insured = cs.insured;
+                [span_53](start_span)updateSummary() { if (!this.client) return;[span_53](end_span)
+                [span_54](start_span)if (!this.client.summary) this.client.summary = {}; let cs = this.protectionSummary; this.client.summary.totalPremium = cs.totalPremium; this.client.summary.insured = cs.insured;[span_54](end_span)
                 },
-                createNewClient() { this.client = { id: Date.now(), owner: '', phone: '', policies: [], claimEvents: [], fnaRetireVision: '', fnaMedicalVision: '', fnaRetireTools: '', fnaRetireGap: '', fnaEduVision: '', fnaEduTools: '', fnaEduGap: '', isDeleted: false };
-                this.addPolicy(); this.updateSummary(); this.view = 'detail'; },
-                openClient(c) { this.client = JSON.parse(JSON.stringify(c));
-                if(this.client.fnaRetireVision === undefined) this.client.fnaRetireVision = ''; if(this.client.fnaMedicalVision === undefined) this.client.fnaMedicalVision = ''; if(this.client.fnaEduVision === undefined) this.client.fnaEduVision = ''; this.updateSummary();
-                this.view = 'detail'; },
+                [span_55](start_span)createNewClient() { this.client = { id: Date.now(), owner: '', phone: '', policies: [], claimEvents: [], fnaRetireVision: '', fnaMedicalVision: '', fnaRetireTools: '', fnaRetireGap: '', fnaEduVision: '', fnaEduTools: '', fnaEduGap: '', isDeleted: false };[span_55](end_span)
+                this.addPolicy(); this.updateSummary(); this.view = 'detail'; [span_56](start_span)},[span_56](end_span)
+                [span_57](start_span)openClient(c) { this.client = JSON.parse(JSON.stringify(c));[span_57](end_span)
+                [span_58](start_span)if(this.client.fnaRetireVision === undefined) this.client.fnaRetireVision = ''; if(this.client.fnaMedicalVision === undefined) this.client.fnaMedicalVision = ''; if(this.client.fnaEduVision === undefined) this.client.fnaEduVision = ''; this.updateSummary();[span_58](end_span)
+                this.view = 'detail'; [span_59](start_span)},[span_59](end_span)
                 
                 //【方案 A 核心儲存邏輯】按儲存就直接打包推上 GAS 雲端資料庫
                 saveCurrentClient(stay) { 
-                    this.updateSummary();
-                    if (!this.clients) this.clients = [];
-                    const idx = this.clients.findIndex(c => c.id === this.client.id);
-                    if (idx > -1) this.clients[idx] = this.client;
-                    else this.clients.push(this.client);
+                    [span_60](start_span)this.updateSummary();[span_60](end_span)
+                    [span_61](start_span)if (!this.clients) this.clients = [];[span_61](end_span)
+                    [span_62](start_span)const idx = this.clients.findIndex(c => c.id === this.client.id);[span_62](end_span)
+                    [span_63](start_span)if (idx > -1) this.clients[idx] = this.client;[span_63](end_span)
+                    [span_64](start_span)else this.clients.push(this.client);[span_64](end_span)
                     
-                    this.saveDB(); // 儲存本機離線快取
+                    this.saveDB(); [span_65](start_span)// 儲存本機離線快取[span_65](end_span)
                     
                     // 自動推送到雲端
                     let d = JSON.parse(JSON.stringify(this.client));
-                    d.name = d.owner;
+                    [span_66](start_span)d.name = d.owner;[span_66](end_span)
                     const finalPayload = { 
                         forceId: String(this.client.id), 
                         payload: JSON.stringify(d),
@@ -895,127 +897,127 @@
 
                     if(!stay) { 
                         alert('已儲存並成功同步至雲端'); 
-                        this.view = 'list';
-                        window.scrollTo(0,0);
+                        [span_67](start_span)this.view = 'list';[span_67](end_span)
+                        [span_68](start_span)window.scrollTo(0,0);[span_68](end_span)
                     } 
                 },
-                deleteClient(id) { if(confirm('移至垃圾桶？')) { const idx = this.clients.findIndex(c => c.id === id);
-                if(idx > -1) { this.clients[idx].isDeleted = true; this.saveDB(); } } },
-                restoreClient(id) { const idx = this.clients.findIndex(c => c.id === id);
-                if(idx > -1) { this.clients[idx].isDeleted = false; this.saveDB(); } },
-                permanentDeleteClient(id) { if(confirm('徹底刪除無法復原！確定？')) { this.clients = this.clients.filter(c => c.id !== id);
-                this.saveDB(); } },
-                saveDB() { localStorage.setItem('crm_db_v8', JSON.stringify(this.clients));
+                [span_69](start_span)deleteClient(id) { if(confirm('移至垃圾桶？')) { const idx = this.clients.findIndex(c => c.id === id);[span_69](end_span)
+                if(idx > -1) { this.clients[idx].isDeleted = true; this.saveDB(); [span_70](start_span)} } },[span_70](end_span)
+                [span_71](start_span)restoreClient(id) { const idx = this.clients.findIndex(c => c.id === id);[span_71](end_span)
+                if(idx > -1) { this.clients[idx].isDeleted = false; this.saveDB(); [span_72](start_span)} },[span_72](end_span)
+                [span_73](start_span)permanentDeleteClient(id) { if(confirm('徹底刪除無法復原！確定？')) { this.clients = this.clients.filter(c => c.id !== id);[span_73](end_span)
+                this.saveDB(); [span_74](start_span)} },[span_74](end_span)
+                [span_75](start_span)saveDB() { localStorage.setItem('crm_db_v8', JSON.stringify(this.clients));[span_75](end_span)
                 },
                 
-                addPolicy() { if(!this.client.policies) this.client.policies = [];
-                this.client.policies.push({ insurer: 'AIA', items: [{ category: 'Medical', maturity: '', term: '' }], paymentMode: 'Yearly', isCancelled: false });
+                [span_76](start_span)addPolicy() { if(!this.client.policies) this.client.policies = [];[span_76](end_span)
+                [span_77](start_span)this.client.policies.push({ insurer: 'AIA', items: [{ category: 'Medical', maturity: '', term: '' }], paymentMode: 'Yearly', isCancelled: false });[span_77](end_span)
                 },
-                removePolicy(i) { if(confirm('刪除這份保單？')) this.client.policies.splice(i,1);
+                [span_78](start_span)removePolicy(i) { if(confirm('刪除這份保單？')) this.client.policies.splice(i,1);[span_78](end_span)
                 },
-                togglePolicyCancel(policy) { policy.cancelDate = policy.isCancelled ?
-                new Date().toISOString().split('T')[0] : ''; },
-                addRider(i) { if(!this.client.policies[i].items) this.client.policies[i].items = [];
-                this.client.policies[i].items.push({ category: 'Medical', maturity: '', term: '' }); },
-                addClaimEvent() { if(!this.client.claimEvents) this.client.claimEvents = [];
-                this.client.claimEvents.push({ name: '', status: 'Pending', eventDate: '', items: [{ desc: '', amount: '' }] });
+                [span_79](start_span)togglePolicyCancel(policy) { policy.cancelDate = policy.isCancelled ?[span_79](end_span)
+                new Date().toISOString().split('T')[0] : ''; [span_80](start_span)},[span_80](end_span)
+                [span_81](start_span)addRider(i) { if(!this.client.policies[i].items) this.client.policies[i].items = [];[span_81](end_span)
+                this.client.policies[i].items.push({ category: 'Medical', maturity: '', term: '' }); [span_82](start_span)},[span_82](end_span)
+                [span_83](start_span)addClaimEvent() { if(!this.client.claimEvents) this.client.claimEvents = [];[span_83](end_span)
+                [span_84](start_span)this.client.claimEvents.push({ name: '', status: 'Pending', eventDate: '', items: [{ desc: '', amount: '' }] });[span_84](end_span)
                 },
                 
-                openUploadModal() { this.uploadModal.open = true;
+                [span_85](start_span)openUploadModal() { this.uploadModal.open = true;[span_85](end_span)
                 },
                 uploadToCloud() {
-                    this.uploadModal.loading = true;
-                    this.saveCurrentClient(true); const uniqueId = String(this.client.id);
-                    let d = JSON.parse(JSON.stringify(this.client)); d.name = d.owner;
-                    const finalPayload = { forceId: uniqueId, payload: JSON.stringify(d), adminKey: this.ADMIN_SECRET_KEY };
-                    fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify(finalPayload) }).then(r => r.json()).then(data => { this.uploadModal.loading = false; this.generateQR(uniqueId); }).catch(e => { this.uploadModal.loading = false; this.generateQR(uniqueId); });
+                    [span_86](start_span)this.uploadModal.loading = true;[span_86](end_span)
+                    [span_87](start_span)this.saveCurrentClient(true); const uniqueId = String(this.client.id);[span_87](end_span)
+                    [span_88](start_span)let d = JSON.parse(JSON.stringify(this.client)); d.name = d.owner;[span_88](end_span)
+                    [span_89](start_span)const finalPayload = { forceId: uniqueId, payload: JSON.stringify(d), adminKey: this.ADMIN_SECRET_KEY };[span_89](end_span)
+                    [span_90](start_span)fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify(finalPayload) }).then(r => r.json()).then(data => { this.uploadModal.loading = false; this.generateQR(uniqueId); }).catch(e => { this.uploadModal.loading = false; this.generateQR(uniqueId); });[span_90](end_span)
                 },
 
                 generateQR(id) {
-                    this.uploadModal.open = false;
-                    this.qrModal.open = true; let url; 
-                    try { let base = window.location.href.split('?')[0];
-                        if(base.endsWith('index.html')) { url = base + '?id=' + id + '&client_app=1';
-                        } else if(base.endsWith('/')) { url = base + 'index.html?id=' + id + '&client_app=1';
-                        } else { url = base + '/index.html?id=' + id + '&client_app=1';
-                        } } catch(e) { url = 'index.html?id=' + id + '&client_app=1';
+                    [span_91](start_span)this.uploadModal.open = false;[span_91](end_span)
+                    [span_92](start_span)this.qrModal.open = true; let url;[span_92](end_span)
+                    [span_93](start_span)try { let base = window.location.href.split('?')[0];[span_93](end_span)
+                        [span_94](start_span)if(base.endsWith('index.html')) { url = base + '?id=' + id + '&client_app=1';[span_94](end_span)
+                        [span_95](start_span)} else if(base.endsWith('/')) { url = base + 'index.html?id=' + id + '&client_app=1';[span_95](end_span)
+                        [span_96](start_span)} else { url = base + '/index.html?id=' + id + '&client_app=1';[span_96](end_span)
+                        [span_97](start_span)} } catch(e) { url = 'index.html?id=' + id + '&client_app=1';[span_97](end_span)
                     }
-                    this.linkModal.url = url;
-                    document.getElementById("qr-loading").style.display = "flex"; document.getElementById("qr-image-visible").style.display = "none";
-                    setTimeout(() => { var qrContainer = document.getElementById("qr-container-hidden"); if(qrContainer) { qrContainer.innerHTML = ""; new QRCode(qrContainer, { text: url, width: 300, height: 300, correctLevel : QRCode.CorrectLevel.H }); setTimeout(() => { const canvas = qrContainer.querySelector('canvas'); if (canvas) { document.getElementById("qr-image-visible").src = canvas.toDataURL("image/png"); document.getElementById("qr-image-visible").style.display = 'block'; document.getElementById("qr-loading").style.display = "none"; } }, 200); } }, 100);
+                    [span_98](start_span)this.linkModal.url = url;[span_98](end_span)
+                    [span_99](start_span)document.getElementById("qr-loading").style.display = "flex"; document.getElementById("qr-image-visible").style.display = "none";[span_99](end_span)
+                    [span_100](start_span)setTimeout(() => { var qrContainer = document.getElementById("qr-container-hidden"); if(qrContainer) { qrContainer.innerHTML = ""; new QRCode(qrContainer, { text: url, width: 300, height: 300, correctLevel : QRCode.CorrectLevel.H }); setTimeout(() => { const canvas = qrContainer.querySelector('canvas'); if (canvas) { document.getElementById("qr-image-visible").src = canvas.toDataURL("image/png"); document.getElementById("qr-image-visible").style.display = 'block'; document.getElementById("qr-loading").style.display = "none"; } }, 200); } }, 100);[span_100](end_span)
                 },
                 
-                copyLink() { navigator.clipboard.writeText(this.linkModal.url).then(()=>alert('連結已複製!'));
+                [span_101](start_span)copyLink() { navigator.clipboard.writeText(this.linkModal.url).then(()=>alert('連結已複製!'));[span_101](end_span)
                 },
-                openClientRemark(text) { this.clientRemarkModal.text = text;
-                this.clientRemarkModal.open = true; },
-                openRemarkModal(item) { if(!item.remarks) item.remarks='';
-                this.itemRemarkModal.item = item; this.itemRemarkModal.open = true; },
+                [span_102](start_span)openClientRemark(text) { this.clientRemarkModal.text = text;[span_102](end_span)
+                this.clientRemarkModal.open = true; [span_103](start_span)},[span_103](end_span)
+                [span_104](start_span)openRemarkModal(item) { if(!item.remarks) item.remarks='';[span_104](end_span)
+                this.itemRemarkModal.item = item; this.itemRemarkModal.open = true; [span_105](start_span)},[span_105](end_span)
 
-                openReport(c) { this.reportClient = JSON.parse(JSON.stringify(c));
-                    let data = { Medical: [], CI: [], Life: [], Accident: [], Savings: [] }; let ciTotal = 0;
-                    if (this.reportClient.policies) { this.reportClient.policies.forEach(p => { (p.items||[]).forEach(i => { i.effectDate = p.effectDate; i.insurer = p.insurer; i.policyNo = p.policyNo; if (i.category === 'Medical' || i.category === 'Life' || i.category === 'Accident' || i.category === 'AccidentDeath' || i.category === 'AccidentMedical') { if(i.category === 'AccidentDeath' || i.category === 'AccidentMedical') { data['Accident'] = data['Accident'] || []; data['Accident'].push(i); } else { data[i.category].push(i); } } else if (i.category === 'CI') { data.CI.push(i); let val = parseFloat(String(i.sumAssured || '0').replace(/,/g, '')); if (!isNaN(val)) ciTotal += val; } else if (i.category === 'Savings' || i.category === 'Fund' || i.category === 'MPF') { data.Savings.push(i); } }); });
-                    } this.reportData = data; this.reportData.ciTotal = ciTotal > 0 ? this.formatInput(ciTotal) : '0'; this.showReportModal = true;
+                [span_106](start_span)openReport(c) { this.reportClient = JSON.parse(JSON.stringify(c));[span_106](end_span)
+                    [span_107](start_span)let data = { Medical: [], CI: [], Life: [], Accident: [], Savings: [] }; let ciTotal = 0;[span_107](end_span)
+                    [span_108](start_span)if (this.reportClient.policies) { this.reportClient.policies.forEach(p => { (p.items||[]).forEach(i => { i.effectDate = p.effectDate; i.insurer = p.insurer; i.policyNo = p.policyNo; if (i.category === 'Medical' || i.category === 'Life' || i.category === 'Accident' || i.category === 'AccidentDeath' || i.category === 'AccidentMedical') { if(i.category === 'AccidentDeath' || i.category === 'AccidentMedical') { data['Accident'] = data['Accident'] || []; data['Accident'].push(i); } else { data[i.category].push(i); } } else if (i.category === 'CI') { data.CI.push(i); let val = parseFloat(String(i.sumAssured || '0').replace(/,/g, '')); if (!isNaN(val)) ciTotal += val; } else if (i.category === 'Savings' || i.category === 'Fund' || i.category === 'MPF') { data.Savings.push(i); } }); });[span_108](end_span)
+                    [span_109](start_span)} this.reportData = data; this.reportData.ciTotal = ciTotal > 0 ? this.formatInput(ciTotal) : '0'; this.showReportModal = true;[span_109](end_span)
                 },
-                savePDF() { setTimeout(() => { window.print(); }, 300);
+                [span_110](start_span)savePDF() { setTimeout(() => { window.print(); }, 300);[span_110](end_span)
                 },
-                saveSettings() { localStorage.setItem('crm_settings', JSON.stringify(this.settings));
-                alert('已儲存設定'); this.showSettingsModal = false; },
-                handleWebClick() { this.showWebActionModal = true;
+                [span_111](start_span)saveSettings() { localStorage.setItem('crm_settings', JSON.stringify(this.settings));[span_111](end_span)
+                alert('已儲存設定'); this.showSettingsModal = false; [span_112](start_span)},[span_112](end_span)
+                [span_113](start_span)handleWebClick() { this.showWebActionModal = true;[span_113](end_span)
                 },
-                openWebFrame(url) { this.currentWebUrl = url;
-                this.showWebActionModal = false; this.showWebFrame = true; },
-                addToCalendar(platform) { let title, dateStr;
-                    if (this.calendarModal.type === 'birthday') { title = `生日祝賀: ${this.client.owner}`; dateStr = this.client.dob;
-                    } else if (this.calendarModal.type === 'insuredBirthday') { title = `受保人生日: ${this.calendarModal.data.policy.insuredPerson}`; dateStr = this.calendarModal.data.policy.insuredDob;
-                    } else if (this.calendarModal.type === 'renewal') { title = `續保提醒: ${this.calendarModal.data.insurer} (${this.client.owner})`; dateStr = this.calendarModal.data.dueDate;
-                    } else { title = `跟進提醒: ${this.client.owner}`; dateStr = this.client.remarkDate; } if (!dateStr) return alert('請先輸入日期');
-                    if (this.calendarModal.type === 'birthday' || this.calendarModal.type === 'insuredBirthday') { const dob = new Date(dateStr); const today = new Date();
-                        const year = today.getMonth() > dob.getMonth() || (today.getMonth() === dob.getMonth() && today.getDate() > dob.getDate()) ? today.getFullYear() + 1 : today.getFullYear();
-                        dateStr = year + '-' + ('0' + (dob.getMonth()+1)).slice(-2) + '-' + ('0' + dob.getDate()).slice(-2);
-                    } const d = dateStr.replace(/-/g, ''); if (platform === 'google') { window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${d}/${d}`, '_blank'); } else { let ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nDTSTART;VALUE=DATE:${d}\nDTEND;VALUE=DATE:${d}\nSUMMARY:${title}\nEND:VEVENT\nEND:VCALENDAR`;
-                        const file = new File([ics], "event.ics", { type: "text/calendar" });
-                        if (navigator.share && navigator.canShare({ files: [file] })) { navigator.share({ files: [file], title: title }).catch(console.error);
-                        } else { const url = URL.createObjectURL(file); const a = document.createElement('a'); a.href = url; a.download = "event.ics"; a.click();
-                        } } this.calendarModal.open = false; },
-                openCalendarMenu(type, data) { this.calendarModal.type = type;
-                this.calendarModal.data = data; this.calendarModal.open = true; },
-                getAgeAtDate(dob, targetDate) { if (!dob || !targetDate) return '';
-                const b = new Date(dob); const t = new Date(targetDate); let age = t.getFullYear() - b.getFullYear();
-                const m = t.getMonth() - b.getMonth(); if (m < 0 || (m === 0 && t.getDate() < b.getDate())) { age--;
-                } return age >= 0 ? age : 0; },
-                uploadImage(event, linkObj) { const file = event.target.files[0];
-                if (!file) return; const reader = new FileReader(); reader.onload = (e) => { linkObj.url = e.target.result; }; reader.readAsDataURL(file);
+                [span_114](start_span)openWebFrame(url) { this.currentWebUrl = url;[span_114](end_span)
+                this.showWebActionModal = false; this.showWebFrame = true; [span_115](start_span)},[span_115](end_span)
+                [span_116](start_span)addToCalendar(platform) { let title, dateStr;[span_116](end_span)
+                    [span_117](start_span)if (this.calendarModal.type === 'birthday') { title = `生日祝賀: ${this.client.owner}`; dateStr = this.client.dob;[span_117](end_span)
+                    [span_118](start_span)} else if (this.calendarModal.type === 'insuredBirthday') { title = `受保人生日: ${this.calendarModal.data.policy.insuredPerson}`; dateStr = this.calendarModal.data.policy.insuredDob;[span_118](end_span)
+                    [span_119](start_span)} else if (this.calendarModal.type === 'renewal') { title = `續保提醒: ${this.calendarModal.data.insurer} (${this.client.owner})`; dateStr = this.calendarModal.data.dueDate;[span_119](end_span)
+                    } else { title = `跟進提醒: ${this.client.owner}`; dateStr = this.client.remarkDate; [span_120](start_span)} if (!dateStr) return alert('請先輸入日期');[span_120](end_span)
+                    [span_121](start_span)if (this.calendarModal.type === 'birthday' || this.calendarModal.type === 'insuredBirthday') { const dob = new Date(dateStr); const today = new Date();[span_121](end_span)
+                        const year = today.getMonth() > dob.getMonth() || (today.getMonth() [span_122](start_span)=== dob.getMonth() && today.getDate() > dob.getDate()) ? today.getFullYear() + 1 : today.getFullYear();[span_122](end_span)
+                        [span_123](start_span)dateStr = year + '-' + ('0' + (dob.getMonth()+1)).slice(-2) + '-' + ('0' + dob.getDate()).slice(-2);[span_123](end_span)
+                    } const d = dateStr.replace(/-/g, ''); if (platform === 'google') { window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${d}/${d}`, '_blank'); [span_124](start_span)} else { let ics = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nDTSTART;VALUE=DATE:${d}\nDTEND;VALUE=DATE:${d}\nSUMMARY:${title}\nEND:VEVENT\nEND:VCALENDAR`;[span_124](end_span)
+                        [span_125](start_span)const file = new File([ics], "event.ics", { type: "text/calendar" });[span_125](end_span)
+                        [span_126](start_span)if (navigator.share && navigator.canShare({ files: [file] })) { navigator.share({ files: [file], title: title }).catch(console.error);[span_126](end_span)
+                        [span_127](start_span)} else { const url = URL.createObjectURL(file); const a = document.createElement('a'); a.href = url; a.download = "event.ics"; a.click();[span_127](end_span)
+                        } } this.calendarModal.open = false; [span_128](start_span)},[span_128](end_span)
+                [span_129](start_span)openCalendarMenu(type, data) { this.calendarModal.type = type;[span_129](end_span)
+                this.calendarModal.data = data; this.calendarModal.open = true; [span_130](start_span)},[span_130](end_span)
+                [span_131](start_span)getAgeAtDate(dob, targetDate) { if (!dob || !targetDate) return '';[span_131](end_span)
+                [span_132](start_span)const b = new Date(dob); const t = new Date(targetDate); let age = t.getFullYear() - b.getFullYear();[span_132](end_span)
+                [span_133](start_span)const m = t.getMonth() - b.getMonth(); if (m < 0 || (m === 0 && t.getDate() < b.getDate())) { age--;[span_133](end_span)
+                } return age >= 0 ? age : 0; [span_134](start_span)},[span_134](end_span)
+                [span_135](start_span)uploadImage(event, linkObj) { const file = event.target.files[0];[span_135](end_span)
+                if (!file) return; const reader = new FileReader(); reader.onload = (e) => { linkObj.url = e.target.result; [span_136](start_span)}; reader.readAsDataURL(file);[span_136](end_span)
                 },
-                saveLinks() { localStorage.setItem('crm_web_links', JSON.stringify(this.webLinks));
-                alert('網址已更新'); },
-                getWhatsappLink() { return this.client.phone ?
-                `https://wa.me/852${this.client.phone.replace(/[^0-9]/g, '')}` : '#'; },
+                [span_137](start_span)saveLinks() { localStorage.setItem('crm_web_links', JSON.stringify(this.webLinks));[span_137](end_span)
+                alert('網址已更新'); [span_138](start_span)},[span_138](end_span)
+                [span_139](start_span)getWhatsappLink() { return this.client.phone ?[span_139](end_span)
+                `https://wa.me/852${this.client.phone.replace(/[^0-9]/g, '')}` : '#'; [span_140](start_span)},[span_140](end_span)
                 sendWhatsappMessage(type, client, policy = null) {
-                    if (!client.phone) return alert('請先輸入電話號碼！');
-                    let phone = client.phone.replace(/[^0-9]/g, ''); if (phone.length === 8) phone = '852' + phone;
-                    let text = type === 'birthday' ? this.settings.waBirthday.replace(/{{name}}/g, client.owner || '') : type === 'insuredBirthday' ?
-                    this.settings.waBirthday.replace(/{{name}}/g, policy.insuredPerson || '') : this.settings.waRenewal.replace(/{{name}}/g, client.owner || '');
-                    if (policy && type === 'renewal') { text = text.replace(/{{insurer}}/g, policy.insurer || '').replace(/{{policyNo}}/g, policy.policyNo || '-').replace(/{{dueDate}}/g, policy.dueDate || '-').replace(/{{premium}}/g, policy.premium ? this.formatInput(policy.premium) : '-');
+                    [span_141](start_span)if (!client.phone) return alert('請先輸入電話號碼！');[span_141](end_span)
+                    [span_142](start_span)let phone = client.phone.replace(/[^0-9]/g, ''); if (phone.length === 8) phone = '852' + phone;[span_142](end_span)
+                    [span_143](start_span)let text = type === 'birthday' ? this.settings.waBirthday.replace(/{{name}}/g, client.owner || '') : type === 'insuredBirthday' ?[span_143](end_span)
+                    [span_144](start_span)this.settings.waBirthday.replace(/{{name}}/g, policy.insuredPerson || '') : this.settings.waRenewal.replace(/{{name}}/g, client.owner || '');[span_144](end_span)
+                    [span_145](start_span)if (policy && type === 'renewal') { text = text.replace(/{{insurer}}/g, policy.insurer || '').replace(/{{policyNo}}/g, policy.policyNo || '-').replace(/{{dueDate}}/g, policy.dueDate || '-').replace(/{{premium}}/g, policy.premium ? this.formatInput(policy.premium) : '-');[span_145](end_span)
                     }
-                    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
+                    [span_146](start_span)window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');[span_146](end_span)
                 },
                 
-                //【全新一鍵全表還原連動雲端功能】
+                // 🌟【全新一鍵全表還原連動雲端大同步功能】🌟
                 importAllData(e) { 
-                    const file = e.target.files[0];
-                    if (!file) return; 
-                    const reader = new FileReader(); 
-                    reader.onload = (ev) => { 
+                    [span_147](start_span)const file = e.target.files[0];[span_147](end_span)
+                    [span_148](start_span)if (!file) return;[span_148](end_span)
+                    [span_149](start_span)const reader = new FileReader();[span_149](end_span)
+                    [span_150](start_span)reader.onload = (ev) => {[span_150](end_span)
                         try { 
-                            const data = JSON.parse(ev.target.result);
-                            if(Array.isArray(data)) { 
+                            [span_151](start_span)const data = JSON.parse(ev.target.result);[span_151](end_span)
+                            [span_152](start_span)if(Array.isArray(data)) {[span_152](end_span)
                                 if(confirm(`確定要還原 ${data.length} 筆資料，並「同時強制同步推送到雲端資料庫」嗎？`)) { 
-                                    this.clients = data; 
-                                    this.saveDB(); // 先鎖定本地快取
+                                    [span_153](start_span)this.clients = data;[span_153](end_span)
+                                    this.saveDB(); [span_154](start_span)// 先鎖定本地快取[span_154](end_span)
                                     
-                                    // 啟動批量同步：將還原的客戶一個一個推上 Google Sheet
-                                    alert('正在同步全體資料到雲端，請勿關閉視窗...');
+                                    // 啟動批量雲端強推同步：將還原的客戶一個一個推上全新的 Google Sheet
+                                    alert('正在同步全體資料到新雲端庫中，請勿關閉視窗...');
                                     let syncPromises = data.map(clientData => {
                                         let d = JSON.parse(JSON.stringify(clientData));
                                         d.name = d.owner;
@@ -1031,101 +1033,99 @@
                                     
                                     Promise.all(syncPromises).then(results => {
                                         const successCount = results.filter(r => r && r.status === 'success').length;
-                                        alert(`還原及雲端大同步完成！\n成功同步：${successCount} / ${data.length} 筆資料。`);
-                                        window.location.reload();
+                                        alert(`還原及雲端大同步完成！\n成功同步：${successCount} / ${data.length} 筆資料到 new CRM 雲端中。`);
+                                        [span_155](start_span)window.location.reload();[span_155](end_span)
                                     });
                                 } 
                             } 
-                        } catch (err) { 
+                        [span_156](start_span)} catch (err) {[span_156](end_span)
                             alert('檔案出錯，請確認是否為正確的保險管家備份 JSON 檔。');
                         } 
-                        e.target.value = ''; 
+                        [span_157](start_span)e.target.value = '';[span_157](end_span)
                     }; 
-                    reader.readAsText(file); 
+                    [span_158](start_span)reader.readAsText(file);[span_158](end_span)
                 },
-                exportAllData() { const file = new File([JSON.stringify(this.clients, null, 2)], `CRM_BACKUP_${new Date().toISOString().slice(0,10).replace(/-/g, '')}.json`, { type: 'application/json' });
-                const url = URL.createObjectURL(file); const a = document.createElement('a'); a.href = url; a.download = file.name; document.body.appendChild(a); a.click();
-                setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000); }
+                [span_159](start_span)exportAllData() { const file = new File([JSON.stringify(this.clients, null, 2)], `CRM_BACKUP_${new Date().toISOString().slice(0,10).replace(/-/g, '')}.json`, { type: 'application/json' });[span_159](end_span)
+                [span_160](start_span)const url = URL.createObjectURL(file); const a = document.createElement('a'); a.href = url; a.download = file.name; document.body.appendChild(a); a.click();[span_160](end_span)
+                setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000); [span_161](start_span)}
             }
         }
 
         // 🌟 Client 邏輯
         function dashboardApp() {
             return {
-                client: {}, hasData: false, loadingMsg: '載入中...', clientRemarkModal: { open: false, text: '' },
+                client: {}, hasData: false, loadingMsg: '載入中...', clientRemarkModal: { open: false, text: '' },[span_161](end_span)
            
                 init() {
-                    const params = new URLSearchParams(window.location.search);
-                    const idData = params.get('id') || localStorage.getItem('client_app_id');
+                    [span_162](start_span)const params = new URLSearchParams(window.location.search);[span_162](end_span)
+                    [span_163](start_span)const idData = params.get('id') || localStorage.getItem('client_app_id');[span_163](end_span)
                     if (idData) {
-                        fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'get', id: idData, password: '' }) })
-                        .then(r => r.json()).then(data => { if (data.result === 'success') { this.process(data.data); } else { this.loadingMsg = "連結失效"; } })
+                        [span_164](start_span)fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'get', id: idData, password: '' }) })[span_164](end_span)
+                        [span_165](start_span).then(r => r.json()).then(data => { if (data.result === 'success') { this.process(data.data); } else { this.loadingMsg = "連結失效"; } })[span_165](end_span)
              
-                        .catch(e => { this.loadingMsg = "連線失敗"; });
-                    } else { this.loadingMsg = "無效連結"; }
+                        [span_166](start_span).catch(e => { this.loadingMsg = "連線失敗"; });[span_166](end_span)
+                    } else { this.loadingMsg = "無效連結"; [span_167](start_span)}
                 },
                 process(data) {
-                    let d = data;
-                    if(d && d.payload) { try { d = JSON.parse(d.payload); } catch(e){} }
-                    if(typeof d === 'string') { try { d = JSON.parse(d);
-                    } catch(e){} }
-                    this.client = d;
-                    if(!this.client.summary || !this.client.summary.insured) this.fallbackSummary(); this.hasData = true;
+                    let d = data;[span_167](end_span)
+                    if(d && d.payload) { try { d = JSON.parse(d.payload); [span_168](start_span)} catch(e){} }[span_168](end_span)
+                    [span_169](start_span)if(typeof d === 'string') { try { d = JSON.parse(d);[span_169](end_span)
+                    [span_170](start_span)} catch(e){} }[span_170](end_span)
+                    [span_171](start_span)this.client = d;[span_171](end_span)
+                    [span_172](start_span)if(!this.client.summary || !this.client.summary.insured) this.fallbackSummary(); this.hasData = true;[span_172](end_span)
                 },
-                formatNumber(num) { if (num === null || num === undefined || num === '') return '-';
-                const n = parseFloat(num.toString().replace(/,/g, '')); return isNaN(n) ? num : n.toLocaleString('en-US');
+                [span_173](start_span)formatNumber(num) { if (num === null || num === undefined || num === '') return '-';[span_173](end_span)
+                [span_174](start_span)const n = parseFloat(num.toString().replace(/,/g, '')); return isNaN(n) ? num : n.toLocaleString('en-US');[span_174](end_span)
                 },
-                getCategoryColor(cat) { if (['Medical', 'CI', 'Life', 'Accident', 'AccidentDeath', 'AccidentMedical'].includes(cat)) return 'text-red-500 font-bold';
-                if (['Savings', 'Fund', 'MPF'].includes(cat)) return 'text-blue-500 font-bold'; return 'text-gray-600 font-bold';
+                [span_175](start_span)getCategoryColor(cat) { if (['Medical', 'CI', 'Life', 'Accident', 'AccidentDeath', 'AccidentMedical'].includes(cat)) return 'text-red-500 font-bold';[span_175](end_span)
+                [span_176](start_span)if (['Savings', 'Fund', 'MPF'].includes(cat)) return 'text-blue-500 font-bold'; return 'text-gray-600 font-bold';[span_176](end_span)
                 },
-                openClientRemark(text) { this.clientRemarkModal.text = text;
-                this.clientRemarkModal.open = true; },
+                [span_177](start_span)openClientRemark(text) { this.clientRemarkModal.text = text;[span_177](end_span)
+                this.clientRemarkModal.open = true; [span_178](start_span)},[span_178](end_span)
                 
                 fallbackSummary() {
-                    let s = { totalPremium: 0, insured: [] };
-                    let personMap = {};
-                    if (this.client.policies) {
-                        this.client.policies.forEach(p => {
-                            if (p.isCancelled) return; 
-                            let p_amt = parseFloat(String(p.premium||'').replace(/,/g, '')) || 0; s.totalPremium += 
-                            (p.paymentMode === 'Monthly' ? (p_amt * 12) : p_amt);
-                            let person = (p.insuredPerson && p.insuredPerson.trim()) ? p.insuredPerson.trim() : (this.client.owner ? this.client.owner.trim() : (this.client.name ? this.client.name.trim() : '未命名'));
-                            if (!personMap[person]) personMap[person] = { name: person, medicalHighEnd: false, medicalTraditional: false, ciSum: 0, lifeSum: 0, accDeathSum: 0, accMedicalSum: 0 
+                    [span_179](start_span)let s = { totalPremium: 0, insured: [] };[span_179](end_span)
+                    [span_180](start_span)let personMap = {};[span_180](end_span)
+                    [span_181](start_span)if (this.client.policies) {[span_181](end_span)
+                        [span_182](start_span)this.client.policies.forEach(p => {[span_182](end_span)
+                            [span_183](start_span)if (p.isCancelled) return;[span_183](end_span)
+                            let p_amt = parseFloat(String(p.premium||'').replace(/,/g, '')) || [span_184](start_span)0; s.totalPremium +=[span_184](end_span)
+                            (p.paymentMode === 'Monthly' ? (p_amt * 12) [span_185](start_span): p_amt);[span_185](end_span)
+                            [span_186](start_span)let person = (p.insuredPerson && p.insuredPerson.trim()) ? p.insuredPerson.trim() : (this.client.owner ? this.client.owner.trim() : (this.client.name ? this.client.name.trim() : '未命名'));[span_186](end_span)
+                            [span_187](start_span)if (!personMap[person]) personMap[person] = { name: person, medicalHighEnd: false, medicalTraditional: false, ciSum: 0, lifeSum: 0, accDeathSum: 0, accMedicalSum: 0[span_187](end_span)
                             };
-                            (p.items || []).forEach(i => {
-                                if(!i) return; let amt = parseFloat(String(i.sumAssured||'0').replace(/,/g, '')) || 0; let r = i.remarks || ''; let n = i.name || '';
+                            (p.items || [])[span_188](start_span).forEach(i => {[span_188](end_span)
+                                if(!i) return; let amt = parseFloat(String(i.sumAssured||'0').replace(/,/g, '')) || 0; let r = i.remarks || ''; let n = i.name || [span_189](start_span)'';[span_189](end_span)
                 
-                                if (i.category === 'Medical') { if (r.includes('高端') ||
-                                n.includes('高端')) personMap[person].medicalHighEnd = true; else personMap[person].medicalTraditional = true; } 
-                                else if (i.category === 'CI') { personMap[person].ciSum += amt;
-                                } else if (i.category === 'Life') { personMap[person].lifeSum += amt;
-                                } 
-                                else if (i.category === 'AccidentDeath' || (i.category === 'Accident' && !r.includes('費用') && !r.includes('醫療') && !n.includes('費用') && !n.includes('醫療'))) { personMap[person].accDeathSum += amt;
+                                [span_190](start_span)if (i.category === 'Medical') { if (r.includes('高端') ||[span_190](end_span)
+                                n.includes('高端')) personMap[person].medicalHighEnd = true; else personMap[person].medicalTraditional = true; [span_191](start_span)}
+                                else if (i.category === 'CI') { personMap[person].ciSum += amt;[span_191](end_span)
+                                [span_192](start_span)} else if (i.category === 'Life') { personMap[person].lifeSum += amt;[span_192](end_span)
+                                [span_193](start_span)}
+                                else if (i.category === 'AccidentDeath' || (i.category === 'Accident' && !r.includes('費用') && !r.includes('醫療') && !n.includes('費用') && !n.includes('醫療'))) { personMap[person].accDeathSum += amt;[span_193](end_span)
                                 }
-                                else if (i.category === 'AccidentMedical' || (i.category === 'Accident' && (r.includes('費用') || r.includes('醫療') || n.includes('費用') || n.includes('醫療')))) { personMap[person].accMedicalSum += amt;
+                                [span_194](start_span)else if (i.category === 'AccidentMedical' || (i.category === 'Accident' && (r.includes('費用') || r.includes('醫療') || n.includes('費用') || n.includes('醫療')))) { personMap[person].accMedicalSum += amt;[span_194](end_span)
                                 }
                             });
-                        });
+                        [span_195](start_span)});[span_195](end_span)
                     }
-                    s.insured = Object.values(personMap);
-                    this.client.summary = s;
+                    [span_196](start_span)s.insured = Object.values(personMap);[span_196](end_span)
+                    [span_197](start_span)this.client.summary = s;[span_197](end_span)
                 }
             }
         }
         
-        // 🌟 【超級智慧型強制更新通道】 🌟
+        // 🌟【超級智慧型雙重強制更新通道 — 專配 v1.8.0】🌟
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
                 .then(reg => {
-                    // 每當檢測到背景有新 PWA 代碼更新
                     reg.onupdatefound = () => {
                         const installingWorker = reg.installing;
                         if (installingWorker == null) return;
                         installingWorker.onstatechange = () => {
                             if (installingWorker.state === 'installed') {
                                 if (navigator.serviceWorker.controller) {
-                                    // 發現新版本！直接提示並重啟
                                     console.log('發現新版本，正在套用強制更新...');
                                 }
                             }
@@ -1134,12 +1134,12 @@
                 }).catch(()=>{});
             });
 
-            // 當新的 Service Worker 正式激活奪權後，1秒內強制重新整理全域頁面
+            // 當新的 Service Worker 正式激活奪權後，強制重新整理全域頁面
             let refreshing = false;
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!refreshing) {
                     refreshing = true;
-                    alert('偵測到系統發布全新版本！程式即將為您自動升級刷新。');
+                    alert('保險管家已成功升級至雲端強刷版 v1.8.0！程式即將為您重新載入。');
                     window.location.reload(true);
                 }
             });
