@@ -11,7 +11,6 @@
             document.title = "我的財富與保障儀表板";
             document.write('<link rel="manifest" href="manifest-client.json"><link rel="icon" type="image/png" href="client-logo-192.png"><link rel="apple-touch-icon" href="client-logo-192.png">');
         } else {
-            // 🌟 標題版本號已同步更新為 v1.9.0
             document.title = "保險管家 v1.9.0 (Admin - Cloud)";
             document.write('<link rel="manifest" href="manifest-admin.json"><link rel="icon" type="image/png" href="admin-logo-192.png"><link rel="apple-touch-icon" href="admin-logo-192.png">');
         }
@@ -330,7 +329,6 @@
                                     <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-red-400 flex flex-col justify-center">
                                         <div class="text-xs text-gray-500 mb-1">🏥 醫療保障</div>
                                         <div class="text-sm font-bold text-gray-800 leading-relaxed">
-                                            <template x-for="person in protectionSummary.insured" :key="person.name">
                                             <template x-if="person.medicalHighEnd && person.medicalTraditional"><span>1. 高端醫療<br>2. 傳統醫療</span></template>
                                             <template x-if="person.medicalHighEnd && !person.medicalTraditional"><span class="text-lg">高端醫療</span></template>
                                             <template x-if="!person.medicalHighEnd && person.medicalTraditional"><span class="text-lg">傳統醫療</span></template>
@@ -400,7 +398,7 @@
                                         </div>
                                         <div class="px-4 py-3 bg-gray-50 flex justify-between items-center border-b border-gray-100" x-data="{ showPremium: false }">
                                             <div class="flex gap-6">
-                                                <div><span class="text-[10px] text-gray-500 block">保費 (<span x-text="policy.paymentMode === 'Monthly' ? '月繳' : '年繳'"></span>)</span><div class="flex items-center gap-2"><span class="font-mono font-bold text-gray-808" x-text="showPremium ? (policy.premium ? 'HK$ ' + formatNumber(policy.premium) : '-') : '****'"></span><button @click="showPremium = !showPremium" class="text-gray-400 hover:text-blue-600 transition"><i class="fa-solid" :class="showPremium ? 'fa-eye-slash' : 'fa-eye'"></i></button></div></div>
+                                                <div><span class="text-[10px] text-gray-500 block">保費 (<span x-text="policy.paymentMode === 'Monthly' ? '月繳' : '年繳'"></span>)</span><div class="flex items-center gap-2"><span class="font-mono font-bold text-gray-800" x-text="showPremium ? (policy.premium ? 'HK$ ' + formatNumber(policy.premium) : '-') : '****'"></span><button @click="showPremium = !showPremium" class="text-gray-400 hover:text-blue-600 transition"><i class="fa-solid" :class="showPremium ? 'fa-eye-slash' : 'fa-eye'"></i></button></div></div>
                                             </div>
                                         </div>
                                         <div class="p-2">
@@ -594,7 +592,6 @@
         function app() {
             return {
                 ADMIN_SECRET_KEY: 'YOUR_SECRET_SECRET_KEY_HERE',
-                // 🌟 版本號已正式更新為 1.9.0
                 version: '1.9.0', view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, clientRemarkModal: { open: false, text: '' },
                 uploadModal: { open: false, loading: false }, qrModal: { open: false }, linkModal: { url: '' }, itemRemarkModal: { open: false, item: {} },
                 showSettingsModal: false, calendarModal: { open: false, type: '', data: null }, settings: { waBirthday: '祝您生日快樂！', waRenewal: '溫馨提示保單續保。' },
@@ -680,13 +677,10 @@
                     .catch(e => console.error('網路連線失敗，本次修改已先儲存於本地。', e));
                     if(!stay) { alert('已儲存並成功同步至雲端'); this.view = 'list'; window.scrollTo(0,0); } 
                 },
-
-                // 🌟 永久徹底刪除功能（移除了垃圾桶中轉狀態）
                 permanentDeleteClient(id) { 
                     if(confirm('徹底刪除無法復原！確定？')) { 
                         this.clients = this.clients.filter(c => c.id !== id); 
                         this.saveDB(); 
-                        // 同步到雲端刪除
                         fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id: String(id), adminKey: this.ADMIN_SECRET_KEY }) })
                         .catch(e => console.error('雲端刪除失敗', e));
                     } 
@@ -780,7 +774,6 @@
             }
         }
 
-        // Client 邏輯
         function dashboardApp() {
             return {
                 client: {}, hasData: false, loadingMsg: '載入中...', clientRemarkModal: { open: false, text: '' },
@@ -822,7 +815,6 @@
             }
         }
         
-        // 🌟【超級智慧型雙重強制更新通道 — 專配 v1.9.0】🌟
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
