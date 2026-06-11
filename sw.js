@@ -1,4 +1,4 @@
-const CACHE_NAME = 'crm-cache-v1.9.3'; // 🌟 已經更新至 v1.9.3 強制更新版本號
+const CACHE_NAME = 'crm-cache-v1.9.4'; // 🌟 已經更新至 v1.9.4 強制更新版本號
 
 const urlsToCache = [
   '/',
@@ -9,7 +9,7 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
-  self.skipWaiting(); // 強制踢走舊版本，立刻讓新SW上線
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
@@ -28,7 +28,7 @@ self.addEventListener('activate', event => {
       );
     })
   );
-  self.clients.claim(); // 立刻控制全域網頁
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', event => {
