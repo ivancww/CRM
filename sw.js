@@ -1,4 +1,4 @@
-const CACHE_NAME = 'crm-cache-v1.9.0'; // 🌟 已經正式更新至 v1.9.0 強制更新版本號
+const CACHE_NAME = 'crm-cache-v1.9.1'; // 🌟 已經更新至 v1.9.1 強制更新版本號
 
 const urlsToCache = [
   '/',
