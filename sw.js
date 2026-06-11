@@ -1,4 +1,4 @@
-const CACHE_NAME = 'crm-cache-v1.9.1'; // 🌟 已經更新至 v1.9.1 強制更新版本號
+const CACHE_NAME = 'crm-cache-v1.9.3'; // 🌟 已經更新至 v1.9.3 強制更新版本號
 
 const urlsToCache = [
   '/',
@@ -8,15 +8,13 @@ const urlsToCache = [
   '/client-logo-192.png'
 ];
 
-// 安裝階段：立刻接管，不留等待
 self.addEventListener('install', event => {
-  self.skipWaiting(); // 強制踢走舊的 Service Worker，立刻讓新的上線
+  self.skipWaiting(); // 強制踢走舊版本，立刻讓新SW上線
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
 });
 
-// 激活階段：立刻清除所有舊版本的快取資料
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -30,14 +28,11 @@ self.addEventListener('activate', event => {
       );
     })
   );
-  self.clients.claim(); // 立刻控制所有打開的網頁視窗
+  self.clients.claim(); // 立刻控制全域網頁
 });
 
-// 網絡請求監聽（網絡優先，失敗時才抓快取，確保資料最新）
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
-  
-  // 排除對 Google Apps Script API 的快取，確保雲端儲存永不卡舊資料
   if (event.request.url.includes('script.google.com')) return;
 
   event.respondWith(
