@@ -11,8 +11,8 @@
             document.title = "我的財富與保障儀表板";
             document.write('<link rel="manifest" href="manifest-client.json"><link rel="icon" type="image/png" href="client-logo-192.png"><link rel="apple-touch-icon" href="client-logo-192.png">');
         } else {
-            // 🌟 標題版本號已同步更新為 v1.9.3
-            document.title = "保險管家 v1.9.3 (Admin - Cloud)";
+            // 🌟 標題版本號已同步更新為 v1.9.4
+            document.title = "保險管家 v1.9.4 (Admin - Cloud)";
             document.write('<link rel="manifest" href="manifest-admin.json"><link rel="icon" type="image/png" href="admin-logo-192.png"><link rel="apple-touch-icon" href="admin-logo-192.png">');
         }
     </script>
@@ -311,6 +311,7 @@
                 </div>
             </div>
 
+            <!-- Review 模式視窗 -->
             <div x-show="view === 'review'" x-transition x-cloak class="max-w-4xl mx-auto md:mt-4 md:mb-8 bg-white md:rounded-2xl shadow-2xl overflow-hidden relative border border-gray-200">
                 <div class="gradient-bg text-white p-6 md:p-8 flex justify-between items-center">
                     <div><p class="text-blue-200 text-sm mb-1">親愛的 <span x-text="client.owner || client.name || '客戶'"></span>：</p><h1 class="text-2xl md:text-3xl font-bold">您的家庭財富與保障報告</h1></div>
@@ -451,6 +452,7 @@
                 </div>
             </div>
             
+            <!-- 彈出窗 Modals -->
             <div x-show="syncProgress.show" style="display: none;" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-80" x-cloak>
                 <div class="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full mx-4 text-center">
                     <div class="mb-4 text-blue-600"><i class="fa-solid fa-circle-notch fa-spin text-4xl"></i></div>
@@ -463,14 +465,31 @@
             </div>
 
             <div x-show="uploadModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-80 rounded-lg shadow-xl p-6 text-center relative z-50"><h3 class="font-bold text-gray-800 mb-2 text-lg">建立專屬連結</h3><div x-show="uploadModal.loading" class="mb-4 text-blue-600 font-bold text-sm animate-pulse">上傳中...</div><button @click="uploadToCloud()" :disabled="uploadModal.loading" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold mb-3 shadow">確認並生成 QR Code</button><button @click="uploadModal.open = false" class="text-gray-400 text-sm">取消</button></div></div>
-            <div x-show="qrModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90" x-cloak><div class="bg-white w-80 rounded-lg shadow-xl p-6 text-center relative z-50"><h3 class="font-bold text-gray-800 mb-3">專屬連結已建立（可長按直接掃描）</h3><div class="flex justify-center mb-2 bg-white p-2 border rounded relative" style="min-height: 200px;"><img id="qr-image-visible" src="" class="w-full h-auto object-contain select-all" style="display:none;"><div id="qr-loading" class="absolute inset-0 flex items-center justify-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i></div><div id="qr-container-hidden" style="position:absolute; top:-9999px;"></div></div><button @click="copyLink()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold mb-3 shadow">複製連結</button><button @click="qrModal.open = false" class="text-gray-400 text-sm">關閉</button></div></div>
+            
+            <!-- 🌟 核心重構優化點：二維碼顯示區（支援安卓 Chrome 完美長按識別跳轉） -->
+            <div x-show="qrModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90" x-cloak>
+                <div class="bg-white w-80 rounded-lg shadow-xl p-6 text-center relative z-50">
+                    <h3 class="font-bold text-gray-800 mb-3">專屬連結已建立（可直接長按開啟）</h3>
+                    <div class="flex justify-center mb-2 bg-white p-2 border rounded relative" style="min-height: 200px;">
+                        <!-- 隱形連結層：疊加在圖片正上方，專門用來穿透並觸發安卓 Chrome 的原生網址長按選單 -->
+                        <a :href="linkModal.url" target="_blank" class="absolute inset-0 z-30 opacity-0 block cursor-pointer"></a>
+                        <img id="qr-image-visible" src="" class="w-full h-auto object-contain select-all relative z-10" style="display:none;">
+                        <div id="qr-loading" class="absolute inset-0 flex items-center justify-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i></div>
+                        <div id="qr-container-hidden" style="position:absolute; top:-9999px;"></div>
+                    </div>
+                    <button @click="copyLink()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold mb-3 shadow">複製連結</button>
+                    <button @click="qrModal.open = false" class="text-gray-400 text-sm">關閉</button>
+                </div>
+            </div>
+
             <div x-show="itemRemarkModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" x-cloak><div class="bg-white w-96 rounded-lg p-4 m-4"><h3 class="font-bold mb-2">編輯備註</h3><textarea x-model="itemRemarkModal.item.remarks" class="w-full h-32 border rounded p-2 text-sm mb-4"></textarea><div class="flex justify-end gap-2"><button @click="itemRemarkModal.open = false" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-bold">確定</button></div></div></div>
             <div x-show="clientRemarkModal.open" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4" x-cloak><div class="bg-white w-full max-w-sm rounded-2xl overflow-hidden relative"><div class="bg-red-500 p-4 text-center"><div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto text-red-500 text-2xl mb-2"><i class="fa-solid fa-info"></i></div><h3 class="font-bold text-white">保單項目備註</h3></div><div class="p-6"><div class="text-sm text-gray-700 whitespace-pre-line leading-relaxed" x-text="clientRemarkModal.text"></div><button @click="clientRemarkModal.open = false" class="mt-6 w-full bg-gray-100 text-gray-700 font-bold py-3 rounded-xl">關閉</button></div></div></div>
             <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" style="display: none;" x-show="calendarModal.open" x-cloak><div class="bg-white w-72 rounded-lg p-4 text-center"><h3 class="font-bold mb-4">加入日曆</h3><button @click="addToCalendar('google')" class="w-full bg-blue-600 text-white py-2 rounded mb-2 font-bold">Google Calendar</button><button @click="addToCalendar('ios')" class="w-full bg-gray-700 text-white py-2 rounded font-bold">iOS / Outlook</button><button @click="calendarModal.open = false" class="mt-4 text-gray-400 text-sm">取消</button></div></div>
-            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" style="display: none;" x-show="showSettingsModal" x-cloak><div class="bg-white w-full max-w-md rounded-lg shadow-xl p-6 m-4 max-h-[90vh] overflow-y-auto"><div class="flex justify-between items-center mb-4 border-b pb-2"><h3 class="font-bold text-gray-800 text-lg"><i class="fa-brands fa-whatsapp text-green-500 mr-2"></i>設定預設訊息</h3><button @click="showSettingsModal = false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-times text-xl"></i></button></div><div class="mb-5"><label class="block text-sm font-bold mb-2 text-gray-700">🎂 生日祝賀範本</label><textarea x-model="settings.waBirthday" class="w-full border rounded p-3 text-sm h-24 focus:ring-2 focus:ring-green-400 outline-none"></textarea></div><div class="mb-5"><label class="block text-sm font-bold mb-2 text-gray-700">📝 續保提醒範本</label><textarea x-model="settings.waRenewal" class="w-full border rounded p-3 text-sm h-32 focus:ring- green-400 outline-none"></textarea></div><button @click="saveSettings()" class="w-full bg-slate-800 text-white py-3 rounded-lg font-bold shadow hover:bg-slate-700 transition">儲存設定</button></div></div>
+            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75" style="display: none;" x-show="showSettingsModal" x-cloak><div class="bg-white w-full max-w-md rounded-lg shadow-xl p-6 m-4 max-h-[90vh] overflow-y-auto"><div class="flex justify-between items-center mb-4 border-b pb-2"><h3 class="font-bold text-gray-800 text-lg"><i class="fa-brands fa-whatsapp text-green-500 mr-2"></i>設定預設訊息</h3><button @click="showSettingsModal = false" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-times text-xl"></i></button></div><div class="mb-5"><label class="block text-sm font-bold mb-2 text-gray-700">🎂 生日祝賀範本</label><textarea x-model="settings.waBirthday" class="w-full border rounded p-3 text-sm h-24 focus:ring-2 focus:ring-green-400 outline-none"></textarea></div><div class="mb-5"><label class="block text-sm font-bold mb-2 text-gray-700">📝 續保提醒範本</label><textarea x-model="settings.waRenewal" class="w-full border rounded p-3 text-sm h-32 focus:ring-green-400 outline-none"></textarea></div><button @click="saveSettings()" class="w-full bg-slate-800 text-white py-3 rounded-lg font-bold shadow hover:bg-slate-700 transition">儲存設定</button></div></div>
         </div>
     </div>
 
+    <!-- Client Dashboard 模式 -->
     <div x-show="window.isClientView" x-data="dashboardApp()" x-cloak>
         <div x-show="!hasData" class="flex items-center justify-center min-h-screen"><div class="text-center text-gray-500"><i class="fa-solid fa-spinner fa-spin text-4xl mb-4 text-blue-500"></i><p class="font-bold" x-text="loadingMsg"></p></div></div>
         
@@ -507,7 +526,7 @@
                                 <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-blue-400">
                                     <div class="text-xs text-gray-500 mb-1">🕊️ 人壽保障 (家庭責任)</div>
                                     <div class="text-lg font-bold text-gray-800" x-text="person.lifeSum > 0 ? 'HK$ ' + formatNumber(person.lifeSum) : '尚未配置'"></div>
-                                    <div class="text-xs text-blue-600 font-bold mt-2 bg-blue-50 p-2 rounded border border-blue-100 flex items-start gap-1" x-show="person.lifeSum > 0"><i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 萬一有事，能覆蓋房貸及生活費嗎？</span></div>
+                                    <div class="text-xs text-blue-600 font-bold mt-2 bg-red-50 p-2 rounded border border-red-100 flex items-start gap-1" x-show="person.lifeSum > 0"><i class="fa-solid fa-triangle-exclamation mt-0.5"></i><span>❗ 萬一有事，能覆蓋房貸及生活費嗎？</span></div>
                                 </div>
                                 <div class="bg-white p-4 rounded-xl shadow-sm border-t-4 border-teal-400 flex flex-col justify-center">
                                     <div class="text-xs text-gray-500 mb-1">🚑 意外保障</div>
@@ -600,13 +619,12 @@
     </div>
 
     <script>
-        // 🌟 已成功自動綁定你的最新 GAS 佈署網址
         const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-1AkUDr7fL8digJDaCRiTliAeWikk8-XsXznXKHvBYQ5nP8vim7iq_N4FR1mp-RHp/exec';
         function app() {
             return {
-                // 🌟 已成功綁定你的專屬金鑰密碼 0903
                 ADMIN_SECRET_KEY: '0903',
-                version: '1.9.3', view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, clientRemarkModal: { open: false, text: '' },
+                // 🌟 版本識別號已更新為 1.9.4
+                version: '1.9.4', view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, clientRemarkModal: { open: false, text: '' },
                 uploadModal: { open: false, loading: false }, qrModal: { open: false }, linkModal: { url: '' }, itemRemarkModal: { open: false, item: {} },
                 showSettingsModal: false, calendarModal: { open: false, type: '', data: null }, settings: { waBirthday: '祝您生日快樂！', waRenewal: '溫馨提示保單續保。' },
                 syncProgress: { show: false, current: 0, total: 0 },
@@ -761,7 +779,6 @@
                     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, '_blank');
                 },
                 
-                // 🌟 還原大同步即時跳動進度條
                 importAllData(e) { 
                     const file = e.target.files[0]; if (!file) return;
                     const reader = new FileReader();
@@ -842,7 +859,7 @@
                             (p.items || []).forEach(i => {
                                 if(!i) return; let amt = parseFloat(String(i.sumAssured||'0').replace(/,/g, '')) || 0; let r = i.remarks || ''; let n = i.name || '';
                                 if (i.category === 'Medical') { if (r.includes('高端') || n.includes('高端')) personMap[person].medicalHighEnd = true; else personMap[person].medicalTraditional = true; }
-                                else if (i.category === 'CI') { personMap[person].ciSum += amt; }
+                                else if (i.category === 'CI', p) { personMap[person].ciSum += amt; }
                                 else if (i.category === 'Life') { personMap[person].lifeSum += amt; }
                                 else if (i.category === 'AccidentDeath' || (i.category === 'Accident' && !r.includes('費用') && !r.includes('醫療') && !n.includes('費用') && !n.includes('醫療'))) { personMap[person].accDeathSum += amt; }
                                 else if (i.category === 'AccidentMedical' || (i.category === 'Accident' && (r.includes('費用') || r.includes('醫療') || n.includes('費用') || n.includes('醫療')))) { personMap[person].accMedicalSum += amt; }
@@ -853,6 +870,7 @@
             }
         }
         
+        // 🌟 雙升級刷新通道通道（對齊 v1.9.4）
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js')
@@ -872,7 +890,7 @@
             navigator.serviceWorker.addEventListener('controllerchange', () => {
                 if (!refreshing) {
                     refreshing = true;
-                    alert('保險管家已成功升級至雲端強刷版 v1.9.3！程式即將為您重新載入。');
+                    alert('保險管家已成功升級至雲端強刷版 v1.9.4！程式即將為您重新載入。');
                     window.location.reload(true);
                 }
             });
