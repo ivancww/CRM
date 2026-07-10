@@ -151,6 +151,7 @@
                                                     <select x-model="item.category" :disabled="policy.isCancelled" :class="getCategoryColor(item.category)" class="w-full border rounded p-1 text-xs font-bold">
                                                         <optgroup label="保障"><option value="Medical">醫療</option><option value="CI">危疾</option><option value="Life">人壽</option><option value="AccidentDeath">意外身故</option><option value="AccidentMedical">意外醫療</option></optgroup>
                                                         <optgroup label="理財"><option value="Savings">儲蓄</option><option value="Fund">基金</option><option value="MPF">強積金</option></optgroup>
+                                                        <optgroup label="其他"><option value="Home">家居保</option><option value="Travel">全年旅遊保</option><option value="Wellness">健康程式</option></optgroup>
                                                     </select>
                                                 </td>
                                                 <td class="px-2 py-2"><input type="text" x-model="item.name" :disabled="policy.isCancelled" class="w-full border rounded p-1 text-xs"></td>
@@ -169,6 +170,44 @@
                         </div>
                     </template>
                     <button @click="addPolicy()" class="w-full py-3 border-2 border-dashed border-green-300 text-green-600 rounded-lg hover:bg-green-50 mb-6 font-bold">+ 新保單</button>
+                    
+                    <div class="bg-white rounded-lg shadow-md p-6 mb-6 border-t-4 border-purple-500">
+                        <h2 class="text-xl font-bold mb-4 text-purple-700">索償紀錄</h2>
+                        <div class="space-y-4 mb-6">
+                            <template x-for="(event, eIndex) in (client.claimEvents || [])" :key="eIndex">
+                                <div class="border rounded p-3" :class="event.status === 'Completed' ? 'bg-gray-50' : 'bg-white border-purple-200'">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <input type="text" x-model="event.name" class="font-bold border-b border-dashed flex-1 mr-2" placeholder="事件名稱 (例如: 意外住院)">
+                                        <div class="font-bold text-purple-600 text-right" x-text="'HK$' + formatNumber((event.items || []).reduce((s,i)=>s+Number(String(i.amount||0).replace(/,/g, '')),0))"></div>
+                                    </div>
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <span class="text-xs font-bold text-gray-500">索償日期:</span>
+                                        <input type="date" x-model="event.eventDate" class="border rounded p-1 text-xs">
+                                    </div>
+                                    <table class="w-full text-xs mb-2">
+                                        <thead><tr class="text-gray-400"><th class="text-left py-1">項次說明</th><th class="text-right py-1" width="100">金額 (HK$)</th><th width="30"></th></tr></thead>
+                                        <tbody>
+                                            <template x-for="(item, iIndex) in (event.items || [])" :key="iIndex">
+                                                <tr class="border-t">
+                                                    <td class="py-2"><input type="text" x-model="item.desc" class="w-full bg-transparent" placeholder="輸入說明..."></td>
+                                                    <td class="py-2"><input type="text" x-model="item.amount" @input="item.amount = formatInput($event.target.value)" class="w-full border rounded p-1 text-right" placeholder="0"></td>
+                                                    <td class="text-center"><button @click="event.items.splice(iIndex,1)" class="text-red-400 hover:text-red-600"><i class="fa-solid fa-minus-circle"></i></button></td>
+                                                </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                                    <div class="flex justify-between items-center mt-2 pt-2 border-t border-dashed">
+                                        <button @click="event.items.push({desc:'',amount:''})" class="text-purple-600 text-xs font-bold">+ 新增細項</button>
+                                        <div class="flex gap-2">
+                                            <button @click="event.status = event.status==='Pending'?'Completed':'Pending'" class="text-xs px-2 py-1 rounded border bg-white shadow-sm" x-text="event.status==='Pending'?'完成檔案':'重開檔案'"></button>
+                                            <button @click="client.claimEvents.splice(eIndex,1)" class="text-xs px-2 py-1 rounded text-red-400 border border-red-50 shadow-sm hover:bg-red-100"><i class="fa-solid fa-trash-can"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                            <button @click="addClaimEvent()" class="w-full py-2 border-2 border-dashed border-purple-300 text-purple-600 rounded text-sm font-bold bg-purple-50 hover:bg-purple-100 transition">+ 新索償檔案</button>
+                        </div>
+                    </div>
 
                     <button @click="updateSummary(); view = 'review'; window.scrollTo(0,0);" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-lg rounded-xl mt-4 shadow-lg transition active:scale-95">
                         <i class="fa-solid fa-desktop mr-2"></i> 進入 Admin Review 模式
@@ -194,6 +233,7 @@
                 </div>
 
                 <div class="p-4 md:p-8 bg-gray-50 min-h-[500px]">
+                    
                     <div x-show="currentTab === 'protection'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
                         <p class="text-gray-500 text-sm mb-6 text-center">從客觀角度檢視現有防護網，確保在突發情況下家庭財務依然穩健安寧。</p>
                         
@@ -317,37 +357,108 @@
                     </div>
 
                     <div x-show="currentTab === 'details'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0">
-                        <div x-data="{ selectedInsured: null, get uniquePersons() { return [...new Set(((client.policies||[]).filter(p=>!p.isCancelled)).map(p => (p.insuredPerson || client.owner || client.name || '未命名').trim()))] } }">
-                            <div class="flex flex-wrap gap-2 mb-4">
+                        
+                        <div x-data="{ 
+                            selectedInsured: null, 
+                            openCategory: 'Medical', /* 預設打開醫療 */
+                            get uniquePersons() { 
+                                return [...new Set(((client.policies||[]).filter(p=>!p.isCancelled)).map(p => (p.insuredPerson || client.owner || client.name || '未命名').trim()))] 
+                            },
+                            get categorizedPolicies() {
+                                if (!this.selectedInsured) return {};
+                                const policies = (client.policies || []).filter(p => !p.isCancelled && (p.insuredPerson || client.owner || client.name || '未命名').trim() === this.selectedInsured);
+                                
+                                /* 定義分類藍圖 */
+                                let groups = {
+                                    'Medical': { title: '🏥 醫療保障', bg: 'bg-green-50', border: 'border-green-500', text: 'text-green-700', items: [] },
+                                    'CI': { title: '🛡️ 危疾保障', bg: 'bg-purple-50', border: 'border-purple-500', text: 'text-purple-700', items: [] },
+                                    'Life': { title: '🕊️ 人壽保障', bg: 'bg-blue-50', border: 'border-blue-500', text: 'text-blue-700', items: [] },
+                                    'Accident': { title: '🚑 意外保障', bg: 'bg-yellow-50', border: 'border-yellow-500', text: 'text-yellow-700', items: [] },
+                                    'Wealth': { title: '💰 理財及儲蓄', bg: 'bg-indigo-50', border: 'border-indigo-500', text: 'text-indigo-700', items: [] },
+                                    'Other': { title: '📁 其他保障', bg: 'bg-gray-50', border: 'border-gray-500', text: 'text-gray-700', items: [] }
+                                };
+
+                                /* 根據主約 (第一項 item) 自動歸類 */
+                                policies.forEach(p => {
+                                    let mainCat = (p.items && p.items.length > 0) ? p.items[0].category : 'Other';
+                                    if (['Medical'].includes(mainCat)) groups['Medical'].items.push(p);
+                                    else if (['CI'].includes(mainCat)) groups['CI'].items.push(p);
+                                    else if (['Life'].includes(mainCat)) groups['Life'].items.push(p);
+                                    else if (['AccidentDeath', 'AccidentMedical', 'Accident'].includes(mainCat)) groups['Accident'].items.push(p);
+                                    else if (['Savings', 'Fund', 'MPF'].includes(mainCat)) groups['Wealth'].items.push(p);
+                                    else groups['Other'].items.push(p);
+                                });
+                                return groups;
+                            }
+                        }">
+                            
+                            <div class="flex flex-wrap gap-2 mb-6">
                                 <template x-for="person in uniquePersons" :key="person">
-                                    <button @click="selectedInsured = (selectedInsured === person ? null : person)" class="px-4 py-2 rounded-lg font-bold transition-all border shadow-sm" :class="selectedInsured === person ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50'" x-text="person"></button>
+                                    <button @click="selectedInsured = (selectedInsured === person ? null : person)" 
+                                            class="px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm border-2" 
+                                            :class="selectedInsured === person ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600'" 
+                                            x-text="person"></button>
                                 </template>
                             </div>
                             
                             <div x-show="selectedInsured" x-transition>
-                                <template x-for="(policy, index) in (client.policies || []).filter(p => !p.isCancelled && (p.insuredPerson || client.owner || client.name || '未命名').trim() === selectedInsured)" :key="index">
-                                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-4 overflow-hidden">
-                                        <div class="bg-blue-50/50 p-4 border-b border-gray-100 flex justify-between items-center gap-4">
-                                            <div><span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded font-bold mr-2" x-text="policy.insurer"></span><span class="font-bold text-gray-800">受保人：<span x-text="policy.insuredPerson || client.owner || client.name"></span></span></div>
-                                            <div class="text-sm text-gray-500 text-right"><div><span class="text-xs">保單號碼：</span><span class="font-mono font-bold" x-text="policy.policyNo || '-'"></span></div></div>
-                                        </div>
-                                        <div class="px-4 py-3 bg-gray-50 flex justify-between items-center border-b border-gray-100" x-data="{ showPremium: true }">
-                                            <div class="flex gap-6">
-                                                <div><span class="text-[10px] text-gray-500 block">保費 (<span x-text="policy.paymentMode === 'Monthly' ? '月繳' : '年繳'"></span>)</span><div class="flex items-center gap-2"><span class="font-mono font-bold text-gray-800" x-text="showPremium ? (policy.premium ? 'HK$ ' + formatNumber(policy.premium) : '-') : '****'"></span></div></div>
+                                <template x-for="(group, key) in categorizedPolicies" :key="key">
+                                    <div x-show="group.items.length > 0" class="mb-4 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden transition-all duration-300">
+                                        
+                                        <div @click="openCategory = (openCategory === key ? null : key)" 
+                                             class="p-4 cursor-pointer flex justify-between items-center transition-colors border-l-4"
+                                             :class="[openCategory === key ? group.bg : 'bg-white hover:bg-gray-50', group.border]">
+                                            <div class="flex items-center gap-3">
+                                                <h3 class="font-bold text-lg" :class="group.text" x-text="group.title"></h3>
+                                                <span class="bg-white px-2 py-1 rounded-md text-xs font-bold border shadow-sm text-gray-500" x-text="group.items.length + ' 份計劃'"></span>
+                                            </div>
+                                            <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm border border-gray-100">
+                                                <i class="fa-solid text-gray-400 transition-transform duration-300" :class="openCategory === key ? 'fa-chevron-up text-blue-500' : 'fa-chevron-down'"></i>
                                             </div>
                                         </div>
-                                        <div class="p-2">
-                                            <template x-for="(item, iIndex) in (policy.items || [])">
-                                                <div class="p-3 border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                                                    <div class="flex justify-between items-start mb-2"><div class="flex items-center gap-2"><div><div class="font-bold text-gray-800 text-sm" x-text="item.name || '未命名'"></div><div class="text-[10px]" :class="getCategoryColor(item.category)" x-text="item.category"></div></div></div></div>
-                                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded border border-gray-100 mt-1">
-                                                        <div><span class="text-gray-400">保額:</span> <span class="font-mono font-bold text-gray-700" x-text="item.sumAssured ? '$'+formatNumber(item.sumAssured) : '-'"></span></div>
+
+                                        <div x-show="openCategory === key" x-transition class="p-4 bg-gray-50 space-y-4 border-t border-gray-100">
+                                            <template x-for="(policy, index) in group.items" :key="index">
+                                                
+                                                <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                                                    <div class="px-4 py-3 border-b border-gray-100 flex justify-between items-center" :class="group.bg">
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="bg-white text-gray-700 border border-gray-200 text-[10px] px-2 py-1 rounded shadow-sm font-bold" x-text="policy.insurer"></span>
+                                                            <span class="text-xs text-gray-500 font-mono" x-text="'#' + (policy.policyNo || '處理中')"></span>
+                                                        </div>
+                                                        <div class="text-right">
+                                                            <div class="text-[10px] text-gray-500" x-text="policy.paymentMode === 'Monthly' ? '每月保費' : '每年保費'"></div>
+                                                            <div class="font-bold text-gray-800" x-text="policy.premium ? 'HK$ ' + formatNumber(policy.premium) : '未有紀錄'"></div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="p-3">
+                                                        <template x-for="(item, iIndex) in (policy.items || [])">
+                                                            <div class="py-2 border-b border-gray-50 last:border-0 flex justify-between items-center">
+                                                                <div class="flex items-center gap-2">
+                                                                    <span x-show="iIndex === 0" class="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">主約</span>
+                                                                    <span x-show="iIndex > 0" class="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-bold">附約</span>
+                                                                    
+                                                                    <div class="font-bold text-gray-700 text-sm" x-text="item.name || '未命名項目'"></div>
+                                                                </div>
+                                                                
+                                                                <div class="text-right pl-2">
+                                                                    <div class="text-[10px] text-gray-400">保障金額</div>
+                                                                    <div class="font-mono font-bold text-gray-700 text-sm" x-text="item.sumAssured ? 'HK$ '+formatNumber(item.sumAssured) : '-'"></div>
+                                                                </div>
+                                                            </div>
+                                                        </template>
                                                     </div>
                                                 </div>
                                             </template>
                                         </div>
                                     </div>
                                 </template>
+                            </div>
+                            
+                            <div x-show="!selectedInsured" class="text-center py-10 text-gray-400">
+                                <i class="fa-solid fa-hand-pointer text-3xl mb-3 opacity-50"></i>
+                                <p>請點擊上方家庭成員，檢視專屬保障明細</p>
                             </div>
                         </div>
                     </div>
@@ -466,7 +577,7 @@
                 },
 
                 updateSummary() {},
-                createNewClient() { this.client = { id: Date.now(), owner: '', phone: '', policies: [], fnaRetireVision: '', fnaRetireTools: '', fnaEduVision: '', fnaEduTools: '' }; this.addPolicy(); this.view = 'detail'; },
+                createNewClient() { this.client = { id: Date.now(), owner: '', phone: '', policies: [], claimEvents: [], fnaRetireVision: '', fnaRetireTools: '', fnaEduVision: '', fnaEduTools: '' }; this.addPolicy(); this.view = 'detail'; },
                 openClient(c) { this.client = JSON.parse(JSON.stringify(c)); this.view = 'detail'; },
                 
                 saveDB() { localStorage.setItem('crm_db_v8', JSON.stringify(this.clients)); },
@@ -506,6 +617,7 @@
                 removePolicy(i) { if(confirm('刪除這份保單？')) this.client.policies.splice(i,1); },
                 addRider(i) { if(!this.client.policies[i].items) this.client.policies[i].items = []; this.client.policies[i].items.push({ category: 'Medical' }); },
                 togglePolicyCancel(policy) { policy.cancelDate = policy.isCancelled ? new Date().toISOString().split('T')[0] : ''; },
+                addClaimEvent() { if(!this.client.claimEvents) this.client.claimEvents = []; this.client.claimEvents.push({ name: '', status: 'Pending', eventDate: '', items: [{ desc: '', amount: '' }] }); },
                 
                 // 恢復還原及批次同步上雲端功能
                 importAllData(e) { 
