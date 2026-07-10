@@ -11,8 +11,8 @@
             document.title = "我的財富與保障儀表板";
             document.write('<link rel="manifest" href="manifest-client.json"><link rel="icon" type="image/png" href="client-logo-192.png"><link rel="apple-touch-icon" href="client-logo-192.png">');
         } else {
-            // 🌟 標題版本號已同步更新為 v2.1.0
-            document.title = "保險管家 v2.1.0 (Admin - Cloud)";
+            // 🌟 標題版本號已同步修復更新為 v2.1.1
+            document.title = "保險管家 v2.1.1 (Admin - Cloud)";
             document.write('<link rel="manifest" href="manifest-admin.json"><link rel="icon" type="image/png" href="admin-logo-192.png"><link rel="apple-touch-icon" href="admin-logo-192.png">');
         }
     </script>
@@ -34,7 +34,6 @@
         .theme-blue { color: #1E3A8A; }
         .gradient-bg { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
         
-        /* 🌟 v2.1.0 專業圓餅視覺圖 CSS */
         .pie-chart {
             width: 140px; height: 140px; border-radius: 50%;
             background: conic-gradient(#dbeafe 0% 25%, #f3e8ff 25% 50%, #ffedd5 50% 75%, #dcfce7 75% 100%);
@@ -76,7 +75,6 @@
         </nav>
   
         <div class="container mx-auto p-4 max-w-5xl">
-            <!-- 後台核心錄入面板（保持穩定運作） -->
             <div x-show="view === 'list'" x-transition>
                 <div class="mb-4 flex flex-col md:flex-row gap-2">
                     <div class="relative flex-1"><i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i><input type="text" x-model="searchQuery" class="w-full p-3 pl-10 rounded-lg border shadow-sm focus:ring-2 focus:ring-blue-400" placeholder="搜尋客戶、電話..."></div>
@@ -109,7 +107,6 @@
                         <div><label class="block text-sm font-bold mb-1">電話</label><input type="tel" x-model="client.phone" class="w-full border rounded p-2"></div>
                         <div><label class="block text-sm font-bold mb-1">家庭</label><select x-model="client.marital" class="w-full border rounded p-2"><option value="Single">未婚</option><option value="Married">已婚</option></select></div>
                         <div>
-                            <!-- 🌟 此處的選擇會影響客戶前端是否展示「教育基金現金流」 -->
                             <label class="block text-sm font-bold mb-1 text-purple-600">小朋友數量</label>
                             <select x-model="client.children" class="w-full border-2 border-purple-200 rounded p-2 font-bold"><option value="0">0 (無子女)</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4+">4+</option></select>
                         </div>
@@ -126,7 +123,6 @@
                     </div>
                 </div>
 
-                <!-- 保單與附約錄入（維持原有架構） -->
                 <div>
                     <template x-for="(policy, pIndex) in (client.policies || [])" :key="pIndex">
                         <div class="bg-white rounded-lg shadow-md p-6 mb-6 border-t-4 relative" :class="policy.isCancelled ? 'policy-cancelled' : 'border-green-500'">
@@ -176,19 +172,17 @@
                     <h2 class="text-xl font-bold mb-4 text-purple-700">整體備註及跟進事項</h2>
                     <textarea x-model="client.remarks" class="w-full border rounded p-2 h-24" placeholder="輸入備註..."></textarea>
                 </div>
-                <button @click="updateSummary(); view = 'review'; window.scrollTo(0,0);" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-lg rounded-xl shadow-lg">
+                <button @click="updateSummary(); view = 'review'; window.scrollTo(0,0); fontFix();" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-lg rounded-xl shadow-lg">
                     <i class="fa-solid fa-desktop mr-2"></i> 進入 Admin Review 模式
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- 🌟 客戶端視窗 (Client View / Admin Review 共同模組) -->
     <div x-show="window.isClientView || view === 'review'" x-data="dashboardApp()" x-init="if(!window.isClientView) { $watch('view', value => { if(value === 'review') init(); }) }" x-cloak>
         <div x-show="window.isClientView && !hasData" class="flex items-center justify-center min-h-screen"><div class="text-center text-gray-500"><i class="fa-solid fa-circle-notch fa-spin text-4xl mb-4 text-blue-500"></i><p class="font-bold" x-text="loadingMsg"></p></div></div>
         
         <div class="max-w-4xl mx-auto md:mt-6 md:mb-8 bg-white md:rounded-3xl shadow-2xl overflow-hidden" x-show="!window.isClientView || hasData" x-data="{ currentTab: 'protection' }">
-            <!-- 頂部橫幅 -->
             <div class="gradient-bg text-white p-6 md:p-8 flex justify-between items-center">
                 <div><p class="text-blue-100 text-xs md:text-sm mb-1">親愛的 <span class="font-bold text-yellow-300" x-text="client.owner || '客戶'"></span>：</p><h1 class="text-2xl md:text-3xl font-bold tracking-wide">您的家庭財富與保障報告</h1></div>
                 <div class="bg-white/10 p-3 rounded-2xl text-center cursor-pointer" x-data="{ showTotal: false }" @click="showTotal = !showTotal">
@@ -197,7 +191,6 @@
                 </div>
             </div>
 
-            <!-- 🌟 核心進化：高格調雙分頁標籤導航列（Tab Navigation） -->
             <div class="bg-white border-b border-slate-200 flex p-2 gap-2 sticky top-0 z-40 backdrop-blur-md bg-white/90">
                 <button @click="currentTab = 'protection'" :class="currentTab === 'protection' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100'" class="flex-1 text-center py-3 rounded-xl font-extrabold text-sm md:text-base transition-all duration-200">
                     <i class="fa-solid fa-shield-halved mr-1.5"></i> 四大保障防禦
@@ -209,8 +202,7 @@
 
             <div class="p-4 md:p-8 space-y-8 bg-gray-50/50">
                 
-                <!-- 🌟 導航分頁 A：4大保障面板 -->
-                <div x-show="currentTab === 'protection'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+                <div x-show="currentTab === 'protection'" x-transition:enter="transition ease-out duration-300">
                     <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">第一層：全方位四大保障防護盾</h2>
                     
                     <template x-for="person in (client.summary?.insured || [])" :key="person.name">
@@ -219,7 +211,6 @@
                             
                             <div class="flex flex-col lg:flex-row items-center justify-between gap-6" x-data="{ activeCard: null }">
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 flex-1 w-full">
-                                    <!-- 人壽保障 -->
                                     <div @click="activeCard = (activeCard === 'Life' ? null : 'Life')" class="bg-blue-50/60 p-4 rounded-2xl border border-blue-100 cursor-pointer hover:shadow-md transition-all select-none">
                                         <div class="flex justify-between items-center text-blue-800 font-bold mb-1"><span>🕊️ 人壽保障</span><i class="fa-solid text-xs text-blue-400" :class="activeCard === 'Life' ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
                                         <div class="text-xl font-black text-blue-700 font-mono" x-text="person.lifeSum > 0 ? 'HK$ ' + formatNumber(person.lifeSum) : '尚未配置'"></div>
@@ -227,7 +218,6 @@
                                             <template x-for="p in getFilteredPolicies(person.name, 'Life')"><div><i class="fa-solid fa-file-contract text-blue-400 mr-1"></i><span class="font-bold" x-text="p.insurer"></span>: <span class="font-mono text-blue-600 font-bold" x-text="'$' + formatNumber(p.assured)"></span></div></template>
                                         </div>
                                     </div>
-                                    <!-- 危疾保障 -->
                                     <div @click="activeCard = (activeCard === 'CI' ? null : 'CI')" class="bg-purple-50/60 p-4 rounded-2xl border border-purple-100 cursor-pointer hover:shadow-md transition-all select-none">
                                         <div class="flex justify-between items-center text-purple-800 font-bold mb-1"><span>🛡️ 危疾保障</span><i class="fa-solid text-xs text-purple-400" :class="activeCard === 'CI' ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
                                         <div class="text-xl font-black text-purple-700 font-mono" x-text="person.ciSum > 0 ? 'HK$ ' + formatNumber(person.ciSum) : '尚未配置'"></div>
@@ -235,24 +225,21 @@
                                             <template x-for="p in getFilteredPolicies(person.name, 'CI')"><div><i class="fa-solid fa-file-contract text-purple-400 mr-1"></i><span class="font-bold" x-text="p.insurer"></span>: <span class="font-mono text-purple-600 font-bold" x-text="'$' + formatNumber(p.assured)"></span></div></template>
                                         </div>
                                     </div>
-                                    <!-- 意外保障 -->
                                     <div @click="activeCard = (activeCard === 'Accident' ? null : 'Accident')" class="bg-orange-50/60 p-4 rounded-2xl border border-orange-100 cursor-pointer hover:shadow-md transition-all select-none">
                                         <div class="flex justify-between items-center text-orange-800 font-bold mb-1"><span>🚑 意外保障</span><i class="fa-solid text-xs text-orange-400" :class="activeCard === 'Accident' ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
-                                        <div class="text-xs text-orange-700 font-medium">總身故保障: <span class="font-mono font-bold" x-text="'$' + formatNumber(person.accDeathSum)"></span></div>
+                                        <div class="text-xs text-orange-700 font-medium">總保障額: <span class="font-mono font-bold" x-text="'$' + formatNumber(person.accDeathSum)"></span></div>
                                         <div x-show="activeCard === 'Accident'" x-collapse class="mt-2 pt-2 border-t border-orange-200 text-xs text-slate-700 space-y-1" @click.stop>
                                             <template x-for="p in getFilteredPolicies(person.name, 'Accident')"><div><i class="fa-solid fa-file-contract text-orange-400 mr-1"></i><span class="font-bold" x-text="p.insurer"></span>: <span class="font-mono text-orange-600 font-bold" x-text="'$' + formatNumber(p.assured)"></span></div></template>
                                         </div>
                                     </div>
-                                    <!-- 醫療保障 -->
                                     <div @click="activeCard = (activeCard === 'Medical' ? null : 'Medical')" class="bg-green-50/60 p-4 rounded-2xl border border-green-100 cursor-pointer hover:shadow-md transition-all select-none">
-                                        <div class="flex justify-between items-center text-green-800 font-bold mb-1"><span>🏥 實報實銷醫療</span><i class="fa-solid text-xs text-green-400" :class="activeCard === 'Medical' ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
+                                        <div class="flex justify-between items-center text-green-800 font-bold mb-1"><span>🏥 實報實銷醫療</span><i class="fa-solid text-green-400 text-xs" :class="activeCard === 'Medical' ? 'fa-chevron-up' : 'fa-chevron-down'"></i></div>
                                         <div class="text-sm font-black text-green-700" x-text="person.medicalHighEnd ? '💎 已配置全球高端全數賠償' : (person.medicalTraditional ? '平衡型傳統醫療保障' : '尚未配置防禦卡片')"></div>
                                         <div x-show="activeCard === 'Medical'" x-collapse class="mt-2 pt-2 border-t border-green-200 text-xs text-slate-700 space-y-1" @click.stop>
                                             <template x-for="p in getFilteredPolicies(person.name, 'Medical')"><div><i class="fa-solid fa-file-contract text-green-400 mr-1"></i><span class="font-bold" x-text="p.insurer"></span> - <span class="text-[10px] text-slate-500" x-text="p.name"></span></div></template>
                                         </div>
                                     </div>
                                 </div>
-                                <!-- 置中圓餅圖 -->
                                 <div class="flex flex-col items-center justify-center p-2">
                                     <div class="pie-chart"><div class="pie-center"><span>全方位</span><span class="text-blue-600 font-extrabold mt-0.5">防禦力</span></div></div>
                                 </div>
@@ -261,14 +248,10 @@
                     </template>
                 </div>
 
-                <!-- 🌟 導航分頁 B：未來人生現金流面板（智能判斷子女） -->
-                <div x-show="currentTab === 'timeline'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
+                <div x-show="currentTab === 'timeline'" x-transition:enter="transition ease-out duration-300">
                     <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">第二層：人生藍圖財富蓄水池現金流</h2>
-                    
-                    <!-- 依據是否有仔女，動態調整網格：無仔女時為 grid-cols-2 橫向拉滿，有仔女時為 grid-cols-3 -->
                     <div class="grid gap-6" :class="(!client.children || client.children === '0') ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-3'">
                         
-                        <!-- 1. 🌅 退休生活現金流（永久顯示） -->
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col justify-between relative overflow-hidden">
                             <div class="absolute top-0 right-0 bg-orange-500/10 text-orange-600 w-12 h-12 flex items-center justify-center rounded-bl-2xl text-xl font-bold">🌅</div>
                             <div>
@@ -276,25 +259,19 @@
                                 <p class="text-xs text-slate-400 mb-4">約定退休年齡起 · 預期派發年金現金流</p>
                                 <div class="text-3xl font-black text-orange-600 font-mono tracking-wide" x-text="client.flowRetire ? 'HK$ ' + client.flowRetire + ' / 年' : '尚未深入探討'"></div>
                             </div>
-                            <div class="mt-6 pt-3 border-t border-dashed border-slate-200 text-xs text-slate-500">
-                                <i class="fa-solid fa-circle-check text-orange-500 mr-1"></i> 保證源源不絕的非薪資現金流，捍衛晚年尊嚴。
-                            </div>
+                            <div class="mt-6 pt-3 border-t border-dashed border-slate-200 text-xs text-slate-500"><i class="fa-solid fa-circle-check text-orange-500 mr-1"></i> 保證永續現金流，提早鎖定休閒晚年。</div>
                         </div>
 
-                        <!-- 2. 🎓 栽培下一代教育基金（🌟 智能動態判定：有子女才顯示） -->
-                        <div x-show="client.children && client.children !== '0'" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col justify-between relative overflow-hidden" x-transition>
+                        <div x-show="client.children && client.children !== '0'" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col justify-between relative overflow-hidden">
                             <div class="absolute top-0 right-0 bg-purple-500/10 text-purple-600 w-12 h-12 flex items-center justify-center rounded-bl-2xl text-xl font-bold">🎓</div>
                             <div>
                                 <h3 class="font-extrabold text-slate-800 text-md mb-1">栽培下一代教育基金</h3>
                                 <p class="text-xs text-slate-400 mb-4">子女 18-21 歲大學黃金期 · 現金流支援</p>
                                 <div class="text-3xl font-black text-purple-600 font-mono tracking-wide" x-text="client.flowEdu ? 'HK$ ' + client.flowEdu + ' / 年' : '尚未深入探討'"></div>
                             </div>
-                            <div class="mt-6 pt-3 border-t border-dashed border-slate-200 text-xs text-slate-500">
-                                <i class="fa-solid fa-graduation-cap text-purple-500 mr-1"></i> 專款專用，用時間槓桿完美對沖海外學費通脹。
-                            </div>
+                            <div class="mt-6 pt-3 border-t border-dashed border-slate-200 text-xs text-slate-500"><i class="fa-solid fa-graduation-cap text-purple-500 mr-1"></i> 專款專用，完美對沖海外學費通脹。</div>
                         </div>
 
-                        <!-- 3. 🩺 退休後醫保扣繳基金（永久顯示） -->
                         <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col justify-between relative overflow-hidden">
                             <div class="absolute top-0 right-0 bg-teal-500/10 text-teal-600 w-12 h-12 flex items-center justify-center rounded-bl-2xl text-xl font-bold">🩺</div>
                             <div>
@@ -302,32 +279,12 @@
                                 <p class="text-xs text-slate-400 mb-4">65歲後高齡醫療費 · 壓力釋放狀態</p>
                                 <div class="text-2xl font-black text-teal-700 tracking-wide mt-1.5" x-text="client.flowMedical || '尚未配置'"></div>
                             </div>
-                            <div class="mt-6 pt-3 border-t border-dashed border-slate-200 text-xs text-slate-500">
-                                <i class="fa-solid fa-shield-virus text-teal-500 mr-1"></i> 分紅全自動對沖高齡保費，實現終身「醫保自付額現金流 $0」。
-                            </div>
+                            <div class="mt-6 pt-3 border-t border-dashed border-slate-200 text-xs text-slate-500"><i class="fa-solid fa-shield-virus text-teal-500 mr-1"></i> 分紅全自動對沖高齡保費。</div>
                         </div>
-
-                    </div>
-                </div>
-
-                <!-- 歷史理賠區 -->
-                <div x-show="(client.claimEvents || []).length > 0" class="pt-2">
-                    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">附錄：家庭理賠服務跟進歷史</h2>
-                    <div class="bg-white rounded-2xl shadow-sm border p-4">
-                        <template x-for="event in client.claimEvents">
-                            <div class="bg-slate-50 p-4 rounded-xl border mb-2 relative">
-                                <h4 class="font-bold text-slate-800 text-sm" x-text="event.name"></h4>
-                                <div class="text-[11px] text-slate-400 mb-2">立案日期：<span x-text="event.eventDate || '-'"></span></div>
-                                <div class="space-y-1 border-t pt-2 border-dashed">
-                                    <template x-for="item in event.items"><div class="flex justify-between text-xs text-slate-600"><span><i class="fa-solid fa-receipt mr-1 text-slate-300"></i><span x-text="item.desc"></span></span><span class="font-mono font-bold text-purple-600" x-text="'HK$ ' + formatNumber(item.amount)"></span></div></template>
-                                </div>
-                            </div>
-                        </template>
                     </div>
                 </div>
             </div>
 
-            <!-- 共用顧問底部與智慧跳轉（完全支援安卓 Chrome 長按網址識別） -->
             <div class="bg-white border-t p-6 flex justify-between items-center md:rounded-b-3xl">
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 bg-blue-100 text-blue-600 flex items-center justify-center rounded-full text-xl"><i class="fa-solid fa-user-tie"></i></div>
@@ -352,7 +309,6 @@
                     <button @click="qrModal.open = false" class="text-gray-400 text-sm">關閉</button>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -361,7 +317,7 @@
         function app() {
             return {
                 ADMIN_SECRET_KEY: '0903',
-                version: '2.1.0', view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, clientRemarkModal: { open: false, text: '' },
+                version: '2.1.1', view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {}, clientRemarkModal: { open: false, text: '' },
                 uploadModal: { open: false, loading: false }, qrModal: { open: false }, linkModal: { url: '' }, itemRemarkModal: { open: false, item: {} },
                 showSettingsModal: false, calendarModal: { open: false, type: '', data: null }, settings: { waBirthday: '祝您生日快樂！', waRenewal: '溫馨提示保單續保。' },
                 syncProgress: { show: false, current: 0, total: 0 },
@@ -438,10 +394,12 @@
                         try { const data = JSON.parse(ev.target.result); if(Array.isArray(data)) { if(confirm(`確定要還原 ${data.length} 筆資料嗎？`)) { this.clients = data; this.saveDB(); this.syncProgress.total = data.length; this.syncProgress.current = 0; this.syncProgress.show = true; for (let i = 0; i < data.length; i++) { let d = JSON.parse(JSON.stringify(data[i])); d.name = d.owner; await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ forceId: String(d.id), action: 'update', payload: JSON.stringify(d), adminKey: this.ADMIN_SECRET_KEY }) }); this.syncProgress.current = i + 1; } this.syncProgress.show = false; alert('大同步完成！'); window.location.reload(); } } } catch (err) { alert('出錯'); this.syncProgress.show = false; }
                     }; reader.readAsText(file);
                 },
-                exportAllData() { const file = new File([JSON.stringify(this.clients, null, 2)], `CRM_BACKUP_${new Date().toISOString().slice(0,10).replace(/-/g, '')}.json`, { type: 'application/json' }); const url = URL.createObjectURL(file); const a = document.createElement('a'); a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000); }
+                exportAllData() { const file = new File([JSON.stringify(this.clients, null, 2)], `CRM_BACKUP_${new Date().toISOString().slice(0,10).replace(/-/g, '')}.json`, { type: 'application/json' }); const url = URL.createObjectURL(file); const a = document.createElement('a'); a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000); },
+                fontFix() { window.scrollTo(0,1); }
             }
         }
 
+        // 🌟 v2.1.1 終極強效容錯過濾：完美穿透任何英文大小寫名字偏差
         function dashboardApp() {
             return {
                 client: {}, hasData: false, loadingMsg: '載入中...',
@@ -452,19 +410,22 @@
                 process(data) { let d = data; if(d && d.payload) { try { d = JSON.parse(d.payload); } catch(e){} } if(typeof d === 'string') { try { d = JSON.parse(d); } catch(e){} } this.client = d; if(!this.client.summary || !this.client.summary.insured) this.fallbackSummary(); this.hasData = true; },
                 formatNumber(num) { if (num === null || num === undefined || num === '') return '-'; const n = parseFloat(num.toString().replace(/,/g, '')); return isNaN(n) ? num : n.toLocaleString('en-US'); },
                 getCategoryColor(cat) { if (['Medical', 'CI', 'Life', 'Accident'].includes(cat)) return 'text-red-500 font-bold'; return 'text-blue-500 font-bold'; },
+                
+                // 🌟 修正點：比對時全面轉成小寫 (.toLowerCase()) 去除格式陷阱
                 getFilteredPolicies(insuredName, targetCat) {
                     if (!this.client || !this.client.policies) return []; let res = [];
+                    const normalizedInsured = insuredName.trim().toLowerCase();
                     this.client.policies.forEach(p => {
                         if (p.isCancelled) return;
                         let person = (p.insuredPerson || '').trim() || (this.client.owner || '').trim() || '未命名';
-                        if (person.toLowerCase() === insuredName.trim().toLowerCase()) {
+                        if (person.trim().toLowerCase() === normalizedInsured) {
                             (p.items || []).forEach(i => {
                                 let match = false;
                                 if (targetCat === 'Life' && i.category === 'Life') match = true;
                                 if (targetCat === 'CI' && i.category === 'CI') match = true;
                                 if (targetCat === 'Medical' && i.category === 'Medical') match = true;
                                 if (targetCat === 'Accident' && ['Accident', 'AccidentDeath', 'AccidentMedical'].includes(i.category)) match = true;
-                                if (match) { res.push({ insurer: p.insurer, policyNo: p.policyNo || '處理中', cat: i.category, name: i.name, assured: i.sumAssured }); }
+                                if (match) { res.push({ insurer: p.insurer, policyNo: p.policyNo || '處理中', cat: i.category, prodName: i.name, name: i.name, assured: i.sumAssured }); }
                             });
                         }
                     }); return res;
@@ -475,31 +436,19 @@
                         this.client.policies.forEach(p => {
                             if (p.isCancelled) return; let p_amt = parseFloat(String(p.premium||'').replace(/,/g, '')) || 0; s.totalPremium += (p.paymentMode === 'Monthly' ? (p_amt * 12) : p_amt);
                             let person = (p.insuredPerson && p.insuredPerson.trim()) ? p.insuredPerson.trim() : (this.client.owner ? this.client.owner.trim() : '未命名');
-                            if (!personMap[person]) personMap[person] = { name: person, medicalHighEnd: false, medicalTraditional: false, ciSum: 0, lifeSum: 0, accDeathSum: 0, accMedicalSum: 0 };
+                            let norm = person.trim().toLowerCase();
+                            if (!personMap[norm]) personMap[norm] = { name: person, medicalHighEnd: false, medicalTraditional: false, ciSum: 0, lifeSum: 0, accDeathSum: 0, accMedicalSum: 0 };
                             (p.items || []).forEach(i => {
                                 if(!i) return; let amt = parseFloat(String(i.sumAssured||'0').replace(/,/g, ''));
-                                if (i.category === 'Medical') { if ((i.remarks||'').includes('高端') || (i.name||'').includes('高端')) personMap[person].medicalHighEnd = true; else personMap[person].medicalTraditional = true; }
-                                else if (i.category === 'CI') personMap[person].ciSum += amt;
-                                else if (i.category === 'Life') personMap[person].lifeSum += amt;
-                                else if (['Accident', 'AccidentDeath', 'AccidentMedical'].includes(i.category)) personMap[person].accDeathSum += amt;
+                                if (i.category === 'Medical') { if ((i.remarks||'').includes('高端') || (i.name||'').includes('高端')) personMap[norm].medicalHighEnd = true; else personMap[norm].medicalTraditional = true; }
+                                else if (i.category === 'CI') personMap[norm].ciSum += amt;
+                                else if (i.category === 'Life') personMap[norm].lifeSum += amt;
+                                else if (['Accident', 'AccidentDeath', 'AccidentMedical'].includes(i.category)) personMap[norm].accDeathSum += amt;
                             });
                         });
                     } s.insured = Object.values(personMap); this.client.summary = s;
                 }
             }
-        }
-        
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').then(reg => {
-                    reg.onupdatefound = () => {
-                        const installingWorker = reg.installing; if (installingWorker == null) return;
-                        installingWorker.onstatechange = () => { if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) { console.log('有新版'); } };
-                    };
-                });
-            });
-            let refreshing = false;
-            navigator.serviceWorker.addEventListener('controllerchange', () => { if (!refreshing) { refreshing = true; alert('保險管家已升級至 v2.1.0 智能導航客製版！頁面即將自動重載。'); window.location.reload(true); } });
         }
     </script>
 </body>
