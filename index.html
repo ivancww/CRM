@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script>
-        document.title = "保險管家 v1.10.0 (Admin - Cloud)";
+        document.title = "保險管家 v1.10.1 (Admin - Cloud)";
         document.write('<link rel="manifest" href="manifest-admin.json"><link rel="icon" type="image/png" href="admin-logo-192.png"><link rel="apple-touch-icon" href="admin-logo-192.png">');
     </script>
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -106,7 +106,7 @@
                         { id: 'Medical', name: '醫療保障', icon: '🏥', color: 'green', sheet: '醫療保險' }
                     ]">
                         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden" x-data="{ open: false }">
-                            <div @click="open = !open" class="p-4 cursor-pointer flex justify-between items-center hover:bg-gray-50 border-l-4" :class="'border-' + cat.color + '-500 bg-' + cat.color + '-5/30'">
+                            <div @click="open = !open" class="p-4 cursor-pointer flex justify-between items-center hover:bg-gray-50 border-l-4" :class="'border-' + cat.color + '-500 bg-' + cat.color + '-50/30'">
                                 <div class="flex items-center gap-2">
                                     <span class="text-xl" x-text="cat.icon"></span>
                                     <h3 class="font-bold text-lg text-gray-800" x-text="cat.name"></h3>
@@ -160,7 +160,7 @@
                                                         
                                                         <!-- 連動選單：產品名稱選取 -->
                                                         <select x-model="item.name" @change="handleProductChange(item, cat.id)" class="flex-1 border-b border-gray-200 text-sm font-bold text-gray-800 bg-white p-0.5 outline-none">
-                                                            <option value="">-- 請選取產品名稱 (從雲端庫自動對應) --</option>
+                                                            <option value="">-- 請選取產品名稱 --</option>
                                                             <template x-for="prod in productLibrary[cat.id]" :key="prod.name">
                                                                 <option :value="prod.name" x-text="prod.name"></option>
                                                             </template>
@@ -181,6 +181,24 @@
                             </div>
                         </div>
                     </template>
+
+                    <!-- 🌟 獨立：健康程式選項 -->
+                    <div class="bg-teal-50/50 rounded-xl shadow-sm border border-teal-200 overflow-hidden mt-4">
+                        <div class="p-4 flex justify-between items-center cursor-pointer" @click="client.hasWellness = !client.hasWellness">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xl">🏃‍♂️</span>
+                                <h3 class="font-bold text-lg text-teal-800">健康程式 (Wellness Program)</h3>
+                            </div>
+                            <label class="flex items-center cursor-pointer pointer-events-none">
+                                <div class="relative">
+                                    <input type="checkbox" x-model="client.hasWellness" class="sr-only">
+                                    <div class="block w-10 h-6 rounded-full transition-colors duration-300" :class="client.hasWellness ? 'bg-teal-500' : 'bg-gray-300'"></div>
+                                    <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300" :class="client.hasWellness ? 'transform translate-x-4' : ''"></div>
+                                </div>
+                                <span class="ml-3 text-sm font-bold" :class="client.hasWellness ? 'text-teal-700' : 'text-gray-500'" x-text="client.hasWellness ? '已啟用' : '未啟用'"></span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 3. 未來人生現金流輸入 -->
@@ -202,8 +220,8 @@
                                 <div x-show="isMatchingCategory(policy, 'Wealth') && !policy.isCancelled" class="bg-white border border-indigo-200 rounded-xl shadow-sm p-4 relative">
                                     <button @click="removePolicy(pIndex)" class="absolute top-3 right-3 text-gray-300 hover:text-red-500 transition"><i class="fa-solid fa-trash"></i></button>
                                     <div class="mb-4 border-b pb-3">
-                                        <label class="text-[10px] font-bold text-gray-400 block mb-1">持有人 / 命名</label>
-                                        <input type="text" x-model="policy.insuredPerson" class="w-full text-base font-bold text-gray-800 bg-transparent border-b border-dashed border-gray-300 outline-none pb-1" placeholder="輸入持有人名字">
+                                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">持有人 / 命名</label>
+                                        <input type="text" x-model="policy.insuredPerson" class="w-full text-base font-bold text-gray-800 bg-transparent border-b border-dashed border-gray-300 focus:border-indigo-500 outline-none pb-1" placeholder="輸入持有人名字">
                                     </div>
                                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                                         <div>
@@ -229,7 +247,7 @@
                                                         <option value="Savings">儲蓄</option><option value="Fund">基金</option><option value="MPF">強積金</option>
                                                     </select>
                                                     <select x-model="item.name" @change="handleProductChange(item, 'Wealth')" class="flex-1 border-b border-gray-200 text-sm font-bold text-gray-800 bg-white outline-none">
-                                                        <option value="">-- 請選取產品名稱 (自動讀取理財險分頁) --</option>
+                                                        <option value="">-- 請選取產品名稱 --</option>
                                                         <template x-for="prod in productLibrary.Wealth" :key="prod.name"><option :value="prod.name" x-text="prod.name"></option></template>
                                                     </select>
                                                 </div>
@@ -441,12 +459,11 @@
                                         </div>
                                     </div>
 
-                                    <!-- 4. 醫療保障 (核心升級：顯示高端/傳統標籤) -->
-                                    <div x-data Levant="{ showDetails: false }" class="bg-green-50/50 p-5 rounded-xl border border-green-200 shadow-sm hover:shadow-md transition">
+                                    <!-- 4. 醫療保障 (🌟 已經修正 x-data) -->
+                                    <div x-data="{ showDetails: false }" class="bg-green-50/50 p-5 rounded-xl border border-green-200 shadow-sm hover:shadow-md transition">
                                         <div class="flex justify-between items-center mb-4 cursor-pointer" @click="showDetails = !showDetails">
                                             <div class="flex items-center gap-2">
                                                 <h4 class="font-bold text-green-800">醫療保障</h4>
-                                                <!-- 🌟 智能顯示高端或傳統定位 -->
                                                 <span class="text-[9px] font-bold px-1.5 py-0.5 rounded shadow-inner" :class="person.medicalHighEnd ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'" x-text="person.medicalHighEnd ? '高端醫療':'傳統醫療'"></span>
                                             </div>
                                             <div class="flex items-center gap-1 text-xs font-bold text-green-700 bg-green-100/50 px-2 py-1 rounded">
@@ -465,6 +482,7 @@
                                             <div class="text-sm font-bold text-gray-400" x-show="!person.medicalHighEnd && !person.medicalTraditional">尚未配置</div>
                                         </div>
 
+                                        <!-- 保單明細 (正確運作版) -->
                                         <div x-show="showDetails" x-transition class="mt-4 pt-4 border-t border-dashed border-green-300 space-y-3">
                                             <template x-for="(pol, i) in person.medDetails" :key="i">
                                                 <div class="bg-white p-3 rounded-lg border border-green-100 shadow-sm">
@@ -496,6 +514,16 @@
                                 </div>
                             </div>
                         </template>
+                        
+                        <!-- 🌟 專屬展示：健康程式 (如果客人在後台勾選了) -->
+                        <div x-show="client.hasWellness" x-transition class="mt-6 mb-10 bg-gradient-to-r from-teal-50 to-emerald-50 p-5 rounded-xl border border-teal-200 flex items-center gap-4 shadow-sm" x-cloak>
+                            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl shadow-sm text-teal-500"><i class="fa-solid fa-heart-pulse"></i></div>
+                            <div>
+                                <h4 class="font-bold text-teal-800 text-lg">專享健康程式獎賞</h4>
+                                <p class="text-sm text-teal-600 mt-1">客戶已啟動健康程式（如 AIA Vitality / 宏利 MOVE），透過保持健康生活習慣，可持續享有保費折扣或保障增值！</p>
+                            </div>
+                        </div>
+
                     </div>
 
                     <!-- 標籤 2: 未来人生現金流 (前台催眠提問展示) -->
@@ -564,7 +592,7 @@
                 </div>
 
                 <div class="bg-white border-t border-gray-200 p-6 flex justify-between items-center">
-                    <button @click="view = 'detail';" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-bold shadow-md transition">裝回 🔙 返回編輯頁面</button>
+                    <button @click="view = 'detail';" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-bold shadow-md transition">🔙 返回編輯頁面</button>
                 </div>
             </div>
 
@@ -586,7 +614,7 @@
         function app() {
             return {
                 ADMIN_SECRET_KEY: '0903',
-                version: '1.10.0', view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {},
+                version: '1.10.1', view: 'list', searchQuery: '', renewalFilter: '', birthdayFilter: '', typeFilter: '', clients: [], client: {},
                 itemRemarkModal: { open: false, item: {} },
                 syncProgress: { show: false, current: 0, total: 0 },
                 
@@ -632,7 +660,7 @@
                     const list = this.productLibrary[catId] || [];
                     const found = list.find(p => p.name === item.name);
                     if (found) {
-                        item.remarks = found.feature || ''; // 自動對應輸入特點內容入備註
+                        item.remarks = found.feature || ''; // 自動對應輸入特點內容入備註[span_0](start_span)[span_0](end_span)
                         // 如果是醫療保險，同步記錄高端或傳統標籤
                         if (catId === 'Medical' && found.type) {
                             item.medicalType = found.type;
@@ -687,7 +715,7 @@
                             personMap[person] = { 
                                 name: person, 
                                 lifeCount: 0, lifePremium: 0, lifeSum: 0, lifeDetails: [],
-                                ciCount: 0, ciPremium: 0, ciSum: 0, ciPolicies: [], ciDetails: [],
+                                ciCount: 0, ciPremium: 0, ciSum: 0, ciDetails: [],
                                 accCount: 0, accPremium: 0, accDeathSum: 0, accMedicalSum: 0, accDetails: [],
                                 medCount: 0, medPremium: 0, medicalHighEnd: false, medicalTraditional: false, medDetails: []
                             };
@@ -731,7 +759,7 @@
                 },
 
                 updateSummary() {},
-                createNewClient() { this.client = { id: Date.now(), owner: '', dob: '', children: '0', policies: [], fnaRetireVision: '', fnaEduVision: '' }; this.view = 'detail'; },
+                createNewClient() { this.client = { id: Date.now(), owner: '', dob: '', children: '0', hasWellness: false, policies: [], fnaRetireVision: '', fnaEduVision: '' }; this.view = 'detail'; },
                 openClient(c) { this.client = JSON.parse(JSON.stringify(c)); this.view = 'detail'; },
                 
                 saveDB() { localStorage.setItem('crm_db_v8', JSON.stringify(this.clients)); },
