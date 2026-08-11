@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA Team | 保險 CRM v2.1.2</title>
+    <title>Apex Vision Alliance | AVA CRM v2.1.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -12,43 +12,56 @@
         .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .gold-text { color: #D4AF37; }
         .blue-text { color: #38BDF8; }
+        .emerald-text { color: #10B981; }
     </style>
 </head>
 <body x-data="app()" x-init="initApp()">
 
-    <!-- 主頁 -->
+    <!-- ================= 1. 第一頁：主頁 (Portal) ================= -->
     <div x-show="currentPage === 'portal'" class="min-h-screen flex flex-col justify-center items-center p-6 text-center">
-        <div class="glass-card p-8 rounded-3xl max-w-sm w-full border border-amber-500/40 shadow-2xl">
-            <h1 class="text-2xl font-black gold-text mb-1">Apex Vision Alliance</h1>
-            <p class="text-xs text-slate-400 mb-6 uppercase tracking-widest">AVA CRM Engine v2.1.2</p>
+        <div class="glass-card p-8 rounded-3xl max-w-sm w-full border border-amber-500/40 shadow-2xl space-y-4">
+            
+            <!-- 🌟 主頁 Logo：套用 admin-logo-192.png 及 512.png -->
+            <div class="w-28 h-28 mx-auto flex items-center justify-center p-1 bg-[#000511] rounded-2xl border border-amber-500/40 shadow-xl overflow-hidden">
+                <img src="admin-logo-192.png" 
+                     srcset="admin-logo-192.png 1x, admin-logo-512.png 2x" 
+                     alt="AVA CRM Logo" 
+                     class="w-full h-full object-contain">
+            </div>
 
-            <button @click="currentPage = 'admin'" class="w-full py-3.5 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold rounded-xl shadow-lg flex items-center justify-center gap-2">
+            <h1 class="text-xl font-black gold-text">Apex Vision Alliance</h1>
+            <p class="text-[10px] text-slate-400 uppercase tracking-widest">AVA CRM Executive System v2.1.3</p>
+
+            <button @click="currentPage = 'admin'" class="w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-xs">
                 <i class="fa-solid fa-user-gear"></i> 進入後台管理系統
             </button>
         </div>
     </div>
 
-    <!-- 後台管理 -->
+    <!-- ================= 2. 第二頁：後台管理 (Admin) ================= -->
     <div x-show="currentPage === 'admin'" class="min-h-screen pb-20">
+        <!-- 頂部列 -->
         <header class="sticky top-0 z-40 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
                 <button @click="currentPage = 'portal'" class="text-slate-400 hover:text-white mr-1"><i class="fa-solid fa-arrow-left"></i></button>
+                <!-- 頂部小 Logo -->
+                <img src="admin-logo-192.png" class="w-6 h-6 object-contain rounded">
                 <span class="font-bold gold-text text-sm">AVA Admin</span>
-                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.1.2</span>
+                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.1.3</span>
             </div>
-            <button @click="initApp()" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg">
-                🔄 重新載入數據
+            <button @click="initApp()" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/10">
+                🔄 重新同步 Sheet
             </button>
         </header>
 
         <main class="p-4 max-w-lg mx-auto space-y-6">
-            <!-- 客戶選擇選單 (標準原生 Select) -->
+            <!-- 客戶選擇 (標準 Select，依 A-Z 順序) -->
             <section class="glass-card p-4 rounded-2xl">
                 <div class="flex justify-between items-center mb-2">
-                    <label class="text-xs font-bold gold-text">👤 選擇 / 新增客戶 (依 A-Z 排序)</label>
+                    <label class="text-xs font-bold gold-text">👤 選擇 / 新增客戶 (依 A-Z 順序)</label>
                     <button @click="createNewClient()" class="text-xs text-blue-400 hover:underline">+ 新增客戶</button>
                 </div>
-                
+
                 <select x-model="selectedClientId" @change="loadSelectedClient()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
                     <option value="">-- 請選擇客戶 (現有: <span x-text="clients.length"></span> 位) --</option>
                     <template x-for="c in clients" :key="c.id">
@@ -73,33 +86,34 @@
                         </div>
                     </section>
 
-                    <!-- AI 保單解析 -->
+                    <!-- AI 智能讀取文件 (Gemini 3.6 Flash) -->
                     <section class="glass-card p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5">
-                        <h3 class="text-xs font-bold gold-text mb-2"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 智能自動上載讀取 (Gemini 3.6 Flash)</h3>
-                        <input type="file" @change="uploadAndParse($event)" accept="image/*, application/pdf" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950">
+                        <h3 class="text-xs font-bold gold-text mb-1"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 自動讀取保單 (Gemini 3.6 Flash)</h3>
+                        <p class="text-[10px] text-slate-400 mb-3">上載圖片/PDF，自動提取文字並可選用 Sheet 特點：</p>
+                        
+                        <input type="file" @change="uploadAndParse($event)" accept="image/*, application/pdf" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400">
                         
                         <div x-show="isParsing" class="mt-2 text-xs text-amber-400 font-bold animate-pulse">
-                            <i class="fa-solid fa-spinner fa-spin"></i> 正在傳送及解析保單中...
+                            <i class="fa-solid fa-spinner fa-spin"></i> 正在上載及解析保單中...
                         </div>
                     </section>
 
-                    <!-- 保障列表 (標準 Select 下拉選單) -->
+                    <!-- 保障列表 (可手動輸入，亦可下拉選擇對應 Sheet) -->
                     <section class="space-y-4">
                         <div class="flex justify-between items-center">
                             <h3 class="text-xs font-bold blue-text">📜 保障列表 (<span x-text="currentClient.policies ? currentClient.policies.length : 0"></span>)</h3>
-                            <button @click="addEmptyPolicy()" class="text-xs bg-slate-800 px-2.5 py-1 rounded-lg text-blue-400">+ 手動新增保障</button>
+                            <button @click="addEmptyPolicy()" class="text-xs bg-slate-800 px-2.5 py-1 rounded-lg text-blue-400 border border-slate-700">+ 手動新增保障</button>
                         </div>
 
                         <template x-for="(pol, pIndex) in currentClient.policies" :key="pIndex">
                             <div class="glass-card p-4 rounded-2xl space-y-3 relative border-l-4 border-l-blue-500">
-                                <button @click="removePolicy(pIndex)" class="absolute top-3 right-3 text-xs text-red-400"><i class="fa-solid fa-trash-can"></i> 刪除</button>
+                                <button @click="removePolicy(pIndex)" class="absolute top-3 right-3 text-xs text-red-400 hover:text-red-300"><i class="fa-solid fa-trash-can"></i> 刪除</button>
 
                                 <div class="grid grid-cols-2 gap-2 text-xs">
                                     <div>
-                                        <label class="text-[10px] text-slate-400">保險公司 (下拉選擇)</label>
-                                        <!-- 標準原生的 Select 下拉選單 -->
+                                        <label class="text-[10px] text-slate-400">保險公司 (下拉選單)</label>
                                         <select x-model="pol.insurer" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
-                                            <option value="">-- 請選擇保險公司 --</option>
+                                            <option value="">-- 請選擇 --</option>
                                             <template x-for="inc in dbProducts['保險公司名單'] || []">
                                                 <option :value="inc" x-text="inc"></option>
                                             </template>
@@ -125,8 +139,7 @@
                                                 </select>
                                             </div>
                                             <div>
-                                                <label class="text-[10px] text-slate-400">產品名稱 (對應 Google Sheet)</label>
-                                                <!-- 標準原生的產品 Select 下拉選單 -->
+                                                <label class="text-[10px] text-slate-400">產品名稱 (對應 Sheet 產品)</label>
                                                 <select x-model="item.name" @change="onProductSelect(item)" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
                                                     <option value="">-- 請選擇產品 --</option>
                                                     <template x-for="p in getProductListForCategory(item.category)" :key="p.name">
@@ -161,7 +174,8 @@
                         </template>
                     </section>
 
-                    <button @click="saveCurrentClient()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 font-bold rounded-xl text-xs text-white shadow-lg">
+                    <!-- 儲存按鈕 -->
+                    <button @click="saveCurrentClient()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 font-bold rounded-xl text-xs text-white shadow-lg">
                         💾 儲存並同步至 Google Sheet CRM 分頁
                     </button>
                 </div>
@@ -169,9 +183,9 @@
         </main>
     </div>
 
+    <!-- ================= Alpine.js 應用引擎 ================= -->
     <script>
-        // 🌟 請確保貼上你最熱騰騰重新部署的 GAS 網址（網址結尾必須是 /exec）
-        const GAS_URL = "YOUR_GAS_DEPLOYMENT_URL_HERE"; 
+        const GAS_URL = "https://script.google.com/macros/s/AKfycby-1AkUDr7fL8digJDaCRiTliAeWikk8-XsXznXKHvBYQ5nP8vim7iq_N4FR1mp-RHp/exec";
 
         function app() {
             return {
@@ -187,7 +201,6 @@
                     this.fetchProducts();
                 },
 
-                // 通用 Safe Fetch 方法，徹底防止 SyntaxError
                 safePost(data) {
                     return fetch(GAS_URL, {
                         method: 'POST',
@@ -198,7 +211,7 @@
                         try {
                             return JSON.parse(text);
                         } catch (e) {
-                            throw new Error("伺服器回傳了非 JSON 格式 (HTML 錯誤網頁)。請檢查 GAS 是否有全新部署！");
+                            throw new Error("伺服器回應異常，請確認 GAS 權限已設為「所有人」！");
                         }
                     });
                 },
@@ -212,7 +225,7 @@
                             alert('讀取客戶失敗: ' + res.message);
                         }
                     })
-                    .catch(err => alert('系統錯誤: ' + err.message));
+                    .catch(err => alert('讀取客戶失敗: ' + err.message));
                 },
 
                 fetchProducts() {
@@ -302,7 +315,7 @@
                                 });
 
                                 this.saveCurrentClient();
-                                alert('🎉 保單解析成功！已帶入資料並自動同步至 Google Sheet CRM。');
+                                alert('🎉 保單解析成功！已自動填入並同步至 Google Sheet CRM。');
                             } else {
                                 alert('解析失敗: ' + (res.message || '無法識別文件'));
                             }
