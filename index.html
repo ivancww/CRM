@@ -3,64 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA Team | 尊尚保險管理系統 v2.1.1</title>
+    <title>AVA Team | 保險 CRM v2.1.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body { background-color: #0B0F19; color: #F3F4F6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .gold-border { border-color: rgba(212, 175, 55, 0.4); }
         .gold-text { color: #D4AF37; }
         .blue-text { color: #38BDF8; }
-        .emerald-text { color: #10B981; }
     </style>
 </head>
 <body x-data="app()" x-init="initApp()">
 
-    <!-- ================= 主頁 (Portal) ================= -->
+    <!-- 主頁 -->
     <div x-show="currentPage === 'portal'" class="min-h-screen flex flex-col justify-center items-center p-6 text-center">
-        <div class="glass-card p-8 rounded-3xl max-w-sm w-full border gold-border shadow-2xl">
-            <!-- ✨ 更新為第二張圖 Apex Vision Alliance (AVA) Logo -->
-            <div class="w-24 h-24 mx-auto mb-4 relative flex items-center justify-center bg-slate-900/80 rounded-2xl border border-amber-500/30 p-2">
-                <svg viewBox="0 0 100 100" class="w-full h-full">
-                    <path d="M50 10 L85 25 L85 60 L50 90 L15 60 L15 25 Z" fill="#D90429" stroke="#FFD700" stroke-width="3"/>
-                    <path d="M50 20 L30 75 L42 75 L50 50 L58 75 L70 75 Z" fill="#FFD700"/>
-                    <circle cx="50" cy="45" r="8" fill="#111827"/>
-                    <path d="M50 38 L54 52 L46 52 Z" fill="#D90429"/>
-                </svg>
-            </div>
-            <h1 class="text-2xl font-black tracking-wider gold-text mb-1">Apex Vision Alliance</h1>
-            <p class="text-xs text-slate-400 mb-6 uppercase tracking-widest">AVA Team CRM v2.1.1</p>
+        <div class="glass-card p-8 rounded-3xl max-w-sm w-full border border-amber-500/40 shadow-2xl">
+            <h1 class="text-2xl font-black gold-text mb-1">Apex Vision Alliance</h1>
+            <p class="text-xs text-slate-400 mb-6 uppercase tracking-widest">AVA CRM Engine v2.1.2</p>
 
-            <button @click="currentPage = 'admin'" class="w-full py-3.5 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+            <button @click="currentPage = 'admin'" class="w-full py-3.5 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold rounded-xl shadow-lg flex items-center justify-center gap-2">
                 <i class="fa-solid fa-user-gear"></i> 進入後台管理系統
             </button>
         </div>
     </div>
 
-    <!-- ================= 後台管理 (Admin) ================= -->
+    <!-- 後台管理 -->
     <div x-show="currentPage === 'admin'" class="min-h-screen pb-20">
         <header class="sticky top-0 z-40 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
                 <button @click="currentPage = 'portal'" class="text-slate-400 hover:text-white mr-1"><i class="fa-solid fa-arrow-left"></i></button>
                 <span class="font-bold gold-text text-sm">AVA Admin</span>
-                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.1.1</span>
+                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.1.2</span>
             </div>
+            <button @click="initApp()" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg">
+                🔄 重新載入數據
+            </button>
         </header>
 
         <main class="p-4 max-w-lg mx-auto space-y-6">
-            <!-- 客戶選擇 (A-Z 順序) -->
+            <!-- 客戶選擇選單 (標準原生 Select) -->
             <section class="glass-card p-4 rounded-2xl">
                 <div class="flex justify-between items-center mb-2">
-                    <label class="text-xs font-bold gold-text">👤 選擇 / 新增客戶 (A-Z 順序)</label>
+                    <label class="text-xs font-bold gold-text">👤 選擇 / 新增客戶 (依 A-Z 排序)</label>
                     <button @click="createNewClient()" class="text-xs text-blue-400 hover:underline">+ 新增客戶</button>
                 </div>
+                
                 <select x-model="selectedClientId" @change="loadSelectedClient()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
-                    <option value="">-- 請選擇客戶 --</option>
+                    <option value="">-- 請選擇客戶 (現有: <span x-text="clients.length"></span> 位) --</option>
                     <template x-for="c in clients" :key="c.id">
-                        <option :value="c.id" x-text="(c.owner || '未命名') + ' (' + (c.policies ? c.policies.length : 0) + '份保單)'"></option>
+                        <option :value="c.id" x-text="(c.owner || '未命名') + ' (' + (c.policies ? c.policies.length : 0) + ' 份保單)'"></option>
                     </template>
                 </select>
             </section>
@@ -81,28 +73,21 @@
                         </div>
                     </section>
 
-                    <!-- 🌟 AI 上載 (帶進度條 % + 自動讀取) -->
-                    <section class="glass-card p-4 rounded-2xl gold-border bg-amber-500/5">
-                        <h3 class="text-xs font-bold gold-text mb-2"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 智能自動讀取文件 (Gemini 3.6 Flash)</h3>
+                    <!-- AI 保單解析 -->
+                    <section class="glass-card p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5">
+                        <h3 class="text-xs font-bold gold-text mb-2"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 智能自動上載讀取 (Gemini 3.6 Flash)</h3>
                         <input type="file" @change="uploadAndParse($event)" accept="image/*, application/pdf" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950">
                         
-                        <!-- 進度顯示 -->
-                        <div x-show="isParsing" class="mt-3 space-y-1">
-                            <div class="flex justify-between text-xs text-amber-400 font-bold">
-                                <span><i class="fa-solid fa-spinner fa-spin"></i> 正在解析保單中...</span>
-                                <span x-text="parseProgress + '%'"></span>
-                            </div>
-                            <div class="w-full bg-slate-800 rounded-full h-2">
-                                <div class="bg-amber-500 h-2 rounded-full transition-all duration-300" :style="'width: ' + parseProgress + '%'"></div>
-                            </div>
+                        <div x-show="isParsing" class="mt-2 text-xs text-amber-400 font-bold animate-pulse">
+                            <i class="fa-solid fa-spinner fa-spin"></i> 正在傳送及解析保單中...
                         </div>
                     </section>
 
-                    <!-- 保單列表 (可手動輸入 + 下拉選單) -->
+                    <!-- 保障列表 (標準 Select 下拉選單) -->
                     <section class="space-y-4">
                         <div class="flex justify-between items-center">
                             <h3 class="text-xs font-bold blue-text">📜 保障列表 (<span x-text="currentClient.policies ? currentClient.policies.length : 0"></span>)</h3>
-                            <button @click="addEmptyPolicy()" class="text-xs bg-slate-800 px-2.5 py-1 rounded-lg text-blue-400">+ 新增保障</button>
+                            <button @click="addEmptyPolicy()" class="text-xs bg-slate-800 px-2.5 py-1 rounded-lg text-blue-400">+ 手動新增保障</button>
                         </div>
 
                         <template x-for="(pol, pIndex) in currentClient.policies" :key="pIndex">
@@ -111,13 +96,14 @@
 
                                 <div class="grid grid-cols-2 gap-2 text-xs">
                                     <div>
-                                        <label class="text-[10px] text-slate-400">保險公司 (可選/可打)</label>
-                                        <input type="text" x-model="pol.insurer" list="inc-list" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
-                                        <datalist id="inc-list">
+                                        <label class="text-[10px] text-slate-400">保險公司 (下拉選擇)</label>
+                                        <!-- 標準原生的 Select 下拉選單 -->
+                                        <select x-model="pol.insurer" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
+                                            <option value="">-- 請選擇保險公司 --</option>
                                             <template x-for="inc in dbProducts['保險公司名單'] || []">
-                                                <option :value="inc"></option>
+                                                <option :value="inc" x-text="inc"></option>
                                             </template>
-                                        </datalist>
+                                        </select>
                                     </div>
                                     <div>
                                         <label class="text-[10px] text-slate-400">保單編號</label>
@@ -139,15 +125,14 @@
                                                 </select>
                                             </div>
                                             <div>
-                                                <label class="text-[10px] text-slate-400">產品名稱 (可下拉選單)</label>
-                                                <input type="text" x-model="item.name" :list="'prod-list-' + item.category" @change="onProductSelect(item)" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
-                                                
-                                                <!-- 對應險種分頁選單 -->
-                                                <datalist :id="'prod-list-' + item.category">
+                                                <label class="text-[10px] text-slate-400">產品名稱 (對應 Google Sheet)</label>
+                                                <!-- 標準原生的產品 Select 下拉選單 -->
+                                                <select x-model="item.name" @change="onProductSelect(item)" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
+                                                    <option value="">-- 請選擇產品 --</option>
                                                     <template x-for="p in getProductListForCategory(item.category)" :key="p.name">
-                                                        <option :value="p.name"></option>
+                                                        <option :value="p.name" x-text="p.name"></option>
                                                     </template>
-                                                </datalist>
+                                                </select>
                                             </div>
                                         </div>
 
@@ -167,7 +152,7 @@
                                         </div>
 
                                         <div>
-                                            <label class="text-[10px] text-slate-400">產品特點 (可手動修改/自動下拉選擇代入)</label>
+                                            <label class="text-[10px] text-slate-400">產品特點 (選產品後自動帶入，亦可手動修改)</label>
                                             <textarea x-model="item.features" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-xs text-slate-300"></textarea>
                                         </div>
                                     </div>
@@ -176,18 +161,17 @@
                         </template>
                     </section>
 
-                    <!-- 自動上載同步至 Sheet -->
-                    <button @click="saveCurrentClient()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 font-bold rounded-xl text-xs text-white">
-                        💾 儲存並自動同步至 Google Sheet CRM 分頁
+                    <button @click="saveCurrentClient()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 font-bold rounded-xl text-xs text-white shadow-lg">
+                        💾 儲存並同步至 Google Sheet CRM 分頁
                     </button>
                 </div>
             </template>
         </main>
     </div>
 
-    <!-- Alpine.js 引擎 -->
     <script>
-        const GAS_URL = "YOUR_GAS_DEPLOYMENT_URL_HERE"; // 🌟 請替換為你的 GAS 部署網址
+        // 🌟 請確保貼上你最熱騰騰重新部署的 GAS 網址（網址結尾必須是 /exec）
+        const GAS_URL = "YOUR_GAS_DEPLOYMENT_URL_HERE"; 
 
         function app() {
             return {
@@ -197,16 +181,30 @@
                 selectedClientId: '',
                 currentClient: null,
                 isParsing: false,
-                parseProgress: 0,
 
                 initApp() {
                     this.fetchClients();
                     this.fetchProducts();
                 },
 
+                // 通用 Safe Fetch 方法，徹底防止 SyntaxError
+                safePost(data) {
+                    return fetch(GAS_URL, {
+                        method: 'POST',
+                        body: JSON.stringify(data)
+                    })
+                    .then(r => r.text())
+                    .then(text => {
+                        try {
+                            return JSON.parse(text);
+                        } catch (e) {
+                            throw new Error("伺服器回傳了非 JSON 格式 (HTML 錯誤網頁)。請檢查 GAS 是否有全新部署！");
+                        }
+                    });
+                },
+
                 fetchClients() {
-                    fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'get' }) })
-                    .then(r => r.json())
+                    this.safePost({ action: 'get' })
                     .then(res => {
                         if (res.status === 'success') {
                             this.clients = res.data || [];
@@ -214,14 +212,15 @@
                             alert('讀取客戶失敗: ' + res.message);
                         }
                     })
-                    .catch(err => alert('網絡連線失敗: ' + err));
+                    .catch(err => alert('系統錯誤: ' + err.message));
                 },
 
                 fetchProducts() {
-                    fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'getProducts' }) })
-                    .then(r => r.json())
+                    this.safePost({ action: 'getProducts' })
                     .then(res => {
-                        if (res.status === 'success') this.dbProducts = res.data || {};
+                        if (res.status === 'success') {
+                            this.dbProducts = res.data || {};
+                        }
                     });
                 },
 
@@ -241,7 +240,7 @@
                 addEmptyPolicy() {
                     if (!this.currentClient.policies) this.currentClient.policies = [];
                     this.currentClient.policies.push({
-                        insurer: 'AIA', policyNumber: '', premium: 0,
+                        insurer: '', policyNumber: '', premium: 0,
                         items: [{ category: 'CI', name: '', sumAssured: 0, term: '', maturity: '', features: '' }]
                     });
                 },
@@ -268,26 +267,18 @@
                     if (!file) return;
 
                     this.isParsing = true;
-                    this.parseProgress = 20;
-
                     const reader = new FileReader();
+
                     reader.onload = (ev) => {
-                        this.parseProgress = 50;
                         const base64Data = ev.target.result.split(',')[1];
 
-                        fetch(GAS_URL, {
-                            method: 'POST',
-                            body: JSON.stringify({
-                                action: 'parsePolicyDocument',
-                                fileData: base64Data,
-                                mimeType: file.type
-                            })
+                        this.safePost({
+                            action: 'parsePolicyDocument',
+                            fileData: base64Data,
+                            mimeType: file.type
                         })
-                        .then(r => r.json())
                         .then(res => {
-                            this.parseProgress = 100;
-                            setTimeout(() => { this.isParsing = false; }, 500);
-
+                            this.isParsing = false;
                             if (res.status === 'success' && res.data) {
                                 const p = res.data;
                                 if (!this.currentClient.policies) this.currentClient.policies = [];
@@ -301,26 +292,24 @@
                                     features: p.features || ''
                                 };
 
-                                // 自動搜尋選單帶入特點
                                 this.onProductSelect(newItem);
 
                                 this.currentClient.policies.push({
-                                    insurer: p.insurer || 'AIA',
+                                    insurer: p.insurer || '',
                                     policyNumber: p.policyNumber || '',
                                     premium: Number(p.premium) || 0,
                                     items: [newItem]
                                 });
 
-                                // 自動同步寫入 Google Sheet CRM 分頁
                                 this.saveCurrentClient();
-                                alert('🎉 保單解析成功！資料已自動寫入 Google Sheet CRM 分頁。');
+                                alert('🎉 保單解析成功！已帶入資料並自動同步至 Google Sheet CRM。');
                             } else {
-                                alert('❌ 解析失敗: ' + (res.message || '無法識別文件'));
+                                alert('解析失敗: ' + (res.message || '無法識別文件'));
                             }
                         })
                         .catch(err => {
                             this.isParsing = false;
-                            alert('⚠️ 系統錯誤: ' + err);
+                            alert('上載失敗: ' + err.message);
                         });
                     };
 
@@ -328,14 +317,11 @@
                 },
 
                 saveCurrentClient() {
-                    fetch(GAS_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: 'update', payload: this.currentClient })
-                    })
-                    .then(r => r.json())
+                    this.safePost({ action: 'update', payload: this.currentClient })
                     .then(res => {
                         if (res.status === 'success') {
                             this.fetchClients();
+                            alert('成功同步至 Google Sheet CRM 分頁！');
                         }
                     });
                 }
