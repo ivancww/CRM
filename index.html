@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA CRM v2.3.6 Auto Height & USD Currency Version</title>
+    <title>AVA CRM v2.3.8 Live Sync Name Version</title>
 
     <link rel="manifest" href="manifest-admin.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=2.3.6">
-    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-192.png?v=2.3.6">
+    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=2.3.8">
+    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-192.png?v=2.3.8">
     <meta name="theme-color" content="#0B0F19">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,9 +29,9 @@
     <div class="min-h-screen pb-20">
         <header class="sticky top-0 z-40 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <img src="crmlogo-192.png?v=2.3.6" class="w-6 h-6 object-contain rounded">
+                <img src="crmlogo-192.png?v=2.3.8" class="w-6 h-6 object-contain rounded">
                 <span class="font-bold gold-text text-sm">AVA Admin</span>
-                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.3.6</span>
+                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.3.8</span>
             </div>
             <button @click="initApp()" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/10">🔄 同步 Sheet</button>
         </header>
@@ -49,11 +49,11 @@
                 <div class="grid grid-cols-3 gap-2">
                     <select x-model="selectedClientId" @change="loadSelectedClient()" class="col-span-2 w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
                         <option value="">-- 請選擇客戶 --</option>
-                        <template x-for="c in filteredClients" :key="c.id">
+                        <template x-for="c in clients" :key="c.id">
                             <option :value="c.id" x-text="(c.owner || '未命名') + ' (' + (c.policies ? c.policies.length : 0) + ' 份)'"></option>
                         </template>
                     </select>
-                    <input type="text" x-model="searchOrNameInput" @input="onNameInput()" class="col-span-1 w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white" placeholder="搜尋或修改姓名">
+                    <input type="text" x-model="searchOrNameInput" @input="onNameInput()" class="col-span-1 w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white" placeholder="持有人/客戶姓名">
                 </div>
             </section>
 
@@ -64,7 +64,7 @@
                         <h3 class="text-xs font-bold gold-text"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 自動解析保單 (Gemini 3.6 Flash)</h3>
                         <input type="file" @change="uploadAndParse($event)" accept="image/*, application/pdf" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950">
                         <div x-show="isParsing" class="text-xs text-amber-400 font-bold animate-pulse">
-                            <i class="fa-solid fa-spinner fa-spin"></i> AI 正在解析條款及數據...
+                            <i class="fa-solid fa-spinner fa-spin"></i> AI 正在解析條款，並與 Sheet 自動對應中...
                         </div>
                     </section>
 
@@ -137,7 +137,6 @@
                                             </div>
                                         </div>
 
-                                        <!-- 🌟 升級：美金保費自動 7.8 換算與動態幣別靈活切換 🌟 -->
                                         <div class="grid grid-cols-3 gap-2 text-xs">
                                             <div class="col-span-1">
                                                 <label class="text-[10px] text-slate-400 block">保費 (每年)</label>
@@ -173,16 +172,14 @@
                                             </div>
                                         </div>
 
-                                        <!-- 🌟 升級：自動調整高度特點框 🌟 -->
                                         <div>
-                                            <label class="text-[10px] text-slate-400">特點 (完整顯示，高度自動自適應)</label>
+                                            <label class="text-[10px] text-slate-400">特點 (自動對應 Sheet，沒有則註明手動輸入)</label>
                                             <textarea 
                                                 x-model="item.features" 
-                                                x-ref="featArea"
                                                 @input="autoResizeTextarea($el)"
                                                 x-init="$nextTick(() => autoResizeTextarea($el))"
                                                 class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-xs text-slate-300 leading-relaxed block transition-all"
-                                                placeholder="保障特點..."
+                                                placeholder="請手動輸入/修改特點..."
                                             ></textarea>
                                         </div>
                                     </div>
@@ -195,7 +192,7 @@
                         💾 儲存並同步至 Google Sheet CRM
                     </button>
 
-                    <!-- 二維碼區 -->
+                    <!-- 二維碼 -->
                     <section class="glass-card p-4 rounded-2xl gold-border bg-[#111827]">
                         <div class="flex items-center gap-4">
                             <div id="qrcode" class="bg-white p-2 rounded-lg flex-shrink-0"></div>
@@ -271,10 +268,6 @@
                         if (item.showRawUsd === undefined) item.showRawUsd = false;
                     }
                 },
-                get filteredClients() {
-                    if (!this.searchOrNameInput || this.selectedClientId) return this.clients;
-                    return this.clients.filter(c => (c.owner || '').includes(this.searchOrNameInput));
-                },
                 loadSelectedClient() {
                     const found = this.clients.find(c => String(c.id) === String(this.selectedClientId));
                     if (!found) {
@@ -300,16 +293,23 @@
                         document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el));
                     });
                 },
+                // 🌟 動態同步：持有人/客戶姓名修改時，選單文字即時連動
                 onNameInput() {
                     if (this.currentClient) {
                         this.currentClient.owner = this.searchOrNameInput;
+                        const target = this.clients.find(c => String(c.id) === String(this.currentClient.id));
+                        if (target) {
+                            target.owner = this.searchOrNameInput;
+                        }
                     }
                 },
                 resetOwner() {
-                    this.selectedClientId = '';
-                    this.searchOrNameInput = '新客戶';
                     const newId = Date.now().toString();
-                    this.currentClient = { id: newId, owner: '新客戶', insured: '新客戶', policies: [] };
+                    const newClient = { id: newId, owner: '新客戶', insured: '新客戶', policies: [] };
+                    this.clients.unshift(newClient);
+                    this.selectedClientId = newId;
+                    this.currentClient = newClient;
+                    this.searchOrNameInput = '新客戶';
                     this.renderQrCode();
                 },
                 deleteCurrentClient() {
@@ -371,10 +371,12 @@
                     const matched = list.find(p => p.name === item.name);
                     if (matched) {
                         item.features = matched.features;
-                        this.$nextTick(() => {
-                            document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el));
-                        });
+                    } else if (!item.features) {
+                        item.features = "（請手動輸入/修改特點）";
                     }
+                    this.$nextTick(() => {
+                        document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el));
+                    });
                 },
                 formatCurrency(item, field) {
                     if (item[field]) {
@@ -401,9 +403,21 @@
                             if (res.status === 'success' && res.data) {
                                 const parsed = res.data;
                                 if (!this.currentClient.policies) this.currentClient.policies = [];
+
                                 parsed.forEach(p => {
+                                    if (p.policyHolder && (!this.currentClient.owner || this.currentClient.owner === '新客戶')) {
+                                        this.currentClient.owner = p.policyHolder;
+                                        this.searchOrNameInput = p.policyHolder;
+                                        this.onNameInput(); // 自動更新下拉清單中的客戶名稱
+                                    }
+
+                                    let matchedInsurer = '';
+                                    if (p.insurer && this.dbProducts['保險公司']) {
+                                        matchedInsurer = this.dbProducts['保險公司'].find(inc => inc.includes(p.insurer) || p.insurer.includes(inc)) || p.insurer;
+                                    }
+
                                     const newItem = {
-                                        category: '危疾',
+                                        category: p.category || '危疾',
                                         name: p.productName || '',
                                         sumAssured: formatNumber(parseNumber(p.sumAssured ? p.sumAssured.amount : 0)),
                                         term: p.term || '',
@@ -412,10 +426,12 @@
                                         currency: (p.premium && p.premium.currency) ? p.premium.currency : 'HKD',
                                         features: p.features || ''
                                     };
+
                                     this.onProductSelect(newItem);
                                     this.recalculateHkd(newItem);
+
                                     this.currentClient.policies.push({
-                                        insurer: p.insurer || '',
+                                        insurer: matchedInsurer,
                                         policyNumber: p.policyNumber || '',
                                         commencementDate: p.commencementDate || '',
                                         policyHolder: p.policyHolder || this.searchOrNameInput,
@@ -423,11 +439,12 @@
                                         items: [newItem]
                                     });
                                 });
+
                                 this.renderQrCode();
                                 this.$nextTick(() => {
                                     document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el));
                                 });
-                                alert('🎉 AI 自動解析完成！');
+                                alert('🎉 AI 解析完成！客戶名單與條款已自動同步對應。');
                             } else {
                                 alert('AI 解析失敗：' + (res.message || '請確認權限'));
                             }
@@ -453,7 +470,7 @@
                         if (res.status === 'success') {
                             this.fetchClients();
                             this.renderQrCode();
-                            alert('💾 成功同步至 Google Sheet CRM！');
+                            alert('💾 成功將所有保單資料同步至 Google Sheet CRM！');
                         } else {
                             alert('儲存失敗：' + res.message);
                         }
