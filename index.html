@@ -3,98 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Apex Vision Alliance | AVA CRM v2.2.1 Enhanced View</title>
+    <title>Apex Vision Alliance | AVA CRM v2.2.3</title>
+    
+    <!-- 🌟 PWA & Web App Logo 設置 -->
+    <link rel="manifest" href="manifest-admin.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=2.2.3">
+    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-192.png?v=2.2.3">
+    <meta name="theme-color" content="#0B0F19">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         body { background-color: #0B0F19; color: #F3F4F6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .gold-text { color: #D4AF37; }
         .blue-text { color: #38BDF8; }
-        .emerald-text { color: #10B981; }
     </style>
 </head>
 <body x-data="app()" x-init="initApp()">
 
-    <!-- ================= 後台管理主介面 (v2.2.1) ================= -->
-    <div class="min-h-screen pb-20">
+    <!-- 1. 登入介面 (使用 crmlogo-512.png) -->
+    <div x-show="!isLoggedIn" class="fixed inset-0 z-50 bg-[#0B0F19] flex items-center justify-center p-4">
+        <div class="glass-card p-6 rounded-2xl w-full max-w-sm text-center space-y-4">
+            <img src="crmlogo-512.png?v=2.2.3" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
+            <h2 class="text-lg font-bold gold-text">AVA CRM Admin 登入</h2>
+            <input type="password" x-model="loginPass" placeholder="請輸入密碼" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-center text-white text-sm">
+            <button @click="login()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 font-bold rounded-xl text-slate-950 text-sm">登入系統</button>
+        </div>
+    </div>
+
+    <!-- 2. 後台主介面 -->
+    <div x-show="isLoggedIn" class="min-h-screen pb-20">
         <header class="sticky top-0 z-40 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <!-- 🌟 頂部小 Logo 改為 crmlogo-192.png (帶快取更新) -->
-                <img src="crmlogo-192.png?v=2.2.1" class="w-6 h-6 object-contain rounded">
+                <!-- 🌟 頂部 Logo (使用 crmlogo-192.png) -->
+                <img src="crmlogo-192.png?v=2.2.3" class="w-6 h-6 object-contain rounded">
                 <span class="font-bold gold-text text-sm">AVA Admin</span>
-                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.2.1</span>
+                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.2.3</span>
             </div>
-            <button @click="initApp()" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/10">
-                🔄 同步 Sheet
-            </button>
+            <div class="flex items-center gap-2">
+                <button @click="initApp()" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/10">🔄 同步 Sheet</button>
+                <button @click="isLoggedIn = false" class="text-xs text-slate-400 border border-slate-700 px-2 py-1 rounded-lg">登出</button>
+            </div>
         </header>
 
         <main class="p-4 max-w-lg mx-auto space-y-6">
-            <!-- 持有人選擇 (手動輸入與下拉選單二合一) -->
-            <section class="glass-card p-4 rounded-2xl">
-                <div class="flex justify-between items-center mb-2">
+            <!-- 客戶選擇與刪除功能 -->
+            <section class="glass-card p-4 rounded-2xl space-y-3">
+                <div class="flex justify-between items-center">
                     <label class="text-xs font-bold gold-text">👤 選擇 / 新增客戶持有人 (Owner)</label>
-                    <button @click="resetOwner()" class="text-xs text-blue-400 hover:underline">新增客戶</button>
+                    <div class="flex items-center gap-2">
+                        <button @click="resetOwner()" class="text-xs text-blue-400 hover:underline">+ 新增客戶</button>
+                        <button x-show="selectedClientId" @click="deleteCurrentClient()" class="text-xs text-red-400 hover:underline"><i class="fa-solid fa-user-xmark"></i> 刪除此客戶</button>
+                    </div>
                 </div>
                 <div class="grid grid-cols-3 gap-2">
-                    <select x-model="selectedClientId" @change="loadSelectedClient()" class="col-span-2 w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white select-none">
-                        <option value="">-- 請選擇 --</option>
+                    <select x-model="selectedClientId" @change="loadSelectedClient()" class="col-span-2 w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+                        <option value="">-- 請選擇客戶 --</option>
                         <template x-for="c in clients" :key="c.id">
-                            <option :value="c.id" x-text="(c.owner || '未命名') + ' (' + (c.policies ? c.policies.length : 0) + ' 份)'"></option>
+                            <option :value="c.id" x-text="(c.owner || '未命名') + ' (' + (c.policies ? c.policies.length : 0) + ' 份保單)'"></option>
                         </template>
                     </select>
-                    <input type="text" x-model="ownerInputName" class="col-span-1 w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white" placeholder="手動輸入/修改姓名">
+                    <input type="text" x-model="ownerInputName" class="col-span-1 w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white" placeholder="持有人姓名">
                 </div>
             </section>
 
             <template x-if="currentClient">
                 <div class="space-y-6">
                     <!-- 家庭受保人切換 -->
-                    <section class="glass-card p-4 rounded-2xl space-y-3">
-                        <div class="grid grid-cols-1 gap-3">
-                            <div>
-                                <label class="text-[10px] text-slate-400 block mb-1">👨‍👩‍👧 家庭聚焦受保人 (Insured)</label>
-                                <select x-model="selectedInsuredFilter" class="w-full bg-slate-900 border border-amber-500/50 rounded-lg p-2 text-xs gold-text font-bold">
-                                    <option value="ALL">全部受保人保單</option>
-                                    <template x-for="name in familyInsuredList" :key="name">
-                                        <option :value="name" x-text="name"></option>
-                                    </template>
-                                </select>
-                            </div>
-                        </div>
+                    <section class="glass-card p-4 rounded-2xl">
+                        <label class="text-[10px] text-slate-400 block mb-1">👨‍👩‍👧 家庭聚焦受保人 (Insured)</label>
+                        <select x-model="selectedInsuredFilter" class="w-full bg-slate-900 border border-amber-500/50 rounded-lg p-2 text-xs gold-text font-bold">
+                            <option value="ALL">全部受保人保單</option>
+                            <template x-for="name in familyInsuredList" :key="name">
+                                <option :value="name" x-text="name"></option>
+                            </template>
+                        </select>
                     </section>
 
-                    <!-- AI 保單讀取 -->
-                    <section class="glass-card p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5">
-                        <h3 class="text-xs font-bold gold-text mb-1"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 多頁自動解析保單 (Gemini 3.6 Flash)</h3>
-                        <input type="file" @change="uploadAndParse($event)" accept="image/*, application/pdf" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950">
-                        <div x-show="isParsing" class="mt-2 text-xs text-amber-400 font-bold animate-pulse">
-                            <i class="fa-solid fa-spinner fa-spin"></i> AI 正在解析所有內容及年期，請稍候...
-                        </div>
-                    </section>
-
-                    <!-- 保障列表 (數值全數加上千位撇號) -->
+                    <!-- 保障列表 -->
                     <section class="space-y-4">
                         <div class="flex justify-between items-center">
                             <h3 class="text-xs font-bold blue-text">📜 保障列表 (<span x-text="filteredPoliciesByInsured.length"></span>)</h3>
-                            <button @click="addEmptyPolicy()" class="text-xs bg-slate-800 px-2.5 py-1 rounded-lg text-blue-400 border border-slate-700">+ 新增保障</button>
+                            <button @click="addEmptyPolicy()" class="text-xs bg-slate-800 px-2.5 py-1 rounded-lg text-blue-400 border border-slate-700">+ 新增保單</button>
                         </div>
 
                         <template x-for="(pol, pIndex) in filteredPoliciesByInsured" :key="pIndex">
                             <div class="glass-card p-4 rounded-2xl space-y-3 relative border-l-4 border-l-blue-500">
                                 <button @click="removePolicy(pIndex)" class="absolute top-3 right-3 text-xs text-red-400 hover:text-red-300"><i class="fa-solid fa-trash-can"></i> 刪除保單</button>
-
+                                
                                 <div class="grid grid-cols-2 gap-2 text-xs">
                                     <div>
-                                        <label class="text-[10px] text-slate-400">保險公司</label>
-                                        <select x-model="pol.insurer" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white select-none">
-                                            <option value="">-- 請選擇 --</option>
+                                        <label class="text-[10px] text-slate-400">保險公司 (選單/手動)</label>
+                                        <input type="text" list="insurerList" x-model="pol.insurer" placeholder="選擇或輸入" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
+                                        <datalist id="insurerList">
                                             <template x-for="inc in dbProducts['保險公司名單'] || []">
-                                                <option :value="inc" x-text="inc"></option>
+                                                <option :value="inc"></option>
                                             </template>
-                                        </select>
+                                        </datalist>
                                     </div>
                                     <div>
                                         <label class="text-[10px] text-slate-400">受保人 (Insured)</label>
@@ -113,6 +123,7 @@
                                     </div>
                                 </div>
 
+                                <!-- 子險種明細 -->
                                 <template x-for="(item, iIndex) in pol.items" :key="iIndex">
                                     <div class="bg-slate-900/60 p-3 rounded-xl space-y-2 border border-slate-800 relative">
                                         <button @click="removeSingleItem(pol, iIndex)" class="absolute top-1 right-2 text-xs text-red-600 hover:text-red-400"><i class="fa-solid fa-square-minus"></i> 刪險</button>
@@ -120,33 +131,32 @@
                                         <div class="grid grid-cols-2 gap-2 text-xs">
                                             <div>
                                                 <label class="text-[10px] text-slate-400">保障險種</label>
-                                                <select x-model="item.category" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white select-none">
-                                                    <option value="CI">危疾保障 (CI)</option>
-                                                    <option value="Life">人壽保障 (Life)</option>
-                                                    <option value="Medical">醫療保障 (Medical)</option>
-                                                    <option value="Accident">意外保障 (Accident)</option>
-                                                    <option value="Savings">儲蓄理財 (Savings)</option>
+                                                <select x-model="item.category" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
+                                                    <option value="CI">危疾保險</option>
+                                                    <option value="Life">人壽保險</option>
+                                                    <option value="Medical">醫療保險</option>
+                                                    <option value="Accident">意外保險</option>
+                                                    <option value="Savings">理財險</option>
                                                 </select>
                                             </div>
                                             <div>
-                                                <label class="text-[10px] text-slate-400">產品名稱 (連動 Sheet)</label>
-                                                <select x-model="item.name" @change="onProductSelect(item)" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white select-none">
-                                                    <option value="">-- 請選擇產品 --</option>
+                                                <label class="text-[10px] text-slate-400">產品名稱 (選單/自訂)</label>
+                                                <input type="text" :list="'prodList-' + item.category" x-model="item.name" @change="onProductSelect(item)" placeholder="可下拉或手動輸入" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
+                                                <datalist :id="'prodList-' + item.category">
                                                     <template x-for="p in getProductListForCategory(item.category)" :key="p.name">
-                                                        <option :value="p.name" x-text="p.name"></option>
+                                                        <option :value="p.name"></option>
                                                     </template>
-                                                </select>
+                                                </datalist>
                                             </div>
                                         </div>
 
-                                        <!-- v2.2.1 數值欄位全部加上千位撇號格式化顯示 -->
                                         <div class="grid grid-cols-3 gap-2 text-xs">
                                             <div>
-                                                <label class="text-[10px] text-slate-400">保額/總賠償 (如 1,000,000)</label>
+                                                <label class="text-[10px] text-slate-400">保額/總賠償</label>
                                                 <input type="text" x-model="item.sumAssured" @blur="formatCurrency(item, 'sumAssured')" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white font-mono">
                                             </div>
                                             <div>
-                                                <label class="text-[10px] text-slate-400">供款期 (自動計算如 20年)</label>
+                                                <label class="text-[10px] text-slate-400">供款期</label>
                                                 <input type="text" x-model="item.term" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
                                             </div>
                                             <div>
@@ -157,17 +167,17 @@
 
                                         <div class="grid grid-cols-2 gap-2 text-xs">
                                             <div>
-                                                <label class="text-[10px] text-slate-400">保費 (每年，如 12,500)</label>
+                                                <label class="text-[10px] text-slate-400">每年保費</label>
                                                 <div class="flex items-center gap-1">
                                                     <input type="text" x-model="item.premium" @blur="formatCurrency(item, 'premium')" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white font-mono">
-                                                    <select x-model="item.currency" class="bg-slate-900 text-slate-300 border border-slate-800 rounded p-1 w-16 select-none">
+                                                    <select x-model="item.currency" class="bg-slate-900 text-slate-300 border border-slate-800 rounded p-1 w-16">
                                                         <option value="HKD">HKD</option>
                                                         <option value="USD">USD</option>
                                                     </select>
                                                 </div>
                                             </div>
                                             <div x-show="item.currency === 'USD'" class="flex items-end">
-                                                <button @click="toggleCurrencyDisplay(item)" class="text-amber-400 border border-amber-600 px-2 py-0.5 rounded text-[10px] select-none hover:bg-amber-600/10">
+                                                <button @click="toggleCurrencyDisplay(item)" class="text-amber-400 border border-amber-600 px-2 py-0.5 rounded text-[10px]">
                                                     🔄 <span x-text="item.displayAsHkd ? '顯示 US$' : '顯示 HK$'"></span>
                                                 </button>
                                                 <span class="ml-2 text-slate-400 text-xs font-mono font-bold" x-show="item.displayAsHkd" x-text="'≈ ' + item.hkdPremium + ' HKD'"></span>
@@ -175,7 +185,7 @@
                                         </div>
 
                                         <div>
-                                            <label class="text-[10px] text-slate-400">產品特點說明</label>
+                                            <label class="text-[10px] text-slate-400">特點 (自動帶出/可修改)</label>
                                             <textarea x-model="item.features" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-xs text-slate-300"></textarea>
                                         </div>
                                     </div>
@@ -184,7 +194,7 @@
                         </template>
                     </section>
 
-                    <button @click="saveCurrentClient()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 font-bold rounded-xl text-xs text-white shadow-lg">
+                    <button @click="saveCurrentClient()" class="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-700 font-bold rounded-xl text-xs text-white shadow-lg">
                         💾 儲存並同步至 Google Sheet CRM
                     </button>
                 </div>
@@ -192,17 +202,13 @@
         </main>
     </div>
 
-    <!-- ================= Alpine.js 格式化與家庭受保人邏輯 ================= -->
     <script>
         const CRM_GAS_URL = "https://script.google.com/macros/s/AKfycby-1AkUDr7fL8digJDaCRiTliAeWikk8-XsXznXKHvBYQ5nP8vim7iq_N4FR1mp-RHp/exec";
-        const AI_GAS_URL = "https://script.google.com/macros/s/AKfycbzPIlJHqcGWDMeJd_Tc_tpDz-r-vVW9lNXBiVXnD2o0ulVNoGkUHy-Ve3rAxnsWh9dhUQ/exec";
 
-        // 通用千位數撇號格式化方法
         const formatNumber = (num) => {
             if (num === null || num === undefined || isNaN(num) || num === "") return "";
             return parseFloat(num).toLocaleString('zh-HK');
         };
-
         const parseNumber = (str) => {
             if (!str) return 0;
             if (typeof str === 'number') return str;
@@ -211,83 +217,81 @@
 
         function app() {
             return {
+                isLoggedIn: true,
+                loginPass: '',
                 clients: [],
                 dbProducts: {},
                 selectedClientId: '',
                 ownerInputName: '',
                 currentClient: null,
                 selectedInsuredFilter: 'ALL',
-                isParsing: false,
 
+                login() {
+                    this.isLoggedIn = true;
+                },
                 initApp() {
                     this.fetchClients();
                     this.fetchProducts();
                 },
-
                 postToCrm(data) {
                     return fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify(data), redirect: "follow" })
                     .then(r => r.text())
                     .then(text => JSON.parse(text));
                 },
-
-                postToAi(data) {
-                    return fetch(AI_GAS_URL, { method: 'POST', body: JSON.stringify(data) })
-                    .then(r => r.text())
-                    .then(text => JSON.parse(text));
-                },
-
                 fetchClients() {
-                    this.postToCrm({ action: 'get' })
-                    .then(res => {
+                    this.postToCrm({ action: 'get' }).then(res => {
                         if (res.status === 'success') {
                             this.clients = res.data || [];
                         }
                     });
                 },
-
                 fetchProducts() {
-                    this.postToCrm({ action: 'getProducts' })
-                    .then(res => {
+                    this.postToCrm({ action: 'getProducts' }).then(res => {
                         if (res.status === 'success') {
                             this.dbProducts = res.data || {};
                         }
                     });
                 },
-
                 loadSelectedClient() {
                     const found = this.clients.find(c => String(c.id) === String(this.selectedClientId));
                     if (!found) {
                         this.currentClient = null;
-                        this.ownerInputName = '新客戶';
+                        this.ownerInputName = '';
                         return;
                     }
-
                     const clientCopy = JSON.parse(JSON.stringify(found));
                     clientCopy.policies.forEach(pol => {
                         if (pol.items) {
                             pol.items.forEach(item => {
-                                // 數據適配與格式化
-                                if (!item.name && item.productName) item.name = item.productName;
                                 if (!item.currency) item.currency = 'HKD';
-                                item.displayAsHkd = false;
                                 item.sumAssured = formatNumber(parseNumber(item.sumAssured));
                                 item.premium = formatNumber(parseNumber(item.premium));
                             });
                         }
                     });
-
                     this.currentClient = clientCopy;
                     this.ownerInputName = clientCopy.owner;
                     this.selectedInsuredFilter = 'ALL';
                 },
-
                 resetOwner() {
                     this.selectedClientId = '';
                     this.ownerInputName = '新客戶';
                     const newId = Date.now().toString();
                     this.currentClient = { id: newId, owner: '新客戶', insured: '新客戶', policies: [] };
                 },
-
+                deleteCurrentClient() {
+                    if (!this.selectedClientId) return;
+                    if (confirm('確定要刪除此客戶的所有紀錄嗎？')) {
+                        this.postToCrm({ action: 'delete', id: this.selectedClientId }).then(res => {
+                            if (res.status === 'success') {
+                                alert('已成功刪除客戶');
+                                this.selectedClientId = '';
+                                this.currentClient = null;
+                                this.fetchClients();
+                            }
+                        });
+                    }
+                },
                 get familyInsuredList() {
                     if (!this.currentClient || !this.currentClient.policies) return [];
                     const names = this.currentClient.policies.map(p => p.insuredPerson).filter(Boolean);
@@ -298,29 +302,24 @@
                     if (this.selectedInsuredFilter === 'ALL') return this.currentClient.policies;
                     return this.currentClient.policies.filter(p => p.insuredPerson === this.selectedInsuredFilter);
                 },
-
                 addEmptyPolicy() {
                     if (!this.currentClient.policies) this.currentClient.policies = [];
                     this.currentClient.policies.push({
-                        insurer: '', policyNumber: '', commencementDate: '', premium: 0,
+                        insurer: '', policyNumber: '', commencementDate: '',
                         insuredPerson: this.selectedInsuredFilter !== 'ALL' ? this.selectedInsuredFilter : this.ownerInputName,
-                        items: [{ category: 'CI', name: '', sumAssured: "0", term: '', maturity: '', premium: "0", currency: 'HKD', displayAsHkd: false, features: '' }]
+                        items: [{ category: 'CI', name: '', sumAssured: "0", term: '', maturity: '', premium: "0", currency: 'HKD', features: '' }]
                     });
                 },
-
                 removePolicy(index) {
                     this.currentClient.policies.splice(index, 1);
                 },
-
                 removeSingleItem(policy, itemIndex) {
                     policy.items.splice(itemIndex, 1);
                 },
-
                 getProductListForCategory(cat) {
-                    const sheetName = { 'CI': '危疾保險', 'Life': '人壽保險', 'Medical': '醫療保險', 'Accident': '意外保險', 'Savings': '理財險' }[cat];
-                    return this.dbProducts[sheetName] || [];
+                    const sheetMap = { 'CI': '危疾保險', 'Life': '人壽保險', 'Medical': '醫療保險', 'Accident': '意外保險', 'Savings': '理財險' };
+                    return this.dbProducts[sheetMap[cat]] || [];
                 },
-
                 onProductSelect(item) {
                     const list = this.getProductListForCategory(item.category);
                     const matched = list.find(p => p.name === item.name);
@@ -328,92 +327,25 @@
                         item.features = matched.features;
                     }
                 },
-
                 toggleCurrencyDisplay(item) {
                     if (item.currency === 'USD') {
                         item.displayAsHkd = !item.displayAsHkd;
                         item.hkdPremium = formatNumber(parseNumber(item.premium) * 7.8);
                     }
                 },
-
-                // 🌟 當欄位失去焦點時自動加上千位撇號
                 formatCurrency(item, field) {
                     if (item[field]) {
-                        const val = parseNumber(item[field]);
-                        item[field] = formatNumber(val);
+                        item[field] = formatNumber(parseNumber(item[field]));
                     }
                 },
-
-                uploadAndParse(e) {
-                    const file = e.target.files[0];
-                    if (!file) return;
-
-                    this.isParsing = true;
-                    const reader = new FileReader();
-
-                    reader.onload = (ev) => {
-                        const base64Data = ev.target.result.split(',')[1];
-
-                        this.postToAi({
-                            action: 'parsePolicyDocument',
-                            fileData: base64Data,
-                            mimeType: file.type
-                        })
-                        .then(res => {
-                            this.isParsing = false;
-                            if (res.status === 'success' && res.data) {
-                                const parsedPolicies = res.data; 
-                                if (!this.currentClient.policies) this.currentClient.policies = [];
-
-                                parsedPolicies.forEach(p => {
-                                    const newItem = {
-                                        category: p.category || 'CI',
-                                        name: p.productName || '',
-                                        sumAssured: formatNumber(parseNumber(p.sumAssured.amount)), // 自動格式化
-                                        term: p.term || '', // 自動解析或計算年期
-                                        maturity: p.maturity || '',
-                                        premium: formatNumber(parseNumber(p.premium.amount)), // 自動格式化
-                                        currency: p.premium.currency || 'HKD',
-                                        displayAsHkd: false,
-                                        features: p.features || ''
-                                    };
-
-                                    this.onProductSelect(newItem); 
-
-                                    this.currentClient.policies.push({
-                                        insurer: p.insurer || '',
-                                        policyNumber: p.policyNumber || '',
-                                        commencementDate: p.commencementDate || '',
-                                        insuredPerson: p.insuredPerson || this.ownerInputName,
-                                        items: [newItem]
-                                    });
-                                });
-
-                                this.saveCurrentClient();
-                                alert('🎉 保單內容及年期解析成功，數值已自動加上撇號！');
-                            } else {
-                                alert('AI CORS 解析失敗: ' + (res.message || '請確認權限部署'));
-                            }
-                        })
-                        .catch(err => {
-                            this.isParsing = false;
-                            alert('AI CORScors 上載失敗: ' + err.message);
-                        });
-                    };
-
-                    reader.readAsDataURL(file);
-                },
-
                 saveCurrentClient() {
-                    // 🌟 儲存前先將手動修改的 ownerInputName 更新回currentClient
                     if (this.currentClient) {
                         this.currentClient.owner = this.ownerInputName;
                     }
-                    this.postToCrm({ action: 'update', payload: this.currentClient })
-                    .then(res => {
+                    this.postToCrm({ action: 'update', payload: this.currentClient }).then(res => {
                         if (res.status === 'success') {
                             this.fetchClients();
-                            alert('成功同步至 Google Sheet CRM 分頁！數值千位撇號已修正。');
+                            alert('成功同步至 Google Sheet CRM！');
                         }
                     });
                 }
