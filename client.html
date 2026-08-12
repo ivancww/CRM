@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AVA Portfolio | 客戶專屬保障首頁</title>
 
-    <link rel="manifest" href="manifest-client.json?v=2.5.2">
-    <link rel="icon" type="image/png" sizes="192x192" href="clientapp-192.png?v=2.5.2">
-    <link rel="apple-touch-icon" sizes="180x180" href="clientapp-192.png?v=2.5.2">
+    <link rel="manifest" href="manifest-client.json?v=2.5.3">
+    <link rel="icon" type="image/png" sizes="192x192" href="clientapp-192.png?v=2.5.3">
+    <link rel="apple-touch-icon" sizes="180x180" href="clientapp-192.png?v=2.5.3">
     <meta name="theme-color" content="#060810">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -28,7 +28,7 @@
     <div class="min-h-screen pb-12">
         <header class="p-4 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-[#060810]/90 backdrop-blur-md z-30">
             <div class="flex items-center gap-2">
-                <img src="clientapp-192.png?v=2.5.2" class="w-8 h-8 object-contain rounded-lg border border-amber-500/30">
+                <img src="clientapp-192.png?v=2.5.3" class="w-8 h-8 object-contain rounded-lg border border-amber-500/30">
                 <div>
                     <span class="font-bold gold-text text-sm block">A.V.A Team Portfolio</span>
                     <p class="text-[10px] text-slate-400">專屬保障管理總覽</p>
@@ -70,12 +70,12 @@
                         </div>
                     </div>
 
-                    <!-- 保單詳細清單 -->
+                    <!-- 保單詳細清單 (獨立卡片列出主險與附加契約) -->
                     <div class="space-y-4">
                         <h3 class="text-xs font-bold gold-text"><i class="fa-solid fa-shield-halved"></i> 保單保障詳情 (<span x-text="getFilteredPolicies().length"></span> 份保單)</h3>
                         <template x-for="(pol, index) in getFilteredPolicies()" :key="index">
-                            <div class="glass-card p-4 rounded-2xl space-y-3 border border-slate-700">
-                                <div class="flex justify-between items-start text-xs border-b border-slate-800 pb-2">
+                            <div class="space-y-3 p-4 rounded-2xl border border-slate-700 bg-slate-950/40">
+                                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
                                     <div>
                                         <span class="text-white font-bold text-sm block" x-text="pol.insurer || '保險公司'"></span>
                                         <span class="text-[10px] text-slate-400" x-text="'保單號碼: ' + (pol.policyNumber || '--')"></span>
@@ -83,26 +83,24 @@
                                     <span class="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20" x-text="'受保人: ' + (pol.insuredPerson || pwaClient.owner)"></span>
                                 </div>
 
-                                <!-- 主險與所有附加契約列表 -->
-                                <div class="space-y-3">
-                                    <template x-for="(item, iIndex) in pol.items" :key="iIndex">
-                                        <div class="bg-slate-900/60 p-3 rounded-xl space-y-2 border border-slate-800">
-                                            <div class="flex justify-between items-center">
-                                                <div class="flex items-center gap-2">
-                                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded" :class="iIndex === 0 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-slate-800 text-slate-400'" x-text="iIndex === 0 ? '⭐ 主險' : '➕ 附加契約'"></span>
-                                                    <span class="font-bold blue-text text-xs" x-text="item.name || '未命名保障'"></span>
-                                                </div>
-                                                <span class="font-mono gold-text font-bold text-xs" x-text="getDisplayPremium(item)"></span>
+                                <!-- 主險與附加契約全獨立卡片 -->
+                                <template x-for="(item, iIndex) in pol.items" :key="iIndex">
+                                    <div class="glass-card p-3.5 rounded-xl space-y-2 border-l-4" :class="iIndex === 0 ? 'border-l-amber-500' : 'border-l-blue-500'">
+                                        <div class="flex justify-between items-center">
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded" :class="iIndex === 0 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'" x-text="iIndex === 0 ? '⭐ 主險' : '➕ 附加契約'"></span>
+                                                <span class="font-bold blue-text text-xs" x-text="item.name || '未命名保障'"></span>
                                             </div>
-
-                                            <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-400 bg-slate-950/60 p-2 rounded-lg">
-                                                <span>供款期: <strong class="text-slate-200" x-text="item.term || '--'"></strong></span>
-                                                <span>保障期: <strong class="text-slate-200" x-text="item.maturity || '--'"></strong></span>
-                                            </div>
-                                            <p class="text-[11px] text-slate-300 bg-slate-800/40 p-2.5 rounded-xl border border-slate-800/80 leading-relaxed whitespace-pre-line" x-text="item.features || '沒有特點說明'"></p>
+                                            <span class="font-mono gold-text font-bold text-xs" x-text="getDisplayPremium(item)"></span>
                                         </div>
-                                    </template>
-                                </div>
+
+                                        <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-400 bg-slate-950/60 p-2 rounded-lg">
+                                            <span>供款期: <strong class="text-slate-200" x-text="item.term || '--'"></strong></span>
+                                            <span>保障期: <strong class="text-slate-200" x-text="item.maturity || '--'"></strong></span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-300 bg-slate-800/40 p-2.5 rounded-xl border border-slate-800/80 leading-relaxed whitespace-pre-line" x-text="item.features || '沒有特點說明'"></p>
+                                    </div>
+                                </template>
                             </div>
                         </template>
                     </div>
