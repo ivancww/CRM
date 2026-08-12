@@ -3,130 +3,186 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>我的家庭財富與保障報告</title>
-    
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    
+    <title>AVA Portfolio | 客戶專屬保障首頁</title>
+
+    <!-- 🌟 連動新 clientapp Logo 與 Manifest 🌟 -->
+    <link rel="manifest" href="manifest-client.json?v=2.5.0">
+    <link rel="icon" type="image/png" sizes="192x192" href="clientapp-192.png?v=2.5.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="clientapp-192.png?v=2.5.0">
+    <meta name="theme-color" content="#060810">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        [x-cloak] { display: none !important; }
-        .report-section { border-left: 4px solid #3b82f6; background: #f8fafc; padding: 1rem; margin-bottom: 1rem; border-radius: 0 0.5rem 0.5rem 0; }
-        .theme-blue { color: #1E3A8A; }
-        .gradient-bg { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
+        body { background-color: #060810; color: #F3F4F6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .gold-border { border-color: rgba(212, 175, 55, 0.4); }
+        .gold-text { color: #D4AF37; }
+        .blue-text { color: #38BDF8; }
+        .emerald-text { color: #10B981; }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800 font-sans pb-10">
+<body x-data="pwaApp()" x-init="initPwa()">
 
-    <div x-data="dashboardApp()" x-init="init()" x-cloak>
-        <div x-show="!hasData" class="fixed inset-0 flex flex-col items-center justify-center bg-white z-50">
-            <div x-show="loading" class="text-center">
-                <i class="fa-solid fa-spinner fa-spin text-4xl text-blue-600 mb-4"></i>
-                <p class="text-gray-600 font-bold" x-text="loadingMsg"></p>
-            </div>
-            <div x-show="!loading && error" class="text-center p-6 max-w-sm">
-                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto text-red-500 text-3xl mb-4">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                </div>
-                <p class="text-red-600 font-bold text-lg mb-2" x-text="loadingMsg"></p>
-                <p class="text-sm text-gray-400">請聯絡您的保險顧問重新建立專屬連結，或確認雲端資料庫內是否有此 ID 記錄。</p>
-            </div>
-        </div>
-
-        <div x-show="hasData" class="max-w-4xl mx-auto md:mt-4 md:mb-8 bg-white md:rounded-2xl shadow-2xl overflow-hidden relative border border-gray-200">
-            <div class="gradient-bg text-white p-6 md:p-8 flex justify-between items-center">
+    <div class="min-h-screen pb-12">
+        <header class="p-4 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-[#060810]/90 backdrop-blur-md z-30">
+            <div class="flex items-center gap-2">
+                <img src="clientapp-192.png?v=2.5.0" class="w-8 h-8 object-contain rounded-lg border border-amber-500/30">
                 <div>
-                    <p class="text-blue-200 text-sm mb-1">親愛的 <span x-text="client.owner"></span>：</p>
-                    <h1 class="text-2xl md:text-3xl font-bold">您的家庭財富與保障報告</h1>
+                    <span class="font-bold gold-text text-sm block">A.V.A Team Portfolio</span>
+                    <p class="text-[10px] text-slate-400">專屬保障管理總覽</p>
                 </div>
             </div>
+            <span class="text-[10px] text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full" x-text="pwaClient ? pwaClient.owner + ' 專頁' : '載入中'"></span>
+        </header>
 
-            <div class="p-4 md:p-8 space-y-6 bg-gray-50">
-                <div class="bg-white rounded-xl shadow-sm border p-4">
-                    <h2 class="text-base font-bold text-blue-900 mb-3"><i class="fa-solid fa-shield-cat mr-1"></i> 第一層：四大保障概覽</h2>
-                    <div class="text-sm text-gray-600 leading-relaxed">
-                        您的智能財富安全防禦機制已建立。以下為從您的私人 Google Sheet 雲端大腦即時撈取回來的保單摘要明細。
+        <main class="p-4 max-w-lg mx-auto space-y-5">
+            <template x-if="pwaClient">
+                <div class="space-y-5">
+                    <!-- 家庭成員選擇 -->
+                    <section class="glass-card p-4 rounded-2xl gold-border">
+                        <label class="text-xs gold-text font-bold mb-1 block"><i class="fa-solid fa-users"></i> 切換家庭受保人 (Insured)</label>
+                        <select x-model="selectedInsured" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold">
+                            <template x-for="name in getAllInsureds()" :key="name">
+                                <option :value="name" x-text="name"></option>
+                            </template>
+                        </select>
+                    </section>
+
+                    <!-- 保障數據加總卡片 -->
+                    <div class="grid grid-cols-2 gap-3 text-center">
+                        <div class="glass-card p-3.5 rounded-xl border-l-4 border-blue-500">
+                            <span class="text-[10px] text-slate-400 block">醫療保障總額</span>
+                            <span class="text-lg font-black blue-text" x-text="formatDisplaySum('醫療')"></span>
+                        </div>
+                        <div class="glass-card p-3.5 rounded-xl border-l-4 border-emerald-500">
+                            <span class="text-[10px] text-slate-400 block">儲蓄/理財每年保費</span>
+                            <span class="text-lg font-black emerald-text" x-text="formatDisplaySum('儲蓄')"></span>
+                        </div>
+                        <div class="glass-card p-3.5 rounded-xl border-l-4 border-red-500">
+                            <span class="text-[10px] text-slate-400 block">危疾總保障</span>
+                            <span class="text-lg font-black text-red-400" x-text="formatDisplaySum('危疾')"></span>
+                        </div>
+                        <div class="glass-card p-3.5 rounded-xl border-l-4 border-purple-500">
+                            <span class="text-[10px] text-slate-400 block">人壽保障總額</span>
+                            <span class="text-lg font-black text-purple-400" x-text="formatDisplaySum('人壽')"></span>
+                        </div>
                     </div>
-                </div>
 
-                <div>
-                    <h2 class="text-base font-bold text-[#1E3A8A] mb-3 border-l-4 border-blue-600 pl-2">家族現有保單明細</h2>
-                    <div class="space-y-3">
-                        <template x-for="policy in (client.policies || [])">
-                            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-                                <div class="flex justify-between items-center border-b pb-2 mb-2">
+                    <!-- 保單詳細清單 -->
+                    <div class="space-y-4">
+                        <h3 class="text-xs font-bold gold-text"><i class="fa-solid fa-shield-halved"></i> 保單保障詳情 (<span x-text="getFilteredPolicies().length"></span>)</h3>
+                        <template x-for="(pol, index) in getFilteredPolicies()" :key="index">
+                            <div class="glass-card p-4 rounded-2xl space-y-3 border border-slate-700">
+                                <div class="flex justify-between items-start text-xs border-b border-slate-800 pb-2">
                                     <div>
-                                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-bold mr-1" x-text="policy.insurer"></span>
-                                        <span class="font-bold text-sm text-gray-800">受保人：<span x-text="policy.insuredPerson || client.owner"></span></span>
+                                        <span class="text-white font-bold text-sm block" x-text="pol.insurer || '保險公司'"></span>
+                                        <span class="text-[10px] text-slate-400" x-text="'保單號碼: ' + (pol.policyNumber || '--')"></span>
                                     </div>
-                                    <div class="text-right text-xs font-mono text-gray-400" x-text="'保單號碼: ' + (policy.policyNo || '-')"></div>
+                                    <span class="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20" x-text="'受保人: ' + (pol.insuredPerson || pwaClient.owner)"></span>
                                 </div>
-                                <div class="space-y-2">
-                                    <template x-for="item in policy.items">
-                                        <div class="bg-gray-50 p-2 rounded text-xs flex justify-between items-center">
-                                            <div>
-                                                <span class="font-bold text-gray-800" x-text="item.name || '未命名項目'"></span>
-                                                <span class="text-[9px] bg-gray-200 text-gray-500 px-1 rounded ml-1" x-text="item.category"></span>
+
+                                <template x-for="(item, iIndex) in pol.items" :key="iIndex">
+                                    <div class="space-y-1.5 text-xs">
+                                        <div class="flex justify-between items-center">
+                                            <span class="font-bold blue-text" x-text="item.name || '未命名保障'"></span>
+                                            <div class="text-right">
+                                                <span class="font-mono gold-text font-bold text-sm block" x-text="getDisplayPremium(item)"></span>
                                             </div>
-                                            <div class="text-right font-mono font-bold text-gray-700" x-text="item.sumAssured ? '$' + formatNumber(item.sumAssured) : '-'"></div>
                                         </div>
-                                    </template>
-                                </div>
+                                        <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-400 bg-slate-950/60 p-2 rounded-lg">
+                                            <span>供款期: <strong class="text-slate-200" x-text="item.term || '--'"></strong></span>
+                                            <span>保障期: <strong class="text-slate-200" x-text="item.maturity || '--'"></strong></span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-300 bg-slate-800/40 p-2.5 rounded-xl border border-slate-800/80 leading-relaxed whitespace-pre-line" x-text="item.features || '沒有特點說明'"></p>
+                                    </div>
+                                </template>
                             </div>
                         </template>
                     </div>
                 </div>
-
-                <div x-show="client.remarks" class="bg-amber-50 rounded-xl p-5 border border-amber-200 shadow-sm">
-                    <h3 class="font-bold text-amber-800 mb-2 text-xs"><i class="fa-solid fa-clipboard-list mr-1"></i> 專業顧問追蹤及檢視建議</h3>
-                    <div class="text-xs text-amber-900 whitespace-pre-line leading-relaxed" x-text="client.remarks"></div>
-                    <div x-show="client.remarkDate" class="text-[10px] text-amber-600 mt-2 font-bold">下一次預計檢視日期：<span x-text="client.remarkDate"></span></div>
-                </div>
-            </div>
-        </div>
+            </template>
+        </main>
     </div>
 
     <script>
-        // 🎯 這是你專屬的 GAS 網址，已幫你精準填入
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYO6N0HpwDxmZbLomkyDD0DGuBSEbJzJyn9PFPkMRRnFkkLusSPQbHO0DOyh_nzw18qg/exec';
+        const CRM_GAS_URL = "https://script.google.com/macros/s/AKfycbzy1gnDB-qXZIhTsgxNvLveRrHWVP7AoYoqG_JsbELBvvReXy4Fx2rYu6ieJNuupMtmdg/exec";
 
-        function dashboardApp() {
+        const formatNumber = (num) => {
+            if (num === null || num === undefined || isNaN(num) || num === "") return "0";
+            return parseFloat(num).toLocaleString('zh-HK');
+        };
+        const parseNumber = (str) => {
+            if (!str) return 0;
+            if (typeof str === 'number') return str;
+            return parseFloat(str.toString().replace(/,/g, ''));
+        };
+
+        function pwaApp() {
             return {
-                client: {}, hasData: false, loading: true, error: false, loadingMsg: '正在安全讀取雲端保障檔案...',
+                pwaClient: null,
+                selectedInsured: '',
 
-                init() {
-                    const params = new URLSearchParams(window.location.search);
-                    const id = params.get('id');
-                    if (id) {
-                        // 🌟 實施模糊高容錯比對：去除非數字字元
-                        let cleanSearchId = id.toString().replace(/\D/g, '');
-                        
-                        // 🎯 透過最穩定的 GET 請求傳遞給 GAS 讀取 Google Sheet 數據
-                        fetch(`${GOOGLE_SCRIPT_URL}?action=get&id=${cleanSearchId}`)
-                        .then(r => r.json())
-                        .then(res => {
-                            if (res.result === 'success' && res.data) {
-                                this.client = res.data;
-                                this.hasData = true;
-                                this.loading = false;
-                            } else {
-                                this.showError('搵唔到此家庭保單檔案！');
-                            }
-                        })
-                        .catch(e => {
-                            this.showError('連線雲端超時，請重新整理網頁！');
-                        });
+                initPwa() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const pwaId = urlParams.get('id');
+                    if (pwaId) {
+                        this.loadPwaData(pwaId);
                     } else {
-                        this.showError('無效的專屬報告連結！');
+                        alert('無效的客戶連結');
                     }
                 },
-                showError(msg) { this.loadingMsg = msg; this.loading = false; this.error = true; },
-                formatNumber(num) { if (!num) return '-'; return parseFloat(num.toString().replace(/,/g, '')).toLocaleString('en-US'); },
-                getCategoryColor(cat) { return 'text-red-500 font-bold'; }
+                loadPwaData(pwaId) {
+                    fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'get' }), redirect: "follow" })
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.status === 'success') {
+                            this.pwaClient = res.data.find(c => String(c.id) === String(pwaId));
+                            if (this.pwaClient) {
+                                this.selectedInsured = this.pwaClient.owner;
+                            } else {
+                                alert('找不到該客戶的保單資料');
+                            }
+                        }
+                    });
+                },
+                getAllInsureds() {
+                    if (!this.pwaClient || !this.pwaClient.policies) return [];
+                    const names = this.pwaClient.policies.map(p => p.insuredPerson || this.pwaClient.owner).filter(Boolean);
+                    names.unshift(this.pwaClient.owner);
+                    return [...new Set(names)];
+                },
+                getFilteredPolicies() {
+                    if (!this.pwaClient || !this.pwaClient.policies) return [];
+                    const targetName = this.selectedInsured || this.pwaClient.owner;
+                    return this.pwaClient.policies.filter(pol => {
+                        return (pol.insuredPerson && pol.insuredPerson === targetName) || (!pol.insuredPerson && this.pwaClient.owner === targetName);
+                    });
+                },
+                getDisplayPremium(item) {
+                    const rawVal = parseNumber(item.premium);
+                    if (item.currency === 'USD') {
+                        return 'US$ ' + formatNumber(rawVal) + ' (≈ HK$ ' + formatNumber(rawVal * 7.8) + ')';
+                    }
+                    return 'HK$ ' + formatNumber(rawVal);
+                },
+                formatDisplaySum(catType) {
+                    if (!this.pwaClient) return 'HK$ 0';
+                    const policies = this.getFilteredPolicies();
+                    const sum = policies.reduce((acc, pol) => {
+                        return acc + pol.items.reduce((itemAcc, item) => {
+                            if (item.category === catType) {
+                                let val = parseNumber(item.premium || item.sumAssured);
+                                if (item.currency === 'USD') val = val * 7.8;
+                                return itemAcc + val;
+                            }
+                            return itemAcc;
+                        }, 0);
+                    }, 0);
+                    return 'HK$ ' + formatNumber(sum);
+                }
             }
         }
     </script>
