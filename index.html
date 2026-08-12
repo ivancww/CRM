@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Apex Vision Alliance | AVA CRM v2.1.4</title>
+    <title>Apex Vision Alliance | AVA CRM v2.1.5 Dual Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,15 +20,15 @@
     <!-- ================= 1. 主頁 (Portal) ================= -->
     <div x-show="currentPage === 'portal'" class="min-h-screen flex flex-col justify-center items-center p-6 text-center">
         <div class="glass-card p-8 rounded-3xl max-w-sm w-full border border-amber-500/40 shadow-2xl space-y-4">
-            <!-- App Logo (帶快取清理參數) -->
+            <!-- App Logo (帶快取更新參數) -->
             <div class="w-28 h-28 mx-auto flex items-center justify-center p-1 bg-[#000511] rounded-2xl border border-amber-500/40 shadow-xl overflow-hidden">
-                <img src="admin-logo-512.png?v=2.1.4" alt="AVA CRM Logo" class="w-full h-full object-contain">
+                <img src="admin-logo-512.png?v=2.1.5" alt="AVA CRM Logo" class="w-full h-full object-contain">
             </div>
 
             <h1 class="text-xl font-black gold-text">Apex Vision Alliance</h1>
-            <p class="text-[10px] text-slate-400 uppercase tracking-widest">AVA CRM Family Edition v2.1.4</p>
+            <p class="text-[10px] text-slate-400 uppercase tracking-widest">AVA CRM Executive v2.1.5</p>
 
-            <button @click="currentPage = 'admin'" class="w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold rounded-xl shadow-lg flex items-center justify-center gap-2 text-xs">
+            <button @click="currentPage = 'admin'" class="w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-xs">
                 <i class="fa-solid fa-user-gear"></i> 進入後台管理系統
             </button>
         </div>
@@ -39,9 +39,9 @@
         <header class="sticky top-0 z-40 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
                 <button @click="currentPage = 'portal'" class="text-slate-400 hover:text-white mr-1"><i class="fa-solid fa-arrow-left"></i></button>
-                <img src="admin-logo-192.png?v=2.1.4" class="w-6 h-6 object-contain rounded">
+                <img src="admin-logo-192.png?v=2.1.5" class="w-6 h-6 object-contain rounded">
                 <span class="font-bold gold-text text-sm">AVA Admin</span>
-                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.1.4</span>
+                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.1.5</span>
             </div>
             <button @click="initApp()" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/10">
                 🔄 同步 Sheet
@@ -75,7 +75,6 @@
                             </div>
                             <div>
                                 <label class="text-[10px] text-slate-400 block mb-1">👨‍👩‍👧 切換聚焦受保人 (Insured)</label>
-                                <!-- 家庭受保人下拉選單 -->
                                 <select x-model="selectedInsuredFilter" class="w-full bg-slate-900 border border-amber-500/50 rounded-lg p-2 text-xs gold-text font-bold">
                                     <option value="ALL">全部受保人保單</option>
                                     <template x-for="name in familyInsuredList" :key="name">
@@ -86,16 +85,19 @@
                         </div>
                     </section>
 
-                    <!-- AI 保單讀取 -->
+                    <!-- AI 智能保單讀取 (獨立引擎 2 處理) -->
                     <section class="glass-card p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5">
                         <h3 class="text-xs font-bold gold-text mb-1"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 自動讀取保單 (Gemini 3.6 Flash)</h3>
-                        <input type="file" @change="uploadAndParse($event)" accept="image/*, application/pdf" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950">
+                        <p class="text-[10px] text-slate-400 mb-3">上載圖片/PDF，獨立 AI 引擎極速解析並自動寫入 CRM：</p>
+                        
+                        <input type="file" @change="uploadAndParse($event)" accept="image/*, application/pdf" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400">
+                        
                         <div x-show="isParsing" class="mt-2 text-xs text-amber-400 font-bold animate-pulse">
-                            <i class="fa-solid fa-spinner fa-spin"></i> 正在傳送解析中...
+                            <i class="fa-solid fa-spinner fa-spin"></i> AI 引擎 2 正在解析保單中...
                         </div>
                     </section>
 
-                    <!-- 保障列表 (相容舊資料與特點) -->
+                    <!-- 保障列表 (自動相容舊數據與對應 Sheet) -->
                     <section class="space-y-4">
                         <div class="flex justify-between items-center">
                             <h3 class="text-xs font-bold blue-text">📜 保障列表 (<span x-text="filteredPoliciesByInsured.length"></span>)</h3>
@@ -104,7 +106,7 @@
 
                         <template x-for="(pol, pIndex) in filteredPoliciesByInsured" :key="pIndex">
                             <div class="glass-card p-4 rounded-2xl space-y-3 relative border-l-4 border-l-blue-500">
-                                <button @click="removePolicy(pIndex)" class="absolute top-3 right-3 text-xs text-red-400"><i class="fa-solid fa-trash-can"></i> 刪除</button>
+                                <button @click="removePolicy(pIndex)" class="absolute top-3 right-3 text-xs text-red-400 hover:text-red-300"><i class="fa-solid fa-trash-can"></i> 刪除</button>
 
                                 <div class="grid grid-cols-2 gap-2 text-xs">
                                     <div>
@@ -179,9 +181,13 @@
         </main>
     </div>
 
-    <!-- ================= Alpine.js 引擎 ================= -->
+    <!-- ================= Alpine.js 雙引擎控制邏輯 ================= -->
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycby-1AkUDr7fL8digJDaCRiTliAeWikk8-XsXznXKHvBYQ5nP8vim7iq_N4FR1mp-RHp/exec";
+        // 🌟 引擎 1：CRM 資料庫 GAS Endpoint
+        const CRM_GAS_URL = "https://script.google.com/macros/s/AKfycby-1AkUDr7fL8digJDaCRiTliAeWikk8-XsXznXKHvBYQ5nP8vim7iq_N4FR1mp-RHp/exec";
+
+        // 🌟 引擎 2：獨立 AI OCR 保單解析 GAS Endpoint
+        const AI_GAS_URL = "https://script.google.com/macros/s/AKfycbzPIlJHqcGWDMeJd_Tc_tpDz-r-vVW9lNXBiVXnD2o0ulVNoGkUHy-Ve3rAxnsWh9dhUQ/exec";
 
         function app() {
             return {
@@ -198,14 +204,22 @@
                     this.fetchProducts();
                 },
 
-                safePost(data) {
-                    return fetch(GAS_URL, { method: 'POST', body: JSON.stringify(data) })
+                // 呼叫 CRM Engine 1 (資料庫)
+                postToCrm(data) {
+                    return fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify(data) })
+                    .then(r => r.text())
+                    .then(text => JSON.parse(text));
+                },
+
+                // 呼叫 AI Engine 2 (Gemini 解析)
+                postToAi(data) {
+                    return fetch(AI_GAS_URL, { method: 'POST', body: JSON.stringify(data) })
                     .then(r => r.text())
                     .then(text => JSON.parse(text));
                 },
 
                 fetchClients() {
-                    this.safePost({ action: 'get' })
+                    this.postToCrm({ action: 'get' })
                     .then(res => {
                         if (res.status === 'success') {
                             this.clients = res.data || [];
@@ -214,7 +228,7 @@
                 },
 
                 fetchProducts() {
-                    this.safePost({ action: 'getProducts' })
+                    this.postToCrm({ action: 'getProducts' })
                     .then(res => {
                         if (res.status === 'success') {
                             this.dbProducts = res.data || {};
@@ -229,7 +243,6 @@
                         return;
                     }
 
-                    // 舊數據轉化配對，確保保單資料完美填入
                     const clientCopy = JSON.parse(JSON.stringify(found));
                     if (clientCopy.policies) {
                         clientCopy.policies.forEach(p => {
@@ -302,7 +315,8 @@
                     reader.onload = (ev) => {
                         const base64Data = ev.target.result.split(',')[1];
 
-                        this.safePost({
+                        // 1. 傳送至 AI Engine 2 解析
+                        this.postToAi({
                             action: 'parsePolicyDocument',
                             fileData: base64Data,
                             mimeType: file.type
@@ -332,10 +346,11 @@
                                     items: [newItem]
                                 });
 
+                                // 2. 解析完成後，自動呼叫 CRM Engine 1 寫回 Google Sheet
                                 this.saveCurrentClient();
-                                alert('🎉 保單解析成功並自動帶入！');
+                                alert('🎉 保單解析成功並已自動寫入 Google Sheet CRM！');
                             } else {
-                                alert('解析失敗: ' + (res.message || '請授權 UrlFetchApp 權限'));
+                                alert('解析失敗: ' + (res.message || '請確保 AI 引擎 2 具備 UrlFetchApp 權限'));
                             }
                         })
                         .catch(err => {
@@ -348,11 +363,10 @@
                 },
 
                 saveCurrentClient() {
-                    this.safePost({ action: 'update', payload: this.currentClient })
+                    this.postToCrm({ action: 'update', payload: this.currentClient })
                     .then(res => {
                         if (res.status === 'success') {
                             this.fetchClients();
-                            alert('成功同步至 Google Sheet CRM 分頁！');
                         }
                     });
                 }
