@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA CRM v2.3.8 Live Sync Name Version</title>
+    <title>AVA CRM v2.4.0 Complete Admin</title>
 
     <link rel="manifest" href="manifest-admin.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=2.3.8">
-    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-192.png?v=2.3.8">
+    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=2.4.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-192.png?v=2.4.0">
     <meta name="theme-color" content="#0B0F19">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -26,17 +26,38 @@
 </head>
 <body x-data="app()" x-init="initApp()">
 
-    <div class="min-h-screen pb-20">
+    <!-- 1. 登入介面 (密碼 0903，自動記憶) -->
+    <div x-show="!isLoggedIn" class="fixed inset-0 z-50 bg-[#0B0F19] flex items-center justify-center p-4">
+        <div class="glass-card p-6 rounded-2xl w-full max-w-sm text-center space-y-4 border gold-border">
+            <img src="crmlogo-512.png?v=2.4.0" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
+            <h2 class="text-lg font-bold gold-text">AVA CRM Admin 登入</h2>
+            <input type="password" x-model="loginPass" @keyup.enter="login()" placeholder="請輸入密碼 (0903)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-center text-white text-sm focus:border-amber-500 outline-none">
+            <button @click="login()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 font-bold rounded-xl text-slate-950 text-sm shadow-md">登入系統</button>
+        </div>
+    </div>
+
+    <!-- 2. 主管理介面 -->
+    <div x-show="isLoggedIn" class="min-h-screen pb-20">
         <header class="sticky top-0 z-40 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <img src="crmlogo-192.png?v=2.3.8" class="w-6 h-6 object-contain rounded">
+                <img src="crmlogo-192.png?v=2.4.0" class="w-6 h-6 object-contain rounded">
                 <span class="font-bold gold-text text-sm">AVA Admin</span>
-                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.3.8</span>
+                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.4.0</span>
             </div>
-            <button @click="initApp()" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/10">🔄 同步 Sheet</button>
+            <div class="flex items-center gap-2">
+                <button @click="initApp()" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/10">🔄 同步 Sheet</button>
+                <button @click="logout()" class="text-xs text-slate-400 border border-slate-700 px-2 py-1 rounded-lg">登出</button>
+            </div>
         </header>
 
         <main class="p-4 max-w-lg mx-auto space-y-6">
+            <!-- 全局共享動態 Datalist -->
+            <datalist id="companyList">
+                <template x-for="inc in dbProducts['保險公司'] || []" :key="inc">
+                    <option :value="inc"></option>
+                </template>
+            </datalist>
+
             <!-- 客戶選擇與管理區 -->
             <section class="glass-card p-4 rounded-2xl space-y-3">
                 <div class="flex justify-between items-center">
@@ -64,7 +85,7 @@
                         <h3 class="text-xs font-bold gold-text"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 自動解析保單 (Gemini 3.6 Flash)</h3>
                         <input type="file" @change="uploadAndParse($event)" accept="image/*, application/pdf" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950">
                         <div x-show="isParsing" class="text-xs text-amber-400 font-bold animate-pulse">
-                            <i class="fa-solid fa-spinner fa-spin"></i> AI 正在解析條款，並與 Sheet 自動對應中...
+                            <i class="fa-solid fa-spinner fa-spin"></i> AI 正在解析條款及數據...
                         </div>
                     </section>
 
@@ -92,13 +113,8 @@
 
                                 <div class="grid grid-cols-3 gap-2 text-xs">
                                     <div>
-                                        <label class="text-[10px] text-slate-400">保險公司 (下拉選擇)</label>
-                                        <select x-model="pol.insurer" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
-                                            <option value="">-- 請選擇 --</option>
-                                            <template x-for="inc in dbProducts['保險公司'] || []" :key="inc">
-                                                <option :value="inc" x-text="inc"></option>
-                                            </template>
-                                        </select>
+                                        <label class="text-[10px] text-slate-400">保險公司 (選單/手動)</label>
+                                        <input type="text" list="companyList" x-model="pol.insurer" placeholder="選擇或輸入" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
                                     </div>
                                     <div>
                                         <label class="text-[10px] text-slate-400">保單號碼</label>
@@ -127,13 +143,13 @@
                                                 </select>
                                             </div>
                                             <div>
-                                                <label class="text-[10px] text-slate-400">產品名稱 (連動 Sheet)</label>
-                                                <select x-model="item.name" @change="onProductSelect(item)" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
-                                                    <option value="">-- 請選擇產品 --</option>
+                                                <label class="text-[10px] text-slate-400">產品名稱 (選單/手動)</label>
+                                                <input type="text" :list="'plist-' + item.category" x-model="item.name" @change="onProductSelect(item)" placeholder="選擇或輸入" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
+                                                <datalist :id="'plist-' + item.category">
                                                     <template x-for="p in getProductListForCategory(item.category)" :key="p.name">
-                                                        <option :value="p.name" x-text="p.name"></option>
+                                                        <option :value="p.name"></option>
                                                     </template>
-                                                </select>
+                                                </datalist>
                                             </div>
                                         </div>
 
@@ -173,7 +189,7 @@
                                         </div>
 
                                         <div>
-                                            <label class="text-[10px] text-slate-400">特點 (自動對應 Sheet，沒有則註明手動輸入)</label>
+                                            <label class="text-[10px] text-slate-400">特點 (完整顯示，高度自適應)</label>
                                             <textarea 
                                                 x-model="item.features" 
                                                 @input="autoResizeTextarea($el)"
@@ -227,6 +243,8 @@
 
         function app() {
             return {
+                isLoggedIn: false,
+                loginPass: '',
                 clients: [],
                 dbProducts: {},
                 selectedClientId: '',
@@ -235,8 +253,27 @@
                 isParsing: false,
 
                 initApp() {
-                    this.fetchClients();
-                    this.fetchProducts();
+                    // 自動記憶登入狀態
+                    if (localStorage.getItem('AVA_ADMIN_AUTH') === 'true') {
+                        this.isLoggedIn = true;
+                        this.fetchClients();
+                        this.fetchProducts();
+                    }
+                },
+                login() {
+                    if (this.loginPass === '0903') {
+                        this.isLoggedIn = true;
+                        localStorage.setItem('AVA_ADMIN_AUTH', 'true');
+                        this.loginPass = '';
+                        this.fetchClients();
+                        this.fetchProducts();
+                    } else {
+                        alert('密碼錯誤！請重新輸入。');
+                    }
+                },
+                logout() {
+                    this.isLoggedIn = false;
+                    localStorage.removeItem('AVA_ADMIN_AUTH');
                 },
                 fetchClients() {
                     fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'get' }), redirect: "follow" })
@@ -293,7 +330,6 @@
                         document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el));
                     });
                 },
-                // 🌟 動態同步：持有人/客戶姓名修改時，選單文字即時連動
                 onNameInput() {
                     if (this.currentClient) {
                         this.currentClient.owner = this.searchOrNameInput;
@@ -332,7 +368,7 @@
                 },
                 generatePwaUrl(clientId) {
                     if (!clientId) return '';
-                    const baseUrl = window.location.href.split('?')[0];
+                    const baseUrl = window.location.href.split('?')[0].replace('index.html', '') + 'client.html';
                     return baseUrl + '?id=' + clientId;
                 },
                 renderQrCode() {
@@ -408,10 +444,10 @@
                                     if (p.policyHolder && (!this.currentClient.owner || this.currentClient.owner === '新客戶')) {
                                         this.currentClient.owner = p.policyHolder;
                                         this.searchOrNameInput = p.policyHolder;
-                                        this.onNameInput(); // 自動更新下拉清單中的客戶名稱
+                                        this.onNameInput();
                                     }
 
-                                    let matchedInsurer = '';
+                                    let matchedInsurer = p.insurer || '';
                                     if (p.insurer && this.dbProducts['保險公司']) {
                                         matchedInsurer = this.dbProducts['保險公司'].find(inc => inc.includes(p.insurer) || p.insurer.includes(inc)) || p.insurer;
                                     }
@@ -444,7 +480,7 @@
                                 this.$nextTick(() => {
                                     document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el));
                                 });
-                                alert('🎉 AI 解析完成！客戶名單與條款已自動同步對應。');
+                                alert('🎉 AI 解析完成！名單與特點已自動連動對應。');
                             } else {
                                 alert('AI 解析失敗：' + (res.message || '請確認權限'));
                             }
