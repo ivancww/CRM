@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA CRM v2.5.2 Main Plan & Riders Version</title>
+    <title>AVA CRM v2.5.3 Independent Rider Cards</title>
 
     <link rel="manifest" href="manifest-admin.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=2.5.2">
-    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-192.png?v=2.5.2">
+    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=2.5.3">
+    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-192.png?v=2.5.3">
     <meta name="theme-color" content="#0B0F19">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -26,23 +26,23 @@
 </head>
 <body x-data="app()" x-init="initApp()">
 
-    <!-- 1. 登入介面 (密碼 0903，自動記憶) -->
+    <!-- 登入介面 -->
     <div x-show="!isLoggedIn" class="fixed inset-0 z-50 bg-[#0B0F19] flex items-center justify-center p-4">
         <div class="glass-card p-6 rounded-2xl w-full max-w-sm text-center space-y-4 border gold-border">
-            <img src="crmlogo-512.png?v=2.5.2" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
+            <img src="crmlogo-512.png?v=2.5.3" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
             <h2 class="text-lg font-bold gold-text">AVA CRM Admin 登入</h2>
             <input type="password" x-model="loginPass" @keyup.enter="login()" placeholder="請輸入密碼 (0903)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-center text-white text-sm focus:border-amber-500 outline-none">
             <button @click="login()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 font-bold rounded-xl text-slate-950 text-sm shadow-md">登入系統</button>
         </div>
     </div>
 
-    <!-- 2. 主管理介面 -->
+    <!-- 主管理介面 -->
     <div x-show="isLoggedIn" class="min-h-screen pb-20">
         <header class="sticky top-0 z-40 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <img src="crmlogo-192.png?v=2.5.2" class="w-6 h-6 object-contain rounded">
+                <img src="crmlogo-192.png?v=2.5.3" class="w-6 h-6 object-contain rounded">
                 <span class="font-bold gold-text text-sm">AVA Admin</span>
-                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.5.2</span>
+                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.5.3</span>
             </div>
             <div class="flex items-center gap-2">
                 <button @click="initApp()" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/10">🔄 同步 Sheet</button>
@@ -57,7 +57,7 @@
                 </template>
             </datalist>
 
-            <!-- 客戶選擇與管理區 -->
+            <!-- 客戶選擇區 -->
             <section class="glass-card p-4 rounded-2xl space-y-3">
                 <div class="flex justify-between items-center">
                     <label class="text-xs font-bold gold-text">👤 選擇 / 管理客戶</label>
@@ -79,7 +79,7 @@
 
             <template x-if="currentClient">
                 <div class="space-y-6">
-                    <!-- AI 保單文件解析區 -->
+                    <!-- AI 解析區 -->
                     <section class="glass-card p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 space-y-2">
                         <h3 class="text-xs font-bold gold-text"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 自動解析保單 (Gemini 3.6 Flash)</h3>
                         <input type="file" @change="uploadAndParse($event)" accept="image/*, application/pdf" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950">
@@ -88,7 +88,7 @@
                         </div>
                     </section>
 
-                    <!-- 保障列表 -->
+                    <!-- 保障列表 (每項契約均為完整獨立卡片) -->
                     <section class="space-y-4">
                         <div class="flex justify-between items-center">
                             <h3 class="text-xs font-bold blue-text">📜 保障列表 (<span x-text="currentClient.policies ? currentClient.policies.length : 0"></span> 份保單)</h3>
@@ -96,119 +96,121 @@
                         </div>
 
                         <template x-for="(pol, pIndex) in currentClient.policies" :key="pIndex">
-                            <div class="glass-card p-4 rounded-2xl space-y-3 relative border-l-4 border-l-blue-500">
-                                <button @click="removePolicy(pIndex)" class="absolute top-3 right-3 text-xs text-red-400 hover:text-red-300"><i class="fa-solid fa-xmark"></i> 刪除保單</button>
-
-                                <div class="grid grid-cols-2 gap-2 text-xs">
-                                    <div>
-                                        <label class="text-[10px] text-slate-400">保單持有人</label>
-                                        <input type="text" x-model="pol.policyHolder" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
+                            <div class="space-y-4 p-4 rounded-2xl border border-slate-700/80 bg-slate-950/40">
+                                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-bold gold-text text-xs" x-text="'保單號碼: ' + (pol.policyNumber || '未填寫')"></span>
+                                        <span class="text-[10px] text-slate-400" x-text="'(' + (pol.items ? pol.items.length : 0) + ' 項契約)'"></span>
                                     </div>
-                                    <div>
-                                        <label class="text-[10px] text-slate-400">受保人姓名</label>
-                                        <input type="text" x-model="pol.insuredPerson" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
+                                    <div class="flex items-center gap-2">
+                                        <button @click="addEmptyItemToPolicy(pol)" class="text-[10px] text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded hover:bg-blue-500/10">+ 加附加契約</button>
+                                        <button @click="removePolicy(pIndex)" class="text-xs text-red-400 hover:text-red-300"><i class="fa-solid fa-xmark"></i> 刪除此保單</button>
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-3 gap-2 text-xs">
-                                    <div>
-                                        <label class="text-[10px] text-slate-400">保險公司 (選單/手動)</label>
-                                        <input type="text" list="companyList" x-model="pol.insurer" placeholder="選擇或輸入" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
-                                    </div>
-                                    <div>
-                                        <label class="text-[10px] text-slate-400">保單號碼</label>
-                                        <input type="text" x-model="pol.policyNumber" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
-                                    </div>
-                                    <div>
-                                        <label class="text-[10px] text-slate-400">生效日期</label>
-                                        <input type="text" x-model="pol.commencementDate" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
-                                    </div>
-                                </div>
+                                <!-- 🌟 每一項契約（主險/附加險）呈現完整卡片 🌟 -->
+                                <template x-for="(item, iIndex) in pol.items" :key="iIndex">
+                                    <div class="glass-card p-4 rounded-xl space-y-3 relative border-l-4" :class="iIndex === 0 ? 'border-l-amber-500 bg-amber-500/5' : 'border-l-blue-500 bg-slate-900/60'">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded" :class="iIndex === 0 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'" x-text="iIndex === 0 ? '⭐ 主險 (Main Plan)' : '➕ 附加契約 (Rider ' + iIndex + ')'"></span>
+                                            <button @click="removeSingleItem(pol, iIndex)" class="text-xs text-red-400 hover:text-red-300"><i class="fa-solid fa-trash-can"></i> 刪除契約</button>
+                                        </div>
 
-                                <!-- 同一保單下的主險與附加契約清單 -->
-                                <div class="space-y-3 pt-2 border-t border-slate-800/80">
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-[11px] font-bold gold-text">包含所有契約項目 (<span x-text="pol.items ? pol.items.length : 0"></span>)</span>
-                                        <button @click="addEmptyItemToPolicy(pol)" class="text-[10px] text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded">+ 新增附加契約</button>
-                                    </div>
-
-                                    <template x-for="(item, iIndex) in pol.items" :key="iIndex">
-                                        <div class="bg-slate-900/70 p-3 rounded-xl space-y-2 border border-slate-800 relative">
-                                            <div class="flex justify-between items-center border-b border-slate-800/60 pb-1.5">
-                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded" :class="iIndex === 0 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-slate-800 text-slate-300'" x-text="iIndex === 0 ? '⭐ 主險 (Main Plan)' : '➕ 附加契約 ' + iIndex"></span>
-                                                <button @click="removeSingleItem(pol, iIndex)" class="text-xs text-red-400 hover:text-red-300"><i class="fa-solid fa-minus"></i> 刪除契約</button>
-                                            </div>
-
-                                            <div class="grid grid-cols-2 gap-2 text-xs">
-                                                <div>
-                                                    <label class="text-[10px] text-slate-400">保障種類</label>
-                                                    <select x-model="item.category" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
-                                                        <option value="危疾">危疾</option>
-                                                        <option value="醫療">醫療</option>
-                                                        <option value="意外">意外</option>
-                                                        <option value="人壽">人壽</option>
-                                                        <option value="儲蓄">儲蓄</option>
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label class="text-[10px] text-slate-400">產品/契約名稱 (選單/手動)</label>
-                                                    <input type="text" :list="'plist-' + item.category" x-model="item.name" @change="onProductSelect(item)" placeholder="選擇或輸入" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
-                                                    <datalist :id="'plist-' + item.category">
-                                                        <template x-for="p in getProductListForCategory(item.category)" :key="p.name">
-                                                            <option :value="p.name"></option>
-                                                        </template>
-                                                    </datalist>
-                                                </div>
-                                            </div>
-
-                                            <div class="grid grid-cols-3 gap-2 text-xs">
-                                                <div class="col-span-1">
-                                                    <label class="text-[10px] text-slate-400 block">保費/保額</label>
-                                                    <div class="flex items-center gap-1">
-                                                        <input type="text" x-model="item.premium" @blur="formatCurrency(item, 'premium')" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white font-mono">
-                                                        <select x-model="item.currency" @change="recalculateHkd(item)" class="bg-slate-900 text-slate-300 border border-slate-800 rounded p-1 w-16">
-                                                            <option value="HKD">HKD</option>
-                                                            <option value="USD">USD</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-
-                                                <div class="col-span-2 flex items-end">
-                                                    <template x-if="item.currency === 'USD'">
-                                                        <div class="flex items-center gap-2 bg-slate-950/80 p-1.5 rounded-lg border border-slate-800 w-full justify-between">
-                                                            <span class="text-[11px] font-mono gold-text font-bold" x-text="item.showRawUsd ? 'US$ ' + item.premium : '≈ HK$ ' + item.hkdPremium"></span>
-                                                            <button @click="item.showRawUsd = !item.showRawUsd" class="text-[10px] text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded hover:bg-blue-500/10 flex-shrink-0">
-                                                                🔄 <span x-text="item.showRawUsd ? '換算 HK$' : '顯示 US$'"></span>
-                                                            </button>
-                                                        </div>
-                                                    </template>
-                                                </div>
-                                            </div>
-
-                                            <div class="grid grid-cols-2 gap-2 text-xs">
-                                                <div>
-                                                    <label class="text-[10px] text-slate-400">供款年期</label>
-                                                    <input type="text" x-model="item.term" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
-                                                </div>
-                                                <div>
-                                                    <label class="text-[10px] text-slate-400">保障年期</label>
-                                                    <input type="text" x-model="item.maturity" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
-                                                </div>
-                                            </div>
-
+                                        <div class="grid grid-cols-2 gap-2 text-xs">
                                             <div>
-                                                <label class="text-[10px] text-slate-400">契約特點說明</label>
-                                                <textarea 
-                                                    x-model="item.features" 
-                                                    @input="autoResizeTextarea($el)"
-                                                    x-init="$nextTick(() => autoResizeTextarea($el))"
-                                                    class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-xs text-slate-300 leading-relaxed block transition-all"
-                                                    placeholder="請手動輸入/修改特點..."
-                                                ></textarea>
+                                                <label class="text-[10px] text-slate-400">保單持有人</label>
+                                                <input type="text" x-model="pol.policyHolder" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] text-slate-400">受保人姓名</label>
+                                                <input type="text" x-model="pol.insuredPerson" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
                                             </div>
                                         </div>
-                                    </template>
-                                </div>
+
+                                        <div class="grid grid-cols-3 gap-2 text-xs">
+                                            <div>
+                                                <label class="text-[10px] text-slate-400">保險公司</label>
+                                                <input type="text" list="companyList" x-model="pol.insurer" placeholder="選擇或輸入" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] text-slate-400">保單號碼</label>
+                                                <input type="text" x-model="pol.policyNumber" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] text-slate-400">生效日期</label>
+                                                <input type="text" x-model="pol.commencementDate" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                            <div>
+                                                <label class="text-[10px] text-slate-400">保障種類</label>
+                                                <select x-model="item.category" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-white">
+                                                    <option value="危疾">危疾</option>
+                                                    <option value="醫療">醫療</option>
+                                                    <option value="意外">意外</option>
+                                                    <option value="人壽">人壽</option>
+                                                    <option value="儲蓄">儲蓄</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] text-slate-400">契約/產品名稱</label>
+                                                <input type="text" :list="'plist-' + item.category" x-model="item.name" @change="onProductSelect(item)" placeholder="選擇或輸入" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-white">
+                                                <datalist :id="'plist-' + item.category">
+                                                    <template x-for="p in getProductListForCategory(item.category)" :key="p.name">
+                                                        <option :value="p.name"></option>
+                                                    </template>
+                                                </datalist>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-3 gap-2 text-xs">
+                                            <div class="col-span-1">
+                                                <label class="text-[10px] text-slate-400 block">保費 (每年)</label>
+                                                <div class="flex items-center gap-1">
+                                                    <input type="text" x-model="item.premium" @blur="formatCurrency(item, 'premium')" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-white font-mono">
+                                                    <select x-model="item.currency" @change="recalculateHkd(item)" class="bg-slate-900 text-slate-300 border border-slate-800 rounded p-1.5 w-16">
+                                                        <option value="HKD">HKD</option>
+                                                        <option value="USD">USD</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-span-2 flex items-end">
+                                                <template x-if="item.currency === 'USD'">
+                                                    <div class="flex items-center gap-2 bg-slate-950/80 p-1.5 rounded-lg border border-slate-800 w-full justify-between">
+                                                        <span class="text-[11px] font-mono gold-text font-bold" x-text="item.showRawUsd ? 'US$ ' + item.premium : '≈ HK$ ' + item.hkdPremium"></span>
+                                                        <button @click="item.showRawUsd = !item.showRawUsd" class="text-[10px] text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded hover:bg-blue-500/10 flex-shrink-0">
+                                                            🔄 <span x-text="item.showRawUsd ? '換算 HK$' : '顯示 US$'"></span>
+                                                        </button>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                            <div>
+                                                <label class="text-[10px] text-slate-400">供款年期</label>
+                                                <input type="text" x-model="item.term" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-white">
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] text-slate-400">保障年期</label>
+                                                <input type="text" x-model="item.maturity" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-white">
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label class="text-[10px] text-slate-400">契約條款特點說明</label>
+                                            <textarea 
+                                                x-model="item.features" 
+                                                @input="autoResizeTextarea($el)"
+                                                x-init="$nextTick(() => autoResizeTextarea($el))"
+                                                class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-xs text-slate-300 leading-relaxed block transition-all"
+                                                placeholder="請手動輸入/修改特點..."
+                                            ></textarea>
+                                        </div>
+                                    </div>
+                                </template>
                             </div>
                         </template>
                     </section>
@@ -499,7 +501,7 @@
                                 this.$nextTick(() => {
                                     document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el));
                                 });
-                                alert('🎉 AI 解析完成！主險與附加契約已完整列出並自動對應。');
+                                alert('🎉 AI 解析完成！主險與附加契約已各自建立獨立完整卡片。');
                             } else {
                                 alert('AI 解析失敗：' + (res.message || '請確認權限'));
                             }
@@ -525,7 +527,7 @@
                         if (res.status === 'success') {
                             this.fetchClients();
                             this.renderQrCode();
-                            alert('💾 成功將所有保單資料同步至 Google Sheet CRM！');
+                            alert('💾 成功將所有保單數據同步至 Google Sheet CRM！');
                         } else {
                             alert('儲存失敗：' + res.message);
                         }
