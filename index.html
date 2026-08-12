@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA CRM v2.3.4 Direct Sheet Version</title>
+    <title>AVA CRM v2.3.6 Auto Height & USD Currency Version</title>
 
     <link rel="manifest" href="manifest-admin.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=2.3.4">
-    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-192.png?v=2.3.4">
+    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=2.3.6">
+    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-192.png?v=2.3.6">
     <meta name="theme-color" content="#0B0F19">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,6 +21,7 @@
         .gold-border { border-color: rgba(212, 175, 55, 0.4); }
         .gold-text { color: #D4AF37; }
         .blue-text { color: #38BDF8; }
+        textarea { resize: none; overflow: hidden; }
     </style>
 </head>
 <body x-data="app()" x-init="initApp()">
@@ -28,19 +29,19 @@
     <div class="min-h-screen pb-20">
         <header class="sticky top-0 z-40 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <img src="crmlogo-192.png?v=2.3.4" class="w-6 h-6 object-contain rounded">
+                <img src="crmlogo-192.png?v=2.3.6" class="w-6 h-6 object-contain rounded">
                 <span class="font-bold gold-text text-sm">AVA Admin</span>
-                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.3.4</span>
+                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.3.6</span>
             </div>
             <button @click="initApp()" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/10">🔄 同步 Sheet</button>
         </header>
 
         <main class="p-4 max-w-lg mx-auto space-y-6">
-            <!-- 客戶選擇與新增區 -->
+            <!-- 客戶選擇與管理區 -->
             <section class="glass-card p-4 rounded-2xl space-y-3">
                 <div class="flex justify-between items-center">
-                    <label class="text-xs font-bold gold-text">👤 選擇 / 新增客戶</label>
-                    <div class="flex items-center gap-2">
+                    <label class="text-xs font-bold gold-text">👤 選擇 / 管理客戶</label>
+                    <div class="flex items-center gap-3">
                         <button @click="resetOwner()" class="text-xs text-blue-400 font-bold hover:underline">+ 建立新客戶</button>
                         <button x-show="selectedClientId" @click="deleteCurrentClient()" class="text-xs text-red-400 font-bold hover:underline"><i class="fa-solid fa-trash-can"></i> 刪除此客戶</button>
                     </div>
@@ -100,7 +101,7 @@
                                         </select>
                                     </div>
                                     <div>
-                                        <label class="text-[10px] text-slate-400">保障號碼</label>
+                                        <label class="text-[10px] text-slate-400">保單號碼</label>
                                         <input type="text" x-model="pol.policyNumber" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
                                     </div>
                                     <div>
@@ -136,11 +137,32 @@
                                             </div>
                                         </div>
 
+                                        <!-- 🌟 升級：美金保費自動 7.8 換算與動態幣別靈活切換 🌟 -->
                                         <div class="grid grid-cols-3 gap-2 text-xs">
-                                            <div>
-                                                <label class="text-[10px] text-slate-400">保費 (每年)</label>
-                                                <input type="text" x-model="item.premium" @blur="formatCurrency(item, 'premium')" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white font-mono">
+                                            <div class="col-span-1">
+                                                <label class="text-[10px] text-slate-400 block">保費 (每年)</label>
+                                                <div class="flex items-center gap-1">
+                                                    <input type="text" x-model="item.premium" @blur="formatCurrency(item, 'premium')" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white font-mono">
+                                                    <select x-model="item.currency" @change="recalculateHkd(item)" class="bg-slate-900 text-slate-300 border border-slate-800 rounded p-1 w-16">
+                                                        <option value="HKD">HKD</option>
+                                                        <option value="USD">USD</option>
+                                                    </select>
+                                                </div>
                                             </div>
+
+                                            <div class="col-span-2 flex items-end">
+                                                <template x-if="item.currency === 'USD'">
+                                                    <div class="flex items-center gap-2 bg-slate-950/80 p-1.5 rounded-lg border border-slate-800 w-full justify-between">
+                                                        <span class="text-[11px] font-mono gold-text font-bold" x-text="item.showRawUsd ? 'US$ ' + item.premium : '≈ HK$ ' + item.hkdPremium"></span>
+                                                        <button @click="item.showRawUsd = !item.showRawUsd" class="text-[10px] text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded hover:bg-blue-500/10 flex-shrink-0">
+                                                            🔄 <span x-text="item.showRawUsd ? '換算 HK$' : '顯示 US$'"></span>
+                                                        </button>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-2 text-xs">
                                             <div>
                                                 <label class="text-[10px] text-slate-400">供款年期</label>
                                                 <input type="text" x-model="item.term" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
@@ -151,9 +173,17 @@
                                             </div>
                                         </div>
 
+                                        <!-- 🌟 升級：自動調整高度特點框 🌟 -->
                                         <div>
-                                            <label class="text-[10px] text-slate-400">特點 (自動帶出 B 欄，亦可手動修改)</label>
-                                            <textarea x-model="item.features" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-xs text-slate-300"></textarea>
+                                            <label class="text-[10px] text-slate-400">特點 (完整顯示，高度自動自適應)</label>
+                                            <textarea 
+                                                x-model="item.features" 
+                                                x-ref="featArea"
+                                                @input="autoResizeTextarea($el)"
+                                                x-init="$nextTick(() => autoResizeTextarea($el))"
+                                                class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-xs text-slate-300 leading-relaxed block transition-all"
+                                                placeholder="保障特點..."
+                                            ></textarea>
                                         </div>
                                     </div>
                                 </template>
@@ -165,7 +195,7 @@
                         💾 儲存並同步至 Google Sheet CRM
                     </button>
 
-                    <!-- 二維碼 -->
+                    <!-- 二維碼區 -->
                     <section class="glass-card p-4 rounded-2xl gold-border bg-[#111827]">
                         <div class="flex items-center gap-4">
                             <div id="qrcode" class="bg-white p-2 rounded-lg flex-shrink-0"></div>
@@ -229,6 +259,18 @@
                         }
                     });
                 },
+                autoResizeTextarea(el) {
+                    if (!el) return;
+                    el.style.height = 'auto';
+                    el.style.height = (el.scrollHeight + 4) + 'px';
+                },
+                recalculateHkd(item) {
+                    if (item.currency === 'USD') {
+                        const usdVal = parseNumber(item.premium);
+                        item.hkdPremium = formatNumber(usdVal * 7.8);
+                        if (item.showRawUsd === undefined) item.showRawUsd = false;
+                    }
+                },
                 get filteredClients() {
                     if (!this.searchOrNameInput || this.selectedClientId) return this.clients;
                     return this.clients.filter(c => (c.owner || '').includes(this.searchOrNameInput));
@@ -245,13 +287,18 @@
                         if (!pol.policyHolder) pol.policyHolder = clientCopy.owner;
                         if (pol.items) {
                             pol.items.forEach(item => {
+                                if (!item.currency) item.currency = 'HKD';
                                 item.premium = formatNumber(parseNumber(item.premium));
+                                this.recalculateHkd(item);
                             });
                         }
                     });
                     this.currentClient = clientCopy;
                     this.searchOrNameInput = clientCopy.owner;
                     this.renderQrCode();
+                    this.$nextTick(() => {
+                        document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el));
+                    });
                 },
                 onNameInput() {
                     if (this.currentClient) {
@@ -307,7 +354,7 @@
                     this.currentClient.policies.push({
                         insurer: '', policyNumber: '', commencementDate: '',
                         policyHolder: this.searchOrNameInput, insuredPerson: this.searchOrNameInput,
-                        items: [{ category: '危疾', name: '', term: '', maturity: '', premium: "0", features: '' }]
+                        items: [{ category: '危疾', name: '', term: '', maturity: '', premium: "0", currency: 'HKD', features: '' }]
                     });
                 },
                 removePolicy(index) {
@@ -324,11 +371,15 @@
                     const matched = list.find(p => p.name === item.name);
                     if (matched) {
                         item.features = matched.features;
+                        this.$nextTick(() => {
+                            document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el));
+                        });
                     }
                 },
                 formatCurrency(item, field) {
                     if (item[field]) {
                         item[field] = formatNumber(parseNumber(item[field]));
+                        this.recalculateHkd(item);
                     }
                 },
                 uploadAndParse(e) {
@@ -337,10 +388,12 @@
                     this.isParsing = true;
                     const reader = new FileReader();
                     reader.onload = (ev) => {
-                        const base64Data = ev.target.result.split(',')[1];
+                        let rawBase64 = ev.target.result.split(',')[1];
+                        let cleanBase64 = rawBase64.replace(/[\r\n\s]/g, '');
+
                         fetch(AI_GAS_URL, {
                             method: 'POST',
-                            body: JSON.stringify({ action: 'parsePolicyDocument', fileData: base64Data, mimeType: file.type })
+                            body: JSON.stringify({ action: 'parsePolicyDocument', fileData: cleanBase64, mimeType: file.type })
                         })
                         .then(r => r.json())
                         .then(res => {
@@ -356,9 +409,11 @@
                                         term: p.term || '',
                                         maturity: p.maturity || '',
                                         premium: formatNumber(parseNumber(p.premium ? p.premium.amount : 0)),
+                                        currency: (p.premium && p.premium.currency) ? p.premium.currency : 'HKD',
                                         features: p.features || ''
                                     };
                                     this.onProductSelect(newItem);
+                                    this.recalculateHkd(newItem);
                                     this.currentClient.policies.push({
                                         insurer: p.insurer || '',
                                         policyNumber: p.policyNumber || '',
@@ -369,6 +424,9 @@
                                     });
                                 });
                                 this.renderQrCode();
+                                this.$nextTick(() => {
+                                    document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el));
+                                });
                                 alert('🎉 AI 自動解析完成！');
                             } else {
                                 alert('AI 解析失敗：' + (res.message || '請確認權限'));
