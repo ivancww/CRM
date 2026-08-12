@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA CRM v2.3.2 Dual GAS Version</title>
+    <title>AVA CRM v2.3.4 Direct Sheet Version</title>
 
     <link rel="manifest" href="manifest-admin.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=2.3.2">
-    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-192.png?v=2.3.2">
+    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=2.3.4">
+    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-192.png?v=2.3.4">
     <meta name="theme-color" content="#0B0F19">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -25,45 +25,47 @@
 </head>
 <body x-data="app()" x-init="initApp()">
 
-    <div x-show="viewMode === 'admin'" class="min-h-screen pb-20">
+    <div class="min-h-screen pb-20">
         <header class="sticky top-0 z-40 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <img src="crmlogo-192.png?v=2.3.2" class="w-6 h-6 object-contain rounded">
+                <img src="crmlogo-192.png?v=2.3.4" class="w-6 h-6 object-contain rounded">
                 <span class="font-bold gold-text text-sm">AVA Admin</span>
-                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.3.2</span>
+                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.3.4</span>
             </div>
             <button @click="initApp()" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/10">🔄 同步 Sheet</button>
         </header>
 
         <main class="p-4 max-w-lg mx-auto space-y-6">
-            <!-- 客戶選擇區 -->
+            <!-- 客戶選擇與新增區 -->
             <section class="glass-card p-4 rounded-2xl space-y-3">
                 <div class="flex justify-between items-center">
-                    <label class="text-xs font-bold gold-text">👤 選擇 / 新增客戶 (客戶姓名)</label>
+                    <label class="text-xs font-bold gold-text">👤 選擇 / 新增客戶</label>
                     <div class="flex items-center gap-2">
-                        <button @click="resetOwner()" class="text-xs text-blue-400 hover:underline">+ 新增客戶</button>
-                        <button x-show="selectedClientId" @click="deleteCurrentClient()" class="text-xs text-red-400 hover:underline"><i class="fa-solid fa-user-xmark"></i> 刪除此客戶</button>
+                        <button @click="resetOwner()" class="text-xs text-blue-400 font-bold hover:underline">+ 建立新客戶</button>
+                        <button x-show="selectedClientId" @click="deleteCurrentClient()" class="text-xs text-red-400 font-bold hover:underline"><i class="fa-solid fa-trash-can"></i> 刪除此客戶</button>
                     </div>
                 </div>
                 <div class="grid grid-cols-3 gap-2">
                     <select x-model="selectedClientId" @change="loadSelectedClient()" class="col-span-2 w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
                         <option value="">-- 請選擇客戶 --</option>
-                        <template x-for="c in clients" :key="c.id">
+                        <template x-for="c in filteredClients" :key="c.id">
                             <option :value="c.id" x-text="(c.owner || '未命名') + ' (' + (c.policies ? c.policies.length : 0) + ' 份)'"></option>
                         </template>
                     </select>
-                    <input type="text" x-model="ownerInputName" class="col-span-1 w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white" placeholder="客戶姓名">
+                    <input type="text" x-model="searchOrNameInput" @input="onNameInput()" class="col-span-1 w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-xs text-white" placeholder="搜尋或修改姓名">
                 </div>
             </section>
 
             <template x-if="currentClient">
                 <div class="space-y-6">
-                    <!-- 全域動態數據池 (保險公司名單) -->
-                    <datalist id="companyList">
-                        <template x-for="inc in dbProducts['保險公司'] || []" :key="inc">
-                            <option :value="inc"></option>
-                        </template>
-                    </datalist>
+                    <!-- AI 保單文件解析區 -->
+                    <section class="glass-card p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 space-y-2">
+                        <h3 class="text-xs font-bold gold-text"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 自動解析保單 (Gemini 3.6 Flash)</h3>
+                        <input type="file" @change="uploadAndParse($event)" accept="image/*, application/pdf" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950">
+                        <div x-show="isParsing" class="text-xs text-amber-400 font-bold animate-pulse">
+                            <i class="fa-solid fa-spinner fa-spin"></i> AI 正在解析條款及數據...
+                        </div>
+                    </section>
 
                     <!-- 保障列表 -->
                     <section class="space-y-4">
@@ -74,7 +76,7 @@
 
                         <template x-for="(pol, pIndex) in currentClient.policies" :key="pIndex">
                             <div class="glass-card p-4 rounded-2xl space-y-3 relative border-l-4 border-l-blue-500">
-                                <button @click="removePolicy(pIndex)" class="absolute top-3 right-3 text-xs text-red-400 hover:text-red-300"><i class="fa-solid fa-trash-can"></i> 刪除保單</button>
+                                <button @click="removePolicy(pIndex)" class="absolute top-3 right-3 text-xs text-red-400 hover:text-red-300"><i class="fa-solid fa-xmark"></i> 刪除保單</button>
 
                                 <div class="grid grid-cols-2 gap-2 text-xs">
                                     <div>
@@ -89,8 +91,13 @@
 
                                 <div class="grid grid-cols-3 gap-2 text-xs">
                                     <div>
-                                        <label class="text-[10px] text-slate-400">保險公司 (下拉/手動)</label>
-                                        <input type="text" list="companyList" x-model="pol.insurer" placeholder="選擇或輸入" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
+                                        <label class="text-[10px] text-slate-400">保險公司 (下拉選擇)</label>
+                                        <select x-model="pol.insurer" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
+                                            <option value="">-- 請選擇 --</option>
+                                            <template x-for="inc in dbProducts['保險公司'] || []" :key="inc">
+                                                <option :value="inc" x-text="inc"></option>
+                                            </template>
+                                        </select>
                                     </div>
                                     <div>
                                         <label class="text-[10px] text-slate-400">保障號碼</label>
@@ -102,10 +109,10 @@
                                     </div>
                                 </div>
 
-                                <!-- 險種子項目 -->
+                                <!-- 險種條目 -->
                                 <template x-for="(item, iIndex) in pol.items" :key="iIndex">
                                     <div class="bg-slate-900/60 p-3 rounded-xl space-y-2 border border-slate-800 relative">
-                                        <button @click="removeSingleItem(pol, iIndex)" class="absolute top-1 right-2 text-xs text-red-600 hover:text-red-400"><i class="fa-solid fa-square-minus"></i> 刪險</button>
+                                        <button @click="removeSingleItem(pol, iIndex)" class="absolute top-1 right-2 text-xs text-red-600 hover:text-red-400"><i class="fa-solid fa-minus"></i> 刪險</button>
 
                                         <div class="grid grid-cols-2 gap-2 text-xs">
                                             <div>
@@ -119,13 +126,13 @@
                                                 </select>
                                             </div>
                                             <div>
-                                                <label class="text-[10px] text-slate-400">產品名稱 (下拉/手動)</label>
-                                                <input type="text" :list="'plist-' + item.category" x-model="item.name" @change="onProductSelect(item)" placeholder="選擇或輸入" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
-                                                <datalist :id="'plist-' + item.category">
+                                                <label class="text-[10px] text-slate-400">產品名稱 (連動 Sheet)</label>
+                                                <select x-model="item.name" @change="onProductSelect(item)" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
+                                                    <option value="">-- 請選擇產品 --</option>
                                                     <template x-for="p in getProductListForCategory(item.category)" :key="p.name">
-                                                        <option :value="p.name"></option>
+                                                        <option :value="p.name" x-text="p.name"></option>
                                                     </template>
-                                                </datalist>
+                                                </select>
                                             </div>
                                         </div>
 
@@ -145,7 +152,7 @@
                                         </div>
 
                                         <div>
-                                            <label class="text-[10px] text-slate-400">特點 (選取自動帶出 B 欄，亦可手動修改)</label>
+                                            <label class="text-[10px] text-slate-400">特點 (自動帶出 B 欄，亦可手動修改)</label>
                                             <textarea x-model="item.features" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-xs text-slate-300"></textarea>
                                         </div>
                                     </div>
@@ -158,13 +165,13 @@
                         💾 儲存並同步至 Google Sheet CRM
                     </button>
 
-                    <!-- 底部二維碼與 PWA 預覽 -->
+                    <!-- 二維碼 -->
                     <section class="glass-card p-4 rounded-2xl gold-border bg-[#111827]">
                         <div class="flex items-center gap-4">
                             <div id="qrcode" class="bg-white p-2 rounded-lg flex-shrink-0"></div>
                             <div class="flex-1 space-y-2 text-xs">
                                 <h4 class="font-bold gold-text"><i class="fa-solid fa-qrcode"></i> 客戶專屬二維碼 (PWA)</h4>
-                                <p class="text-[10px] text-slate-400">請掃描 QR Code 或點擊下方連結分享給客戶觀看其專屬頁面。</p>
+                                <p class="text-[10px] text-slate-400">請掃描 QR Code 分享給客戶觀看其專屬頁面。</p>
                                 <button @click="openPwa()" class="text-xs text-blue-400 hover:underline break-all text-left block">
                                     🔗 預覽連結：<span x-text="generatePwaUrl(currentClient.id)"></span>
                                 </button>
@@ -177,9 +184,9 @@
     </div>
 
     <script>
-        // 🌟 已對齊你提供的兩條獨立 GAS 網址 🌟
         const CRM_GAS_URL = "https://script.google.com/macros/s/AKfycbzy1gnDB-qXZIhTsgxNvLveRrHWVP7AoYoqG_JsbELBvvReXy4Fx2rYu6ieJNuupMtmdg/exec";
         const PRODUCTS_GAS_URL = "https://script.google.com/macros/s/AKfycbzJxEthfbtGFhesn9zqKz_14bvLY0Q6uvKVzSr2WM8s1VfCTJXaCg7lhNEwqyAql6hUuQ/exec";
+        const AI_GAS_URL = "https://script.google.com/macros/s/AKfycbzPIlJHqcGWDMeJd_Tc_tpDz-r-vVW9lNXBiVXnD2o0ulVNoGkUHy-Ve3rAxnsWh9dhUQ/exec";
 
         const formatNumber = (num) => {
             if (num === null || num === undefined || isNaN(num) || num === "") return "";
@@ -193,48 +200,44 @@
 
         function app() {
             return {
-                viewMode: 'admin',
                 clients: [],
                 dbProducts: {},
                 selectedClientId: '',
-                ownerInputName: '',
+                searchOrNameInput: '',
                 currentClient: null,
+                isParsing: false,
 
                 initApp() {
                     this.fetchClients();
                     this.fetchProducts();
                 },
                 fetchClients() {
-                    fetch(CRM_GAS_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: 'get' }),
-                        redirect: "follow"
-                    })
-                    .then(r => r.text())
-                    .then(text => JSON.parse(text))
+                    fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'get' }), redirect: "follow" })
+                    .then(r => r.json())
                     .then(res => {
                         if (res.status === 'success') {
                             this.clients = res.data || [];
                         }
-                    })
-                    .catch(err => console.error("Fetch Clients Error:", err));
+                    });
                 },
                 fetchProducts() {
                     fetch(PRODUCTS_GAS_URL)
-                    .then(r => r.text())
-                    .then(text => JSON.parse(text))
+                    .then(r => r.json())
                     .then(res => {
                         if (res.status === 'success') {
                             this.dbProducts = res.data || {};
                         }
-                    })
-                    .catch(err => console.error("Fetch Products Error:", err));
+                    });
+                },
+                get filteredClients() {
+                    if (!this.searchOrNameInput || this.selectedClientId) return this.clients;
+                    return this.clients.filter(c => (c.owner || '').includes(this.searchOrNameInput));
                 },
                 loadSelectedClient() {
                     const found = this.clients.find(c => String(c.id) === String(this.selectedClientId));
                     if (!found) {
                         this.currentClient = null;
-                        this.ownerInputName = '';
+                        this.searchOrNameInput = '';
                         return;
                     }
                     const clientCopy = JSON.parse(JSON.stringify(found));
@@ -247,32 +250,32 @@
                         }
                     });
                     this.currentClient = clientCopy;
-                    this.ownerInputName = clientCopy.owner;
+                    this.searchOrNameInput = clientCopy.owner;
                     this.renderQrCode();
+                },
+                onNameInput() {
+                    if (this.currentClient) {
+                        this.currentClient.owner = this.searchOrNameInput;
+                    }
                 },
                 resetOwner() {
                     this.selectedClientId = '';
-                    this.ownerInputName = '新客戶';
+                    this.searchOrNameInput = '新客戶';
                     const newId = Date.now().toString();
                     this.currentClient = { id: newId, owner: '新客戶', insured: '新客戶', policies: [] };
                     this.renderQrCode();
                 },
                 deleteCurrentClient() {
                     if (!this.selectedClientId) return;
-                    if (confirm('確定要從 Google Sheet 刪除此客戶的所有紀錄？')) {
-                        fetch(CRM_GAS_URL, {
-                            method: 'POST',
-                            body: JSON.stringify({ action: 'delete', id: this.selectedClientId }),
-                            redirect: "follow"
-                        })
-                        .then(r => r.text())
-                        .then(text => JSON.parse(text))
+                    if (confirm('確定要永久刪除此客戶紀錄？')) {
+                        fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id: this.selectedClientId }), redirect: "follow" })
+                        .then(r => r.json())
                         .then(res => {
                             if (res.status === 'success') {
-                                alert('✅ 客戶已成功刪除！');
+                                alert('✅ 客戶已刪除！');
                                 this.selectedClientId = '';
                                 this.currentClient = null;
-                                this.ownerInputName = '';
+                                this.searchOrNameInput = '';
                                 this.fetchClients();
                             } else {
                                 alert('刪除失敗：' + res.message);
@@ -290,10 +293,7 @@
                         const container = document.getElementById("qrcode");
                         if (container && this.currentClient) {
                             container.innerHTML = "";
-                            new QRCode(container, {
-                                text: this.generatePwaUrl(this.currentClient.id),
-                                width: 120, height: 120
-                            });
+                            new QRCode(container, { text: this.generatePwaUrl(this.currentClient.id), width: 120, height: 120 });
                         }
                     });
                 },
@@ -306,8 +306,7 @@
                     if (!this.currentClient.policies) this.currentClient.policies = [];
                     this.currentClient.policies.push({
                         insurer: '', policyNumber: '', commencementDate: '',
-                        policyHolder: this.ownerInputName,
-                        insuredPerson: this.ownerInputName,
+                        policyHolder: this.searchOrNameInput, insuredPerson: this.searchOrNameInput,
                         items: [{ category: '危疾', name: '', term: '', maturity: '', premium: "0", features: '' }]
                     });
                 },
@@ -332,17 +331,66 @@
                         item[field] = formatNumber(parseNumber(item[field]));
                     }
                 },
+                uploadAndParse(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    this.isParsing = true;
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        const base64Data = ev.target.result.split(',')[1];
+                        fetch(AI_GAS_URL, {
+                            method: 'POST',
+                            body: JSON.stringify({ action: 'parsePolicyDocument', fileData: base64Data, mimeType: file.type })
+                        })
+                        .then(r => r.json())
+                        .then(res => {
+                            this.isParsing = false;
+                            if (res.status === 'success' && res.data) {
+                                const parsed = res.data;
+                                if (!this.currentClient.policies) this.currentClient.policies = [];
+                                parsed.forEach(p => {
+                                    const newItem = {
+                                        category: '危疾',
+                                        name: p.productName || '',
+                                        sumAssured: formatNumber(parseNumber(p.sumAssured ? p.sumAssured.amount : 0)),
+                                        term: p.term || '',
+                                        maturity: p.maturity || '',
+                                        premium: formatNumber(parseNumber(p.premium ? p.premium.amount : 0)),
+                                        features: p.features || ''
+                                    };
+                                    this.onProductSelect(newItem);
+                                    this.currentClient.policies.push({
+                                        insurer: p.insurer || '',
+                                        policyNumber: p.policyNumber || '',
+                                        commencementDate: p.commencementDate || '',
+                                        policyHolder: p.policyHolder || this.searchOrNameInput,
+                                        insuredPerson: p.insuredPerson || this.searchOrNameInput,
+                                        items: [newItem]
+                                    });
+                                });
+                                this.renderQrCode();
+                                alert('🎉 AI 自動解析完成！');
+                            } else {
+                                alert('AI 解析失敗：' + (res.message || '請確認權限'));
+                            }
+                        })
+                        .catch(err => {
+                            this.isParsing = false;
+                            alert('解析失敗: ' + err.message);
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                },
                 saveCurrentClient() {
                     if (this.currentClient) {
-                        this.currentClient.owner = this.ownerInputName;
+                        this.currentClient.owner = this.searchOrNameInput;
                     }
                     fetch(CRM_GAS_URL, {
                         method: 'POST',
                         body: JSON.stringify({ action: 'update', payload: this.currentClient }),
                         redirect: "follow"
                     })
-                    .then(r => r.text())
-                    .then(text => JSON.parse(text))
+                    .then(r => r.json())
                     .then(res => {
                         if (res.status === 'success') {
                             this.fetchClients();
