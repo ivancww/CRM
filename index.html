@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA CRM v2.4.0 Complete Admin</title>
+    <title>AVA CRM v2.5.1 Policy Grouping Version</title>
 
     <link rel="manifest" href="manifest-admin.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=2.4.0">
-    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-192.png?v=2.4.0">
+    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=2.5.1">
+    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-192.png?v=2.5.1">
     <meta name="theme-color" content="#0B0F19">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,7 +29,7 @@
     <!-- 1. 登入介面 (密碼 0903，自動記憶) -->
     <div x-show="!isLoggedIn" class="fixed inset-0 z-50 bg-[#0B0F19] flex items-center justify-center p-4">
         <div class="glass-card p-6 rounded-2xl w-full max-w-sm text-center space-y-4 border gold-border">
-            <img src="crmlogo-512.png?v=2.4.0" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
+            <img src="crmlogo-512.png?v=2.5.1" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
             <h2 class="text-lg font-bold gold-text">AVA CRM Admin 登入</h2>
             <input type="password" x-model="loginPass" @keyup.enter="login()" placeholder="請輸入密碼 (0903)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-center text-white text-sm focus:border-amber-500 outline-none">
             <button @click="login()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 font-bold rounded-xl text-slate-950 text-sm shadow-md">登入系統</button>
@@ -40,9 +40,9 @@
     <div x-show="isLoggedIn" class="min-h-screen pb-20">
         <header class="sticky top-0 z-40 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <img src="crmlogo-192.png?v=2.4.0" class="w-6 h-6 object-contain rounded">
+                <img src="crmlogo-192.png?v=2.5.1" class="w-6 h-6 object-contain rounded">
                 <span class="font-bold gold-text text-sm">AVA Admin</span>
-                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.4.0</span>
+                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.5.1</span>
             </div>
             <div class="flex items-center gap-2">
                 <button @click="initApp()" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/10">🔄 同步 Sheet</button>
@@ -85,14 +85,14 @@
                         <h3 class="text-xs font-bold gold-text"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 自動解析保單 (Gemini 3.6 Flash)</h3>
                         <input type="file" @change="uploadAndParse($event)" accept="image/*, application/pdf" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950">
                         <div x-show="isParsing" class="text-xs text-amber-400 font-bold animate-pulse">
-                            <i class="fa-solid fa-spinner fa-spin"></i> AI 正在解析條款及數據...
+                            <i class="fa-solid fa-spinner fa-spin"></i> AI 正在解析條款，整理同一保單的多項保障中...
                         </div>
                     </section>
 
                     <!-- 保障列表 -->
                     <section class="space-y-4">
                         <div class="flex justify-between items-center">
-                            <h3 class="text-xs font-bold blue-text">📜 保障列表 (<span x-text="currentClient.policies ? currentClient.policies.length : 0"></span>)</h3>
+                            <h3 class="text-xs font-bold blue-text">📜 保障列表 (<span x-text="currentClient.policies ? currentClient.policies.length : 0"></span> 份保單)</h3>
                             <button @click="addEmptyPolicy()" class="text-xs bg-slate-800 px-2.5 py-1 rounded-lg text-blue-400 border border-slate-700">+ 新增保單</button>
                         </div>
 
@@ -126,80 +126,87 @@
                                     </div>
                                 </div>
 
-                                <!-- 險種條目 -->
-                                <template x-for="(item, iIndex) in pol.items" :key="iIndex">
-                                    <div class="bg-slate-900/60 p-3 rounded-xl space-y-2 border border-slate-800 relative">
-                                        <button @click="removeSingleItem(pol, iIndex)" class="absolute top-1 right-2 text-xs text-red-600 hover:text-red-400"><i class="fa-solid fa-minus"></i> 刪險</button>
+                                <!-- 同一保單內的所有險種條目 -->
+                                <div class="space-y-2 pt-2 border-t border-slate-800/80">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-[11px] font-bold gold-text">包含保障項目 (<span x-text="pol.items ? pol.items.length : 0"></span>)</span>
+                                        <button @click="addEmptyItemToPolicy(pol)" class="text-[10px] text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded">+ 新增附加保障</button>
+                                    </div>
 
-                                        <div class="grid grid-cols-2 gap-2 text-xs">
-                                            <div>
-                                                <label class="text-[10px] text-slate-400">保障種類</label>
-                                                <select x-model="item.category" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
-                                                    <option value="危疾">危疾</option>
-                                                    <option value="醫療">醫療</option>
-                                                    <option value="意外">意外</option>
-                                                    <option value="人壽">人壽</option>
-                                                    <option value="儲蓄">儲蓄</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label class="text-[10px] text-slate-400">產品名稱 (選單/手動)</label>
-                                                <input type="text" :list="'plist-' + item.category" x-model="item.name" @change="onProductSelect(item)" placeholder="選擇或輸入" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
-                                                <datalist :id="'plist-' + item.category">
-                                                    <template x-for="p in getProductListForCategory(item.category)" :key="p.name">
-                                                        <option :value="p.name"></option>
-                                                    </template>
-                                                </datalist>
-                                            </div>
-                                        </div>
+                                    <template x-for="(item, iIndex) in pol.items" :key="iIndex">
+                                        <div class="bg-slate-900/60 p-3 rounded-xl space-y-2 border border-slate-800 relative">
+                                            <button @click="removeSingleItem(pol, iIndex)" class="absolute top-1 right-2 text-xs text-red-600 hover:text-red-400"><i class="fa-solid fa-minus"></i> 刪險</button>
 
-                                        <div class="grid grid-cols-3 gap-2 text-xs">
-                                            <div class="col-span-1">
-                                                <label class="text-[10px] text-slate-400 block">保費 (每年)</label>
-                                                <div class="flex items-center gap-1">
-                                                    <input type="text" x-model="item.premium" @blur="formatCurrency(item, 'premium')" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white font-mono">
-                                                    <select x-model="item.currency" @change="recalculateHkd(item)" class="bg-slate-900 text-slate-300 border border-slate-800 rounded p-1 w-16">
-                                                        <option value="HKD">HKD</option>
-                                                        <option value="USD">USD</option>
+                                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                                <div>
+                                                    <label class="text-[10px] text-slate-400">保障種類</label>
+                                                    <select x-model="item.category" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
+                                                        <option value="危疾">危疾</option>
+                                                        <option value="醫療">醫療</option>
+                                                        <option value="意外">意外</option>
+                                                        <option value="人壽">人壽</option>
+                                                        <option value="儲蓄">儲蓄</option>
                                                     </select>
+                                                </div>
+                                                <div>
+                                                    <label class="text-[10px] text-slate-400">產品名稱 (選單/手動)</label>
+                                                    <input type="text" :list="'plist-' + item.category" x-model="item.name" @change="onProductSelect(item)" placeholder="選擇或輸入" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
+                                                    <datalist :id="'plist-' + item.category">
+                                                        <template x-for="p in getProductListForCategory(item.category)" :key="p.name">
+                                                            <option :value="p.name"></option>
+                                                        </template>
+                                                    </datalist>
                                                 </div>
                                             </div>
 
-                                            <div class="col-span-2 flex items-end">
-                                                <template x-if="item.currency === 'USD'">
-                                                    <div class="flex items-center gap-2 bg-slate-950/80 p-1.5 rounded-lg border border-slate-800 w-full justify-between">
-                                                        <span class="text-[11px] font-mono gold-text font-bold" x-text="item.showRawUsd ? 'US$ ' + item.premium : '≈ HK$ ' + item.hkdPremium"></span>
-                                                        <button @click="item.showRawUsd = !item.showRawUsd" class="text-[10px] text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded hover:bg-blue-500/10 flex-shrink-0">
-                                                            🔄 <span x-text="item.showRawUsd ? '換算 HK$' : '顯示 US$'"></span>
-                                                        </button>
+                                            <div class="grid grid-cols-3 gap-2 text-xs">
+                                                <div class="col-span-1">
+                                                    <label class="text-[10px] text-slate-400 block">保費 (每年)</label>
+                                                    <div class="flex items-center gap-1">
+                                                        <input type="text" x-model="item.premium" @blur="formatCurrency(item, 'premium')" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white font-mono">
+                                                        <select x-model="item.currency" @change="recalculateHkd(item)" class="bg-slate-900 text-slate-300 border border-slate-800 rounded p-1 w-16">
+                                                            <option value="HKD">HKD</option>
+                                                            <option value="USD">USD</option>
+                                                        </select>
                                                     </div>
-                                                </template>
-                                            </div>
-                                        </div>
+                                                </div>
 
-                                        <div class="grid grid-cols-2 gap-2 text-xs">
-                                            <div>
-                                                <label class="text-[10px] text-slate-400">供款年期</label>
-                                                <input type="text" x-model="item.term" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
+                                                <div class="col-span-2 flex items-end">
+                                                    <template x-if="item.currency === 'USD'">
+                                                        <div class="flex items-center gap-2 bg-slate-950/80 p-1.5 rounded-lg border border-slate-800 w-full justify-between">
+                                                            <span class="text-[11px] font-mono gold-text font-bold" x-text="item.showRawUsd ? 'US$ ' + item.premium : '≈ HK$ ' + item.hkdPremium"></span>
+                                                            <button @click="item.showRawUsd = !item.showRawUsd" class="text-[10px] text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded hover:bg-blue-500/10 flex-shrink-0">
+                                                                🔄 <span x-text="item.showRawUsd ? '換算 HK$' : '顯示 US$'"></span>
+                                                            </button>
+                                                        </div>
+                                                    </template>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <label class="text-[10px] text-slate-400">保障年期</label>
-                                                <input type="text" x-model="item.maturity" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
-                                            </div>
-                                        </div>
 
-                                        <div>
-                                            <label class="text-[10px] text-slate-400">特點 (完整顯示，高度自適應)</label>
-                                            <textarea 
-                                                x-model="item.features" 
-                                                @input="autoResizeTextarea($el)"
-                                                x-init="$nextTick(() => autoResizeTextarea($el))"
-                                                class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-xs text-slate-300 leading-relaxed block transition-all"
-                                                placeholder="請手動輸入/修改特點..."
-                                            ></textarea>
+                                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                                <div>
+                                                    <label class="text-[10px] text-slate-400">供款年期</label>
+                                                    <input type="text" x-model="item.term" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
+                                                </div>
+                                                <div>
+                                                    <label class="text-[10px] text-slate-400">保障年期</label>
+                                                    <input type="text" x-model="item.maturity" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-white">
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label class="text-[10px] text-slate-400">特點 (完整顯示，高度自適應)</label>
+                                                <textarea 
+                                                    x-model="item.features" 
+                                                    @input="autoResizeTextarea($el)"
+                                                    x-init="$nextTick(() => autoResizeTextarea($el))"
+                                                    class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-xs text-slate-300 leading-relaxed block transition-all"
+                                                    placeholder="請手動輸入/修改特點..."
+                                                ></textarea>
+                                            </div>
                                         </div>
-                                    </div>
-                                </template>
+                                    </template>
+                                </div>
                             </div>
                         </template>
                     </section>
@@ -253,7 +260,6 @@
                 isParsing: false,
 
                 initApp() {
-                    // 自動記憶登入狀態
                     if (localStorage.getItem('AVA_ADMIN_AUTH') === 'true') {
                         this.isLoggedIn = true;
                         this.fetchClients();
@@ -393,6 +399,10 @@
                         items: [{ category: '危疾', name: '', term: '', maturity: '', premium: "0", currency: 'HKD', features: '' }]
                     });
                 },
+                addEmptyItemToPolicy(policy) {
+                    if (!policy.items) policy.items = [];
+                    policy.items.push({ category: '危疾', name: '', term: '', maturity: '', premium: "0", currency: 'HKD', features: '' });
+                },
                 removePolicy(index) {
                     this.currentClient.policies.splice(index, 1);
                 },
@@ -420,6 +430,7 @@
                         this.recalculateHkd(item);
                     }
                 },
+                // 🌟 核心修正：將 AI 提取的多項附加保障，依據保單號碼（policyNumber）歸類在同一張保單之下
                 uploadAndParse(e) {
                     const file = e.target.files[0];
                     if (!file) return;
@@ -441,6 +452,7 @@
                                 if (!this.currentClient.policies) this.currentClient.policies = [];
 
                                 parsed.forEach(p => {
+                                    // 1. 同步客戶姓名
                                     if (p.policyHolder && (!this.currentClient.owner || this.currentClient.owner === '新客戶')) {
                                         this.currentClient.owner = p.policyHolder;
                                         this.searchOrNameInput = p.policyHolder;
@@ -466,21 +478,29 @@
                                     this.onProductSelect(newItem);
                                     this.recalculateHkd(newItem);
 
-                                    this.currentClient.policies.push({
-                                        insurer: matchedInsurer,
-                                        policyNumber: p.policyNumber || '',
-                                        commencementDate: p.commencementDate || '',
-                                        policyHolder: p.policyHolder || this.searchOrNameInput,
-                                        insuredPerson: p.insuredPerson || this.searchOrNameInput,
-                                        items: [newItem]
-                                    });
+                                    // 2. 檢查目前客戶是否已有相同的保單號碼，有的話直接新增保障項目，不重複開新保單卡片
+                                    const polNum = p.policyNumber || '';
+                                    let existingPolicy = this.currentClient.policies.find(pol => pol.policyNumber && pol.policyNumber === polNum);
+
+                                    if (existingPolicy && polNum !== '') {
+                                        existingPolicy.items.push(newItem);
+                                    } else {
+                                        this.currentClient.policies.push({
+                                            insurer: matchedInsurer,
+                                            policyNumber: polNum,
+                                            commencementDate: p.commencementDate || '',
+                                            policyHolder: p.policyHolder || this.searchOrNameInput,
+                                            insuredPerson: p.insuredPerson || this.searchOrNameInput,
+                                            items: [newItem]
+                                        });
+                                    }
                                 });
 
                                 this.renderQrCode();
                                 this.$nextTick(() => {
                                     document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el));
                                 });
-                                alert('🎉 AI 解析完成！名單與特點已自動連動對應。');
+                                alert('🎉 AI 解析完成！已將同一保單號碼下的多項保障成功歸類在一起。');
                             } else {
                                 alert('AI 解析失敗：' + (res.message || '請確認權限'));
                             }
