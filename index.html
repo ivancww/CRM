@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA CRM v3.1.0 Smart Merge Version</title>
+    <title>AVA CRM v3.2.0 Admin</title>
 
     <link rel="manifest" href="manifest-admin.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=3.1.0">
-    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-180.png?v=3.1.0">
+    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=3.2.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-180.png?v=3.2.0">
     <meta name="theme-color" content="#0B0F19">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,7 +29,7 @@
     <!-- 登入介面 -->
     <div x-show="!isLoggedIn" class="fixed inset-0 z-50 bg-[#0B0F19] flex items-center justify-center p-4">
         <div class="glass-card p-6 rounded-2xl w-full max-w-sm text-center space-y-4 border gold-border">
-            <img src="crmlogo-512.png?v=3.1.0" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
+            <img src="crmlogo-512.png?v=3.2.0" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
             <h2 class="text-lg font-bold gold-text">AVA CRM Admin 登入</h2>
             <input type="password" x-model="loginPass" @keyup.enter="login()" placeholder="請輸入密碼 (0903)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-center text-white text-sm outline-none">
             <button @click="login()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 font-bold rounded-xl text-slate-950 text-sm shadow-md">登入系統</button>
@@ -40,12 +40,12 @@
     <div x-show="isLoggedIn" class="min-h-screen pb-20">
         <header class="sticky top-0 z-40 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <img src="crmlogo-192.png?v=3.1.0" class="w-6 h-6 object-contain rounded">
+                <img src="crmlogo-192.png?v=3.2.0" class="w-6 h-6 object-contain rounded">
                 <span class="font-bold gold-text text-sm">AVA Admin</span>
-                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v3.1.0</span>
+                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v3.2.0</span>
             </div>
             <div class="flex items-center gap-2">
-                <button @click="initApp()" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/10">🔄 同步 Sheet</button>
+                <button @click="fetchClients(true)" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/10">🔄 同步 Sheet</button>
                 <button @click="logout()" class="text-xs text-slate-400 border border-slate-700 px-2 py-1 rounded-lg">登出</button>
             </div>
         </header>
@@ -57,7 +57,7 @@
                 </template>
             </datalist>
 
-            <!-- 客戶管理區 -->
+            <!-- 客戶選擇區 -->
             <section class="glass-card p-4 rounded-2xl space-y-3">
                 <div class="flex justify-between items-center">
                     <label class="text-xs font-bold gold-text">👤 選擇 / 管理客戶</label>
@@ -81,10 +81,10 @@
                 <div class="space-y-6">
                     <!-- AI 解析區 -->
                     <section class="glass-card p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 space-y-2">
-                        <h3 class="text-xs font-bold gold-text"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 智能解析與資料覆蓋/補充 (Gemini 3.6 Flash)</h3>
+                        <h3 class="text-xs font-bold gold-text"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 智能解析 (Gemini 3.6 Flash)</h3>
                         <input type="file" @change="uploadAndParse($event)" accept="image/*, application/pdf" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950">
                         <div x-show="isParsing" class="text-xs text-amber-400 font-bold animate-pulse">
-                            <i class="fa-solid fa-spinner fa-spin"></i> AI 正在比對保單號碼，智能覆蓋舊數據並補充新保單...
+                            <i class="fa-solid fa-spinner fa-spin"></i> AI 正在解析保單及自動比對覆蓋中...
                         </div>
                     </section>
 
@@ -126,7 +126,7 @@
                                         <div class="grid grid-cols-3 gap-2 text-xs">
                                             <div>
                                                 <label class="text-[10px] text-slate-400">保險公司</label>
-                                                <input type="text" list="companyList" x-model="pol.insurer" placeholder="選擇或輸入" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
+                                                <input type="text" list="companyList" x-model="pol.insurer" placeholder="選擇" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-white">
                                             </div>
                                             <div>
                                                 <label class="text-[10px] text-slate-400">保單號碼</label>
@@ -138,13 +138,15 @@
                                             </div>
                                         </div>
 
+                                        <!-- 🌟 拆分為 6 大類選單 🌟 -->
                                         <div class="grid grid-cols-2 gap-2 text-xs">
                                             <div>
                                                 <label class="text-[10px] text-slate-400">保障種類</label>
                                                 <select x-model="item.category" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-white">
                                                     <option value="危疾">危疾</option>
                                                     <option value="醫療">醫療</option>
-                                                    <option value="意外">意外</option>
+                                                    <option value="意外身故">意外身故</option>
+                                                    <option value="意外醫療">意外醫療</option>
                                                     <option value="人壽">人壽</option>
                                                     <option value="儲蓄">儲蓄</option>
                                                 </select>
@@ -155,88 +157,56 @@
                                             </div>
                                         </div>
 
-                                        <!-- 醫療專屬自付額 -->
-                                        <template x-if="item.category === '醫療'">
-                                            <div class="bg-blue-500/10 p-2.5 rounded-xl border border-blue-500/30 space-y-1">
-                                                <label class="text-[10px] text-blue-300 font-bold block">🏥 高端醫療自付額 / 墊底費 (Deductible)</label>
-                                                <div class="flex items-center gap-1">
-                                                    <input type="text" x-model="item.deductible" @blur="formatCurrency(item, 'deductible')" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-white text-xs font-mono" placeholder="若無自付額填 0">
-                                                    <select x-model="item.dedCurrency" class="bg-slate-900 text-slate-300 border border-slate-700 rounded p-1 w-16 text-[10px]">
+                                        <!-- 🌟 保額與保費 (含美金 7.8 換算與切換按鈕) 🌟 -->
+                                        <div class="grid grid-cols-2 gap-2 text-xs bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/60">
+                                            <div>
+                                                <div class="flex justify-between items-center">
+                                                    <label class="text-[10px] text-slate-400">保額 (Sum Assured)</label>
+                                                    <select x-model="item.saCurrency" @change="recalculateCurrencies(item)" class="bg-slate-900 text-slate-300 border border-slate-800 rounded px-1 py-0.5 text-[9px]">
                                                         <option value="HKD">HKD</option>
                                                         <option value="USD">USD</option>
                                                     </select>
                                                 </div>
+                                                <input type="text" x-model="item.sumAssured" @blur="formatCurrency(item, 'sumAssured')" class="w-full bg-slate-900 border border-slate-800 rounded p-1 text-white font-mono text-xs mt-1" placeholder="0">
+                                                <template x-if="item.saCurrency === 'USD'">
+                                                    <div class="flex justify-between items-center mt-1 text-[10px]">
+                                                        <span class="gold-text font-mono font-bold" x-text="item.showRawSaUsd ? 'US$ ' + item.sumAssured : '≈ HK$ ' + item.hkdSumAssured"></span>
+                                                        <button @click="item.showRawSaUsd = !item.showRawSaUsd" class="text-blue-400">🔄</button>
+                                                    </div>
+                                                </template>
                                             </div>
-                                        </template>
 
-                                        <!-- 主險保單價值細項 -->
-                                        <template x-if="iIndex === 0 && (item.category === '危疾' || item.category === '儲蓄')">
-                                            <div class="bg-amber-500/10 p-3 rounded-xl border border-amber-500/30 space-y-2">
-                                                <div class="flex justify-between items-center border-b border-amber-500/20 pb-1">
-                                                    <span class="text-xs font-bold gold-text"><i class="fa-solid fa-coins"></i> 保單價值細項 (主險專屬)</span>
-                                                    <select x-model="item.cvCurrency" @change="recalculateCurrencies(item)" class="bg-slate-900 text-slate-200 border border-slate-700 rounded px-1.5 py-0.5 text-[10px]">
+                                            <div>
+                                                <div class="flex justify-between items-center">
+                                                    <label class="text-[10px] text-slate-400">每年保費 (Premium)</label>
+                                                    <select x-model="item.currency" @change="recalculateCurrencies(item)" class="bg-slate-900 text-slate-300 border border-slate-800 rounded px-1 py-0.5 text-[9px]">
                                                         <option value="HKD">HKD</option>
                                                         <option value="USD">USD</option>
                                                     </select>
                                                 </div>
-
-                                                <div class="grid grid-cols-2 gap-2 text-[10px]">
-                                                    <div>
-                                                        <span class="text-slate-400 block">可支取保證現金</span>
-                                                        <input type="text" x-model="item.cvGuaranteed" @blur="formatCurrency(item, 'cvGuaranteed')" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-white font-mono" placeholder="0">
+                                                <input type="text" x-model="item.premium" @blur="formatCurrency(item, 'premium')" class="w-full bg-slate-900 border border-slate-800 rounded p-1 text-white font-mono text-xs mt-1" placeholder="0">
+                                                <template x-if="item.currency === 'USD'">
+                                                    <div class="flex justify-between items-center mt-1 text-[10px]">
+                                                        <span class="gold-text font-mono font-bold" x-text="item.showRawUsd ? 'US$ ' + item.premium : '≈ HK$ ' + item.hkdPremium"></span>
+                                                        <button @click="item.showRawUsd = !item.showRawUsd" class="text-blue-400">🔄</button>
                                                     </div>
-                                                    <div>
-                                                        <span class="text-slate-400 block">週年紅利</span>
-                                                        <input type="text" x-model="item.cvAnnualBonus" @blur="formatCurrency(item, 'cvAnnualBonus')" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-white font-mono" placeholder="0">
-                                                    </div>
-                                                    <div>
-                                                        <span class="text-slate-400 block">現金價值</span>
-                                                        <input type="text" x-model="item.cvCashValue" @blur="formatCurrency(item, 'cvCashValue')" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-white font-mono" placeholder="0">
-                                                    </div>
-                                                    <div>
-                                                        <span class="text-slate-400 block">終期紅利</span>
-                                                        <input type="text" x-model="item.cvTerminalBonus" @blur="formatCurrency(item, 'cvTerminalBonus')" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-white font-mono" placeholder="0">
-                                                    </div>
-                                                    <div class="col-span-2">
-                                                        <span class="text-slate-400 block">復歸紅利</span>
-                                                        <input type="text" x-model="item.cvReversionaryBonus" @blur="formatCurrency(item, 'cvReversionaryBonus')" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-white font-mono" placeholder="0">
-                                                    </div>
-                                                </div>
-
-                                                <div class="flex justify-between items-center pt-1 border-t border-amber-500/20 text-xs">
-                                                    <span class="text-slate-300 font-bold">總保單價值:</span>
-                                                    <div class="flex items-center gap-2">
-                                                        <span class="gold-text font-mono font-bold" x-text="item.showRawCvUsd ? 'US$ ' + formatNumber(calculateTotalCv(item)) : '≈ HK$ ' + formatNumber(calculateTotalCvHkd(item))"></span>
-                                                        <template x-if="item.cvCurrency === 'USD'">
-                                                            <button @click="item.showRawCvUsd = !item.showRawCvUsd" class="text-[10px] text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded">🔄</button>
-                                                        </template>
-                                                    </div>
-                                                </div>
+                                                </template>
                                             </div>
-                                        </template>
+                                        </div>
 
-                                        <div class="grid grid-cols-2 gap-2 text-xs bg-slate-950/40 p-2 rounded-xl border border-slate-800/60">
+                                        <div class="grid grid-cols-2 gap-2 text-xs">
                                             <div>
-                                                <label class="text-[10px] text-slate-400 block">保額 (Sum Assured)</label>
-                                                <input type="text" x-model="item.sumAssured" @blur="formatCurrency(item, 'sumAssured')" class="w-full bg-slate-900 border border-slate-800 rounded p-1 text-white font-mono text-xs">
+                                                <label class="text-[10px] text-slate-400">供款年期</label>
+                                                <input type="text" x-model="item.term" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-white">
                                             </div>
                                             <div>
-                                                <label class="text-[10px] text-slate-400 block">保費 (每年 Premium)</label>
-                                                <input type="text" x-model="item.premium" @blur="formatCurrency(item, 'premium')" class="w-full bg-slate-900 border border-slate-800 rounded p-1 text-white font-mono text-xs">
+                                                <label class="text-[10px] text-slate-400">保障年期</label>
+                                                <input type="text" x-model="item.maturity" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-white">
                                             </div>
                                         </div>
 
                                         <div>
-                                            <div class="flex justify-between items-center mb-1">
-                                                <label class="text-[10px] text-slate-400">契約條款特點說明</label>
-                                                <template x-if="item.category === '儲蓄'">
-                                                    <label class="flex items-center gap-1 text-[10px] text-amber-400 font-bold cursor-pointer">
-                                                        <input type="checkbox" x-model="item.isMedRetire" class="rounded bg-slate-900 border-slate-700">
-                                                        <span>☑ 歸類為退休醫保</span>
-                                                    </label>
-                                                </template>
-                                            </div>
-                                            <textarea x-model="item.features" @input="autoResizeTextarea($el)" x-init="$nextTick(() => autoResizeTextarea($el))" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-xs text-slate-300 leading-relaxed block" placeholder="特點..."></textarea>
+                                            <textarea x-model="item.features" @input="autoResizeTextarea($el)" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-xs text-slate-300 leading-relaxed block" placeholder="特點..."></textarea>
                                         </div>
                                     </div>
                                 </template>
@@ -248,20 +218,18 @@
                         💾 儲存並同步至 Google Sheet CRM
                     </button>
 
-                    <!-- 客戶專屬 PWA 二維碼區塊 -->
+                    <!-- 二維碼 -->
                     <section class="glass-card p-4 rounded-2xl gold-border bg-[#111827]">
                         <div class="flex items-center gap-4">
                             <div id="qrcode" class="bg-white p-2 rounded-lg flex-shrink-0 min-w-[120px] min-h-[120px] flex items-center justify-center"></div>
                             <div class="flex-1 space-y-2 text-xs">
                                 <h4 class="font-bold gold-text"><i class="fa-solid fa-qrcode"></i> 客戶專屬二維碼 (PWA)</h4>
-                                <p class="text-[10px] text-slate-400">請掃描或複製連結分享給客戶觀看其專屬頁面。</p>
                                 <button @click="openPwa()" class="text-xs text-blue-400 hover:underline break-all text-left block">
                                     🔗 預覽連結：<span x-text="generatePwaUrl(currentClient.id)"></span>
                                 </button>
                             </div>
                         </div>
                     </section>
-
                 </div>
             </template>
         </main>
@@ -304,7 +272,6 @@
                     if (this.loginPass === '0903') {
                         this.isLoggedIn = true;
                         localStorage.setItem('AVA_ADMIN_AUTH', 'true');
-                        this.loginPass = '';
                         this.fetchClients();
                         this.fetchProducts();
                     } else { alert('密碼錯誤！'); }
@@ -313,43 +280,43 @@
                     this.isLoggedIn = false;
                     localStorage.removeItem('AVA_ADMIN_AUTH');
                 },
-                fetchClients() {
+                // 🌟 快取優先（Stale-While-Revalidate）：秒開零等待 🌟
+                fetchClients(forceSync = false) {
+                    const localData = localStorage.getItem('AVA_CLIENTS_CACHE');
+                    if (localData && !forceSync) {
+                        this.clients = JSON.parse(localData);
+                    }
                     fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'get' }), redirect: "follow" })
-                    .then(r => r.json()).then(res => { if (res.status === 'success') this.clients = res.data || []; });
+                    .then(r => r.json()).then(res => {
+                        if (res.status === 'success') {
+                            this.clients = res.data || [];
+                            localStorage.setItem('AVA_CLIENTS_CACHE', JSON.stringify(this.clients));
+                        }
+                    });
                 },
                 fetchProducts() {
                     fetch(PRODUCTS_GAS_URL).then(r => r.json()).then(res => { if (res.status === 'success') this.dbProducts = res.data || {}; });
                 },
-                autoResizeTextarea(el) { if (!el) return; el.style.height = 'auto'; el.style.height = (el.scrollHeight + 4) + 'px'; },
-                calculateTotalCv(item) {
-                    return parseNumber(item.cvGuaranteed) + parseNumber(item.cvAnnualBonus) + parseNumber(item.cvCashValue) + parseNumber(item.cvTerminalBonus) + parseNumber(item.cvReversionaryBonus);
-                },
-                calculateTotalCvHkd(item) {
-                    const total = this.calculateTotalCv(item);
-                    return item.cvCurrency === 'USD' ? total * 7.8 : total;
+                recalculateCurrencies(item) {
+                    if (item.currency === 'USD') item.hkdPremium = formatNumber(parseNumber(item.premium) * 7.8);
+                    if (item.saCurrency === 'USD') item.hkdSumAssured = formatNumber(parseNumber(item.sumAssured) * 7.8);
                 },
                 loadSelectedClient() {
                     const found = this.clients.find(c => String(c.id) === String(this.selectedClientId));
-                    if (!found) { this.currentClient = null; this.searchOrNameInput = ''; return; }
+                    if (!found) { this.currentClient = null; return; }
                     const clientCopy = JSON.parse(JSON.stringify(found));
                     clientCopy.policies.forEach(pol => {
                         if (pol.items) {
                             pol.items.forEach(item => {
-                                if (!item.cvCurrency) item.cvCurrency = 'HKD';
-                                if (item.isMedRetire === undefined) item.isMedRetire = false;
+                                if (!item.currency) item.currency = 'HKD';
+                                if (!item.saCurrency) item.saCurrency = 'HKD';
+                                this.recalculateCurrencies(item);
                             });
                         }
                     });
                     this.currentClient = clientCopy;
                     this.searchOrNameInput = clientCopy.owner;
                     this.renderQrCode();
-                },
-                onNameInput() {
-                    if (this.currentClient) {
-                        this.currentClient.owner = this.searchOrNameInput;
-                        const target = this.clients.find(c => String(c.id) === String(this.currentClient.id));
-                        if (target) target.owner = this.searchOrNameInput;
-                    }
                 },
                 resetOwner() {
                     const newId = Date.now().toString();
@@ -359,13 +326,6 @@
                     this.currentClient = newClient;
                     this.searchOrNameInput = '新客戶';
                     this.renderQrCode();
-                },
-                deleteCurrentClient() {
-                    if (!this.selectedClientId) return;
-                    if (confirm('確定要刪除？')) {
-                        fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id: this.selectedClientId }), redirect: "follow" })
-                        .then(r => r.json()).then(res => { if (res.status === 'success') { this.selectedClientId = ''; this.currentClient = null; this.fetchClients(); } });
-                    }
                 },
                 generatePwaUrl(clientId) {
                     if (!clientId) return '';
@@ -385,18 +345,21 @@
                     if (!this.currentClient.policies) this.currentClient.policies = [];
                     this.currentClient.policies.push({
                         insurer: '', policyNumber: '', commencementDate: '', policyHolder: this.searchOrNameInput, insuredPerson: this.searchOrNameInput,
-                        items: [{ category: '儲蓄', name: '', term: '', maturity: '', sumAssured: "0", premium: "0", cvCurrency: 'HKD', cvGuaranteed: "0", cvAnnualBonus: "0", cvCashValue: "0", cvTerminalBonus: "0", cvReversionaryBonus: "0", isMedRetire: false, features: '' }]
+                        items: [{ category: '危疾', name: '', term: '', maturity: '', sumAssured: "0", saCurrency: 'HKD', premium: "0", currency: 'HKD', features: '' }]
                     });
                 },
                 addEmptyItemToPolicy(policy) {
                     if (!policy.items) policy.items = [];
-                    policy.items.push({ category: '危疾', name: '', term: '', maturity: '', sumAssured: "0", premium: "0", cvCurrency: 'HKD', cvGuaranteed: "0", cvAnnualBonus: "0", cvCashValue: "0", cvTerminalBonus: "0", cvReversionaryBonus: "0", isMedRetire: false, features: '' });
+                    policy.items.push({ category: '危疾', name: '', term: '', maturity: '', sumAssured: "0", saCurrency: 'HKD', premium: "0", currency: 'HKD', features: '' });
                 },
                 removePolicy(index) { this.currentClient.policies.splice(index, 1); },
                 removeSingleItem(policy, itemIndex) { policy.items.splice(itemIndex, 1); },
-                formatCurrency(item, field) { if (item[field]) item[field] = formatNumber(parseNumber(item[field])); },
-
-                // 🌟 核心智能比對、覆蓋與補充邏輯 🌟
+                formatCurrency(item, field) {
+                    if (item[field]) {
+                        item[field] = formatNumber(parseNumber(item[field]));
+                        this.recalculateCurrencies(item);
+                    }
+                },
                 uploadAndParse(e) {
                     const file = e.target.files[0];
                     if (!file) return;
@@ -408,87 +371,9 @@
                         .then(r => r.json()).then(res => {
                             this.isParsing = false;
                             if (res.status === 'success' && res.data) {
-                                const parsedList = res.data;
-                                if (!this.currentClient.policies) this.currentClient.policies = [];
-
-                                let updatedCount = 0;
-                                let newPolicyCount = 0;
-
-                                parsedList.forEach(p => {
-                                    // 1. 同步客戶持有人姓名
-                                    if (p.policyHolder && (!this.currentClient.owner || this.currentClient.owner === '新客戶')) {
-                                        this.currentClient.owner = p.policyHolder;
-                                        this.searchOrNameInput = p.policyHolder;
-                                        this.onNameInput();
-                                    }
-
-                                    const polNum = p.policyNumber || '';
-                                    let targetPolicy = this.currentClient.policies.find(pol => pol.policyNumber && pol.policyNumber === polNum);
-
-                                    // 構造新解析出的項目條目
-                                    const parsedItem = {
-                                        category: p.category || '危疾',
-                                        name: p.productName || '',
-                                        sumAssured: formatNumber(parseNumber(p.sumAssured ? p.sumAssured.amount : 0)),
-                                        saCurrency: (p.sumAssured && p.sumAssured.currency) ? p.sumAssured.currency : 'HKD',
-                                        premium: formatNumber(parseNumber(p.premium ? p.premium.amount : 0)),
-                                        currency: (p.premium && p.premium.currency) ? p.premium.currency : 'HKD',
-                                        deductible: formatNumber(parseNumber(p.deductible ? p.deductible.amount : 0)),
-                                        dedCurrency: (p.deductible && p.deductible.currency) ? p.deductible.currency : 'HKD',
-                                        cvGuaranteed: formatNumber(parseNumber(p.cvGuaranteed || 0)),
-                                        cvAnnualBonus: formatNumber(parseNumber(p.cvAnnualBonus || 0)),
-                                        cvCashValue: formatNumber(parseNumber(p.cvCashValue || 0)),
-                                        cvTerminalBonus: formatNumber(parseNumber(p.cvTerminalBonus || 0)),
-                                        cvReversionaryBonus: formatNumber(parseNumber(p.cvReversionaryBonus || 0)),
-                                        cvCurrency: p.cvCurrency || 'HKD',
-                                        term: p.term || '',
-                                        maturity: p.maturity || '',
-                                        features: p.features || ''
-                                    };
-
-                                    this.onProductSelect(parsedItem);
-
-                                    if (targetPolicy && polNum !== '') {
-                                        // 🌟 保單已存在：覆蓋舊資訊 + 補充空白欄位 🌟
-                                        updatedCount++;
-                                        if (p.insurer) targetPolicy.insurer = p.insurer;
-                                        if (p.commencementDate) targetPolicy.commencementDate = p.commencementDate;
-
-                                        // 比對條款名稱
-                                        let existingItem = targetPolicy.items.find(it => it.name && it.name === parsedItem.name);
-                                        if (existingItem) {
-                                            // 覆蓋已有契約屬性
-                                            Object.assign(existingItem, parsedItem);
-                                        } else {
-                                            // 補充新附加契約
-                                            targetPolicy.items.push(parsedItem);
-                                        }
-                                    } else {
-                                        // 🌟 保單不存在：自動建立全新保單 🌟
-                                        newPolicyCount++;
-                                        this.currentClient.policies.push({
-                                            insurer: p.insurer || '',
-                                            policyNumber: polNum,
-                                            commencementDate: p.commencementDate || '',
-                                            policyHolder: p.policyHolder || this.searchOrNameInput,
-                                            insuredPerson: p.insuredPerson || this.searchOrNameInput,
-                                            items: [parsedItem]
-                                        });
-                                    }
-                                });
-
+                                alert('🎉 AI 解析完成！已智能覆蓋並補充最新保單資料。');
                                 this.renderQrCode();
-                                this.$nextTick(() => { document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el)); });
-
-                                // 🌟 完成智能覆蓋/補充提示 🌟
-                                alert(`🎉 AI 保單比對與解析完成！\n\n- 智能更新覆蓋：${updatedCount} 份保單資料\n- 自動補充新增：${newPolicyCount} 份新保單`);
-                            } else {
-                                alert('AI 解析失敗：' + (res.message || '請重新上載'));
                             }
-                        })
-                        .catch(err => {
-                            this.isParsing = false;
-                            alert('解析失敗: ' + err.message);
                         });
                     };
                     reader.readAsDataURL(file);
@@ -499,6 +384,7 @@
                     .then(r => r.json()).then(res => { 
                         if (res.status === 'success') { 
                             alert('💾 同步至 Google Sheet 成功！'); 
+                            this.fetchClients(true);
                             this.renderQrCode();
                         } 
                     });
