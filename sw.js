@@ -1,52 +1,46 @@
-const CACHE_NAME = 'crm-cache-v3.1.0'; // 🌟 已經更新至 v2.2.5強制更新版本號
+// ==========================================
+// AVA Portfolio Client Service Worker (v3.2.0)
+// ==========================================
+const CACHE_NAME = 'ava-client-cache-v3.2.0';
 
-const urlsToCache = [
-  '/',
-  '/manifest-admin.json',
-  '/manifest-client.json',
-  '/admin-logo-192.png',
-  '/client-logo-192.png'
+const PRECACHE_ASSETS = [
+  'client.html',
+  'manifest-client.json?v=3.2.0',
+  'clientapp-192.png?v=3.2.0',
+  'clientapp-512.png?v=3.2.0',
+  'https://cdn.tailwindcss.com',
+  'https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
-self.addEventListener('install', event => {
-  self.skipWaiting();
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+self.addEventListener('install', (e) => {
+  e.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_ASSETS)).then(() => self.skipWaiting())
   );
 });
 
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then((keys) => {
       return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('清除舊緩存:', cacheName);
-            return caches.delete(cacheName);
-          }
+        keys.map((key) => {
+          if (key !== CACHE_NAME) return caches.delete(key);
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET') return;
-  if (event.request.url.includes('script.google.com')) return;
-
-  event.respondWith(
-    fetch(event.request).then(response => {
-      if (!response || response.status !== 200 || response.type !== 'basic') {
-        return response;
-      }
-      const responseClone = response.clone();
-      caches.open(CACHE_NAME).then(cache => {
-        cache.put(event.request, responseClone);
+self.addEventListener('fetch', (e) => {
+  if (e.request.url.includes('script.google.com')) return;
+  e.respondWith(
+    caches.match(e.request).then((cachedResponse) => {
+      const fetchPromise = fetch(e.request).then((networkResponse) => {
+        caches.open(CACHE_NAME).then((cache) => cache.put(e.request, networkResponse.clone()));
+        return networkResponse;
       });
-      return response;
-    }).catch(() => {
-      return caches.match(event.request);
+      return cachedResponse || fetchPromise;
     })
   );
 });
