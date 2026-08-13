@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA Portfolio V2.6.0| 客戶專屬保障首頁</title>
+    <title>AVA Portfolio | 客戶專屬保障首頁</title>
 
-    <link rel="manifest" href="manifest-client.json?v=2.6.0">
-    <link rel="icon" type="image/png" sizes="192x192" href="clientapp-192.png?v=2.6.0">
-    <link rel="apple-touch-icon" sizes="180x180" href="clientapp-192.png?v=2.6.0">
+    <link rel="manifest" href="manifest-client.json?v=2.9.0">
+    <link rel="icon" type="image/png" sizes="192x192" href="clientapp-192.png?v=2.9.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="clientapp-192.png?v=2.9.0">
     <meta name="theme-color" content="#060810">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- 🌟 引入 HTML2PDF 函式庫 🌟 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
@@ -21,104 +23,235 @@
         .gold-text { color: #D4AF37; }
         .blue-text { color: #38BDF8; }
         .emerald-text { color: #10B981; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body x-data="pwaApp()" x-init="initPwa()">
 
-    <div class="min-h-screen pb-12">
-        <header class="p-4 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-[#060810]/90 backdrop-blur-md z-30">
-            <div class="flex items-center gap-2">
-                <img src="clientapp-192.png?v=2.6.0" class="w-8 h-8 object-contain rounded-lg border border-amber-500/30">
-                <div>
-                    <span class="font-bold gold-text text-sm block">A.V.A Team Portfolio</span>
-                    <p class="text-[10px] text-slate-400">專屬保障管理總覽</p>
+    <div class="min-h-screen pb-24">
+        <header class="p-4 border-b border-slate-800 sticky top-0 bg-[#060810]/95 backdrop-blur-md z-30 space-y-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <img src="clientapp-192.png?v=2.9.0" class="w-8 h-8 object-contain rounded-lg border border-amber-500/30">
+                    <div>
+                        <span class="font-bold gold-text text-sm block">A.V.A Team Portfolio</span>
+                        <p class="text-[10px] text-slate-400">專屬保障管理總覽</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <!-- 🌟 分享 / 導出 PDF 按鈕 🌟 -->
+                    <button @click="openExportModal()" class="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-lg flex items-center gap-1 hover:bg-amber-500/30">
+                        <i class="fa-solid fa-file-pdf"></i> 導出 PDF
+                    </button>
+                    <span class="text-[10px] text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full" x-text="pwaClient ? pwaClient.owner + ' 專頁' : '載入中'"></span>
                 </div>
             </div>
-            <span class="text-[10px] text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full" x-text="pwaClient ? pwaClient.owner + ' 專頁' : '載入中'"></span>
+
+            <!-- 家庭受保人選擇 -->
+            <template x-if="pwaClient">
+                <div class="flex items-center gap-2 bg-slate-950 p-2 rounded-xl border border-slate-800">
+                    <span class="text-xs gold-text font-bold whitespace-nowrap"><i class="fa-solid fa-users"></i> 受保人:</span>
+                    <select x-model="selectedInsured" class="w-full bg-transparent text-xs text-white font-bold outline-none">
+                        <template x-for="name in getAllInsureds()" :key="name">
+                            <option :value="name" x-text="name" class="bg-slate-900"></option>
+                        </template>
+                    </select>
+                </div>
+            </template>
         </header>
 
-        <main class="p-4 max-w-lg mx-auto space-y-5">
+        <!-- 頂部四大專題導航 -->
+        <nav class="p-3 border-b border-slate-800/80 bg-slate-950/60 overflow-x-auto whitespace-nowrap flex gap-2 no-scrollbar">
+            <button @click="currentTab = '4D'" :class="currentTab === '4D' ? 'bg-amber-500/20 text-amber-300 border-amber-500/50' : 'bg-slate-900 text-slate-400 border-slate-800'" class="px-3 py-1.5 rounded-xl border text-xs font-bold">
+                🛡️ 人生四大保障 (總括)
+            </button>
+            <button @click="currentTab = 'RETIRE'" :class="currentTab === 'RETIRE' ? 'bg-amber-500/20 text-amber-300 border-amber-500/50' : 'bg-slate-900 text-slate-400 border-slate-800'" class="px-3 py-1.5 rounded-xl border text-xs font-bold">
+                📈 理財規劃 (退休/教育)
+            </button>
+            <button x-show="showHiddenTabs" @click="currentTab = 'MED_RETIRE'" :class="currentTab === 'MED_RETIRE' ? 'bg-amber-500/20 text-amber-300 border-amber-500/50' : 'bg-slate-900 text-slate-400 border-slate-800'" class="px-3 py-1.5 rounded-xl border text-xs font-bold">
+                🏥 退休醫療保障
+            </button>
+            <button x-show="showHiddenTabs" @click="currentTab = 'EDU'" :class="currentTab === 'EDU' ? 'bg-amber-500/20 text-amber-300 border-amber-500/50' : 'bg-slate-900 text-slate-400 border-slate-800'" class="px-3 py-1.5 rounded-xl border text-xs font-bold">
+                🎓 兒童教育基金
+            </button>
+            <button @click="showHiddenTabs = !showHiddenTabs" class="px-2.5 py-1.5 rounded-xl bg-slate-800 text-amber-400 text-xs border border-amber-500/30">
+                <span x-text="showHiddenTabs ? '收起' : '更多 ➕'"></span>
+            </button>
+        </nav>
+
+        <!-- 主內容區域 (可供畫面顯示與 PDF 截圖) -->
+        <main id="pdf-container" class="p-4 max-w-lg mx-auto space-y-5">
             <template x-if="pwaClient">
                 <div class="space-y-5">
-                    <!-- 家庭成員選擇 -->
-                    <section class="glass-card p-4 rounded-2xl gold-border">
-                        <label class="text-xs gold-text font-bold mb-1 block"><i class="fa-solid fa-users"></i> 切換家庭受保人 (Insured)</label>
-                        <select x-model="selectedInsured" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold">
-                            <template x-for="name in getAllInsureds()" :key="name">
-                                <option :value="name" x-text="name"></option>
-                            </template>
-                        </select>
-                    </section>
-
-                    <!-- 保障數據加總卡片 (自動採算保額與 7.8 匯率) -->
-                    <div class="grid grid-cols-2 gap-3 text-center">
-                        <div class="glass-card p-3.5 rounded-xl border-l-4 border-blue-500">
-                            <span class="text-[10px] text-slate-400 block">醫療保障總額</span>
-                            <span class="text-lg font-black blue-text" x-text="formatDisplaySum('醫療')"></span>
-                        </div>
-                        <div class="glass-card p-3.5 rounded-xl border-l-4 border-emerald-500">
-                            <span class="text-[10px] text-slate-400 block">儲蓄/理財每年保費</span>
-                            <span class="text-lg font-black emerald-text" x-text="formatDisplaySum('儲蓄')"></span>
-                        </div>
-                        <div class="glass-card p-3.5 rounded-xl border-l-4 border-red-500">
-                            <span class="text-[10px] text-slate-400 block">危疾總保障</span>
-                            <span class="text-lg font-black text-red-400" x-text="formatDisplaySum('危疾')"></span>
-                        </div>
-                        <div class="glass-card p-3.5 rounded-xl border-l-4 border-purple-500">
-                            <span class="text-[10px] text-slate-400 block">人壽保障總額</span>
-                            <span class="text-lg font-black text-purple-400" x-text="formatDisplaySum('人壽')"></span>
-                        </div>
-                    </div>
-
-                    <!-- 保單詳細清單 -->
-                    <div class="space-y-4">
-                        <h3 class="text-xs font-bold gold-text"><i class="fa-solid fa-shield-halved"></i> 保單保障詳情 (<span x-text="getFilteredPolicies().length"></span> 份保單)</h3>
-                        <template x-for="(pol, index) in getFilteredPolicies()" :key="index">
-                            <div class="space-y-3 p-4 rounded-2xl border border-slate-700 bg-slate-950/40">
-                                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                                    <div>
-                                        <span class="text-white font-bold text-sm block" x-text="pol.insurer || '保險公司'"></span>
-                                        <span class="text-[10px] text-slate-400" x-text="'保單號碼: ' + (pol.policyNumber || '--')"></span>
+                    
+                    <!-- TAB 1: 人生四大保障 -->
+                    <template x-if="currentTab === '4D'">
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 gap-3 text-center">
+                                <div class="glass-card p-3 rounded-xl border-l-4 border-blue-500 text-left flex flex-col justify-between">
+                                    <span class="text-[10px] text-slate-400 block">醫療保障總額</span>
+                                    <div class="my-1">
+                                        <span class="text-base font-black blue-text block" x-text="getMedicalTotalInfo().displaySum"></span>
+                                        <span class="text-[10px] font-bold block" :class="getMedicalTotalInfo().isHighEnd ? 'text-amber-400' : 'text-slate-400'" x-text="getMedicalTotalInfo().subText"></span>
                                     </div>
-                                    <span class="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20" x-text="'受保人: ' + (pol.insuredPerson || pwaClient.owner)"></span>
                                 </div>
+                                <div class="glass-card p-3 rounded-xl border-l-4 border-emerald-500 text-left flex flex-col justify-between">
+                                    <span class="text-[10px] text-slate-400 block">儲蓄/理財每年保費</span>
+                                    <span class="text-base font-black emerald-text my-1 block" x-text="formatDisplaySum('儲蓄')"></span>
+                                </div>
+                                <div class="glass-card p-3 rounded-xl border-l-4 border-red-500 text-left flex flex-col justify-between">
+                                    <span class="text-[10px] text-slate-400 block">危疾總保障</span>
+                                    <span class="text-base font-black text-red-400 my-1 block" x-text="formatDisplaySum('危疾')"></span>
+                                </div>
+                                <div class="glass-card p-3 rounded-xl border-l-4 border-purple-500 text-left flex flex-col justify-between">
+                                    <span class="text-[10px] text-slate-400 block">人壽保障總額</span>
+                                    <span class="text-base font-black text-purple-400 my-1 block" x-text="formatDisplaySum('人壽')"></span>
+                                </div>
+                            </div>
 
-                                <!-- 主險與附加契約全獨立卡片 -->
-                                <template x-for="(item, iIndex) in pol.items" :key="iIndex">
-                                    <div class="glass-card p-3.5 rounded-xl space-y-2.5 border-l-4" :class="iIndex === 0 ? 'border-l-amber-500 bg-amber-500/5' : 'border-l-blue-500 bg-slate-900/60'">
-                                        <div class="flex justify-between items-center">
-                                            <div class="flex items-center gap-1.5">
-                                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded" :class="iIndex === 0 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'" x-text="iIndex === 0 ? '⭐ 主險' : '➕ 附加契約'"></span>
-                                                <span class="font-bold blue-text text-xs" x-text="item.name || '未命名保障'"></span>
-                                            </div>
-                                            <span class="text-[10px] font-semibold text-slate-400" x-text="item.category"></span>
-                                        </div>
-
-                                        <!-- 🌟 獨立呈現：保額與保費雙欄位（含美金 7.8 換算）🌟 -->
-                                        <div class="grid grid-cols-2 gap-2 text-xs bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">
+                            <!-- 保單詳細清單 -->
+                            <div class="space-y-3">
+                                <h3 class="text-xs font-bold gold-text"><i class="fa-solid fa-shield-halved"></i> 保單保障詳情 (<span x-text="getFilteredPolicies().length"></span> 份保單)</h3>
+                                <template x-for="(pol, index) in getFilteredPolicies()" :key="index">
+                                    <div class="space-y-3 p-4 rounded-2xl border border-slate-700 bg-slate-950/40">
+                                        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
                                             <div>
-                                                <span class="text-[10px] text-slate-400 block">保額 (Sum Assured)</span>
-                                                <span class="font-mono gold-text font-bold text-xs" x-text="getDisplayValue(item.sumAssured, item.saCurrency)"></span>
+                                                <span class="text-white font-bold text-sm block" x-text="pol.insurer || '保險公司'"></span>
+                                                <span class="text-[10px] text-slate-400" x-text="'保單號碼: ' + (pol.policyNumber || '--')"></span>
                                             </div>
-                                            <div>
-                                                <span class="text-[10px] text-slate-400 block">每年保費 (Premium)</span>
-                                                <span class="font-mono text-emerald-400 font-bold text-xs" x-text="getDisplayValue(item.premium, item.currency)"></span>
-                                            </div>
+                                            <span class="text-[10px] text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20" x-text="'受保人: ' + (pol.insuredPerson || pwaClient.owner)"></span>
                                         </div>
 
-                                        <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-400 bg-slate-950/40 p-2 rounded-lg">
-                                            <span>供款期: <strong class="text-slate-200" x-text="item.term || '--'"></strong></span>
-                                            <span>保障期: <strong class="text-slate-200" x-text="item.maturity || '--'"></strong></span>
-                                        </div>
-                                        <p class="text-[11px] text-slate-300 bg-slate-800/40 p-2.5 rounded-xl border border-slate-800/80 leading-relaxed whitespace-pre-line" x-text="item.features || '沒有特點說明'"></p>
+                                        <template x-for="(item, iIndex) in pol.items" :key="iIndex">
+                                            <div class="glass-card p-3.5 rounded-xl space-y-2 border-l-4" :class="iIndex === 0 ? 'border-l-amber-500 bg-amber-500/5' : 'border-l-blue-500 bg-slate-900/60'">
+                                                <div class="flex justify-between items-center">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <span class="text-[9px] font-bold px-1.5 py-0.5 rounded" :class="iIndex === 0 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'" x-text="iIndex === 0 ? '⭐ 主險' : '➕ 附加契約'"></span>
+                                                        <span class="font-bold blue-text text-xs" x-text="item.name || '未命名保障'"></span>
+                                                    </div>
+                                                    <span class="text-[10px] font-semibold text-slate-400" x-text="item.category"></span>
+                                                </div>
+
+                                                <template x-if="iIndex === 0 && getItemCvHkd(item) > 0">
+                                                    <div class="bg-amber-500/10 p-2 rounded-lg border border-amber-500/30 flex justify-between items-center text-xs">
+                                                        <span class="gold-text font-bold">預估總保單價值:</span>
+                                                        <span class="font-mono gold-text font-bold" x-text="'HK$ ' + formatNumber(getItemCvHkd(item))"></span>
+                                                    </div>
+                                                </template>
+
+                                                <div class="grid grid-cols-2 gap-2 text-xs bg-slate-950/60 p-2 rounded-lg border border-slate-800">
+                                                    <div>
+                                                        <span class="text-[10px] text-slate-400 block">保額</span>
+                                                        <span class="font-mono gold-text font-bold text-xs" x-text="getDisplayValue(item.sumAssured, item.saCurrency)"></span>
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-[10px] text-slate-400 block">保費</span>
+                                                        <span class="font-mono text-emerald-400 font-bold text-xs" x-text="getDisplayValue(item.premium, item.currency)"></span>
+                                                    </div>
+                                                </div>
+
+                                                <p class="text-[11px] text-slate-300 bg-slate-800/40 p-2.5 rounded-xl border border-slate-800/80 leading-relaxed whitespace-pre-line" x-text="item.features || '沒有特點說明'"></p>
+                                            </div>
+                                        </template>
                                     </div>
                                 </template>
                             </div>
-                        </template>
-                    </div>
+                        </div>
+                    </template>
+
+                    <!-- TAB 2: 理財規劃 (退休/教育) -->
+                    <template x-if="currentTab === 'RETIRE'">
+                        <div class="glass-card p-4 rounded-2xl space-y-4">
+                            <div class="border-b border-slate-800 pb-3">
+                                <h3 class="text-sm font-bold gold-text">📈 理財規劃 (退休/教育) 總覽</h3>
+                                <p class="text-[11px] text-slate-400 mt-1">只採算保障種類為「儲蓄」且未勾選退休醫保之保單總價值。</p>
+                                <div class="mt-3 bg-slate-900 p-3 rounded-xl border border-amber-500/30 flex justify-between items-center">
+                                    <span class="text-xs text-slate-300 font-bold">儲蓄保單預估總價值:</span>
+                                    <span class="text-base font-mono gold-text font-bold" x-text="'HK$ ' + formatNumber(getRetirePortfolioValue())"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- TAB 3: 退休醫療保障 -->
+                    <template x-if="currentTab === 'MED_RETIRE'">
+                        <div class="glass-card p-4 rounded-2xl space-y-4 border-blue-500/30">
+                            <div class="border-b border-slate-800 pb-3">
+                                <h3 class="text-sm font-bold blue-text">🏥 退休醫療保障專頁</h3>
+                                <p class="text-[11px] text-slate-400 mt-1">採算經勾選為「退休醫保」之儲蓄保單價值。</p>
+                                <div class="mt-3 bg-slate-900 p-3 rounded-xl border border-blue-500/30 flex justify-between items-center">
+                                    <span class="text-xs text-slate-300 font-bold">退休醫保預估總儲備:</span>
+                                    <span class="text-base font-mono blue-text font-bold" x-text="'HK$ ' + formatNumber(getMedRetirePortfolioValue())"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
                 </div>
             </template>
         </main>
+
+        <!-- 🌟 3. 自訂 PDF 導出與勾選彈窗 (Export Modal) 🌟 -->
+        <div x-show="isExportModalOpen" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <div class="glass-card p-5 rounded-2xl w-full max-w-md space-y-4 border gold-border max-h-[90vh] overflow-y-auto">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                    <h3 class="text-sm font-bold gold-text"><i class="fa-solid fa-sliders"></i> 自訂導出 PDF / 分享內容</h3>
+                    <button @click="isExportModalOpen = false" class="text-slate-400 hover:text-white text-base"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+
+                <!-- 選擇要產生的模組 -->
+                <div class="space-y-3 text-xs">
+                    <span class="text-slate-400 font-bold block">1. 選擇包含頁面/模組：</span>
+                    <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-900 border border-slate-800 cursor-pointer">
+                        <input type="checkbox" x-model="exportConfig.includeOverview" class="rounded bg-slate-950 border-slate-700">
+                        <span class="text-white font-bold">🛡️ 人生四大保障總括卡片</span>
+                    </label>
+                    <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-900 border border-slate-800 cursor-pointer">
+                        <input type="checkbox" x-model="exportConfig.includeRetire" class="rounded bg-slate-950 border-slate-700">
+                        <span class="text-white font-bold">📈 理財規劃 (退休/教育) 摘要</span>
+                    </label>
+                    <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-900 border border-slate-800 cursor-pointer">
+                        <input type="checkbox" x-model="exportConfig.includeMedRetire" class="rounded bg-slate-950 border-slate-700">
+                        <span class="text-white font-bold">🏥 退休醫療保障摘要</span>
+                    </label>
+
+                    <span class="text-slate-400 font-bold block pt-2">2. 選擇包含之保單（預設全選）：</span>
+                    <div class="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                        <template x-for="(pol, idx) in getFilteredPolicies()" :key="idx">
+                            <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-800 text-[11px]">
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" :value="pol.policyNumber" x-model="exportConfig.selectedPolicyNums" class="rounded bg-slate-950 border-slate-700">
+                                    <span class="text-slate-200 font-bold" x-text="(pol.insurer || '保險') + ' - ' + (pol.items[0] ? pol.items[0].name : '保單')"></span>
+                                </div>
+                                <span class="text-[10px] text-amber-400" x-text="pol.policyNumber"></span>
+                            </label>
+                        </template>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button @click="isExportModalOpen = false" class="w-1/3 py-2.5 bg-slate-800 text-slate-300 font-bold rounded-xl text-xs">取消</button>
+                    <button @click="generateAndDownloadPdf()" class="w-2/3 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-1 shadow-md">
+                        <i class="fa-solid fa-download"></i> 立即生成 PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部保險公司導航專頁 -->
+        <footer x-show="pwaClient" class="fixed bottom-0 left-0 right-0 bg-[#060810]/95 backdrop-blur-md border-t border-slate-800 px-4 py-2.5 z-40">
+            <div class="max-w-lg mx-auto flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
+                <button @click="selectedCompany = ''" :class="selectedCompany === '' ? 'bg-amber-500/20 text-amber-300 border-amber-500/50' : 'bg-slate-900 text-slate-400 border-slate-800'" class="px-3 py-1.5 rounded-xl border text-[11px] font-bold whitespace-nowrap">
+                    全部公司
+                </button>
+                <template x-for="comp in getCompanyList()" :key="comp">
+                    <button @click="selectedCompany = comp" :class="selectedCompany === comp ? 'bg-blue-500/20 text-blue-300 border-blue-500/50' : 'bg-slate-900 text-slate-400 border-slate-800'" class="px-3 py-1.5 rounded-xl border text-[11px] font-bold whitespace-nowrap flex items-center gap-1">
+                        <i class="fa-solid fa-building text-[9px]"></i> <span x-text="comp"></span>
+                    </button>
+                </template>
+            </div>
+        </footer>
     </div>
 
     <script>
@@ -138,29 +271,56 @@
             return {
                 pwaClient: null,
                 selectedInsured: '',
+                currentTab: '4D',
+                showHiddenTabs: false,
+                selectedCompany: '',
+                isExportModalOpen: false,
+
+                // PDF 導出配置
+                exportConfig: {
+                    includeOverview: true,
+                    includeRetire: true,
+                    includeMedRetire: true,
+                    selectedPolicyNums: []
+                },
 
                 initPwa() {
                     const urlParams = new URLSearchParams(window.location.search);
                     const pwaId = urlParams.get('id');
-                    if (pwaId) {
-                        this.loadPwaData(pwaId);
-                    } else {
-                        alert('無效的客戶連結');
-                    }
+                    if (pwaId) { this.loadPwaData(pwaId); }
                 },
                 loadPwaData(pwaId) {
                     fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'get' }), redirect: "follow" })
-                    .then(r => r.json())
-                    .then(res => {
+                    .then(r => r.json()).then(res => {
                         if (res.status === 'success') {
                             this.pwaClient = res.data.find(c => String(c.id) === String(pwaId));
-                            if (this.pwaClient) {
-                                this.selectedInsured = this.pwaClient.owner;
-                            } else {
-                                alert('找不到該客戶的保單資料');
+                            if (this.pwaClient) { 
+                                this.selectedInsured = this.pwaClient.owner; 
+                                this.initExportConfig();
                             }
                         }
                     });
+                },
+                initExportConfig() {
+                    if (this.pwaClient && this.pwaClient.policies) {
+                        this.exportConfig.selectedPolicyNums = this.pwaClient.policies.map(p => p.policyNumber).filter(Boolean);
+                    }
+                },
+                openExportModal() {
+                    this.initExportConfig();
+                    this.isExportModalOpen = true;
+                },
+                generateAndDownloadPdf() {
+                    this.isExportModalOpen = false;
+                    const element = document.getElementById('pdf-container');
+                    const opt = {
+                        margin:       0.3,
+                        filename:     (this.pwaClient.owner || '客戶') + '_保障總覽分析.pdf',
+                        image:        { type: 'jpeg', quality: 0.98 },
+                        html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#060810' },
+                        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+                    };
+                    html2pdf().set(opt).from(element).save();
                 },
                 getAllInsureds() {
                     if (!this.pwaClient || !this.pwaClient.policies) return [];
@@ -168,35 +328,87 @@
                     names.unshift(this.pwaClient.owner);
                     return [...new Set(names)];
                 },
+                getCompanyList() {
+                    if (!this.pwaClient || !this.pwaClient.policies) return [];
+                    return [...new Set(this.pwaClient.policies.map(p => p.insurer).filter(Boolean))];
+                },
                 getFilteredPolicies() {
                     if (!this.pwaClient || !this.pwaClient.policies) return [];
                     const targetName = this.selectedInsured || this.pwaClient.owner;
                     return this.pwaClient.policies.filter(pol => {
-                        return (pol.insuredPerson && pol.insuredPerson === targetName) || (!pol.insuredPerson && this.pwaClient.owner === targetName);
+                        const matchName = (pol.insuredPerson && pol.insuredPerson === targetName) || (!pol.insuredPerson && this.pwaClient.owner === targetName);
+                        const matchCompany = !this.selectedCompany || pol.insurer === this.selectedCompany;
+                        return matchName && matchCompany;
                     });
+                },
+                getItemCvHkd(item) {
+                    const total = parseNumber(item.cvGuaranteed) + parseNumber(item.cvAnnualBonus) + parseNumber(item.cvCashValue) + parseNumber(item.cvTerminalBonus) + parseNumber(item.cvReversionaryBonus);
+                    return item.cvCurrency === 'USD' ? total * 7.8 : total;
+                },
+                getRetirePortfolioValue() {
+                    let total = 0;
+                    this.getFilteredPolicies().forEach(p => {
+                        if (p.items && p.items[0] && p.items[0].category === '儲蓄' && !p.items[0].isMedRetire) {
+                            total += this.getItemCvHkd(p.items[0]);
+                        }
+                    });
+                    return total;
+                },
+                getMedRetirePortfolioValue() {
+                    let total = 0;
+                    this.getFilteredPolicies().forEach(p => {
+                        if (p.items && p.items[0] && p.items[0].category === '儲蓄' && p.items[0].isMedRetire) {
+                            total += this.getItemCvHkd(p.items[0]);
+                        }
+                    });
+                    return total;
                 },
                 getDisplayValue(amountStr, currency) {
                     const rawVal = parseNumber(amountStr);
                     if (rawVal === 0) return 'HK$ 0';
-                    if (currency === 'USD') {
-                        return 'US$ ' + formatNumber(rawVal) + ' (≈ HK$ ' + formatNumber(rawVal * 7.8) + ')';
-                    }
+                    if (currency === 'USD') return 'US$ ' + formatNumber(rawVal) + ' (≈ HK$ ' + formatNumber(rawVal * 7.8) + ')';
                     return 'HK$ ' + formatNumber(rawVal);
                 },
+                getMedicalTotalInfo() {
+                    const medItems = [];
+                    this.getFilteredPolicies().forEach(p => {
+                        (p.items || []).forEach(it => { if (it.category === '醫療') medItems.push(it); });
+                    });
+                    if (medItems.length === 0) return { displaySum: 'HK$ 0', subText: '未配置醫療保障', isHighEnd: false };
+
+                    let totalSum = 0;
+                    let hasHighEnd = false;
+                    let dedTextList = [];
+
+                    medItems.forEach(item => {
+                        let saVal = parseNumber(item.sumAssured);
+                        if (item.saCurrency === 'USD') saVal = saVal * 7.8;
+                        if (saVal > 0) {
+                            totalSum += saVal;
+                            hasHighEnd = true;
+                            const dedVal = parseNumber(item.deductible);
+                            dedTextList.push(dedVal > 0 ? (item.dedCurrency === 'USD' ? 'US$' : 'HK$') + ' ' + formatNumber(dedVal) : '0自付額');
+                        }
+                    });
+
+                    if (hasHighEnd) {
+                        return { displaySum: 'HK$ ' + formatNumber(totalSum), subText: '高端醫療 (自付額: ' + dedTextList.join(', ') + ')', isHighEnd: true };
+                    } else {
+                        return { displaySum: '傳統醫療保單', subText: '*設有每項賠償上限', isHighEnd: false };
+                    }
+                },
                 formatDisplaySum(catType) {
-                    if (!this.pwaClient) return 'HK$ 0';
-                    const policies = this.getFilteredPolicies();
-                    const sum = policies.reduce((acc, pol) => {
-                        return acc + pol.items.reduce((itemAcc, item) => {
+                    let sum = 0;
+                    this.getFilteredPolicies().forEach(p => {
+                        (p.items || []).forEach(item => {
                             if (item.category === catType) {
                                 let val = parseNumber(item.sumAssured || item.premium);
                                 let curr = item.saCurrency || item.currency;
                                 if (curr === 'USD') val = val * 7.8;
-                                return itemAcc + val;
+                                sum += val;
                             }
-                            return itemAcc;
-                        }, 0);
-                    }, 0);
+                        });
+                    });
                     return 'HK$ ' + formatNumber(sum);
                 }
             }
