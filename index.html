@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA CRM Admin (意外分拆對應版)</title>
+    <title>AVA CRM Admin (v3.5.3)</title>
 
     <link rel="manifest" href="manifest-admin.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=3.5.2">
-    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-180.png?v=3.5.2">
+    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=3.5.3">
+    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-180.png?v=3.5.3">
     <meta name="theme-color" content="#0B0F19">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,7 +29,7 @@
     <!-- 登入介面 -->
     <div x-show="!isLoggedIn" class="fixed inset-0 z-50 bg-[#0B0F19] flex items-center justify-center p-4">
         <div class="glass-card p-6 rounded-2xl w-full max-w-sm text-center space-y-4 border gold-border">
-            <img src="crmlogo-512.png?v=3.5.2" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
+            <img src="crmlogo-512.png?v=3.5.3" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
             <h2 class="text-lg font-bold gold-text">AVA CRM Admin 登入</h2>
             <input type="password" x-model="loginPass" @keyup.enter="login()" placeholder="請輸入密碼 (0903)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-center text-white text-sm outline-none">
             <button @click="login()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 font-bold rounded-xl text-slate-950 text-sm shadow-md">登入系統</button>
@@ -40,9 +40,9 @@
     <div x-show="isLoggedIn" class="min-h-screen pb-20">
         <header class="sticky top-0 z-40 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <img src="crmlogo-192.png?v=3.5.2" class="w-6 h-6 object-contain rounded">
+                <img src="crmlogo-192.png?v=3.5.3" class="w-6 h-6 object-contain rounded">
                 <span class="font-bold gold-text text-sm">AVA Admin</span>
-                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v3.5.2</span>
+                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v3.5.3</span>
             </div>
             <div class="flex items-center gap-2">
                 <button @click="fetchClients(true)" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/10">🔄 同步 Sheet</button>
@@ -153,7 +153,6 @@
                                             </div>
                                             <div>
                                                 <label class="text-[10px] text-slate-400">契約/產品名稱</label>
-                                                <!-- 🌟 下拉選項選單連結：精準自動匹配「意外身故」與「意外醫療」分頁數據 🌟 -->
                                                 <input type="text" :list="'plist-' + pIndex + '-' + iIndex" x-model="item.name" @change="onProductSelect(item)" placeholder="選擇或輸入" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-white">
                                                 <datalist :id="'plist-' + pIndex + '-' + iIndex">
                                                     <template x-for="p in getProductListForCategory(item.category)" :key="p.name">
@@ -316,6 +315,15 @@
         </main>
     </div>
 
+    <!-- 註冊 SW -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js?v=3.5.3');
+            });
+        }
+    </script>
+
     <script>
         const CRM_GAS_URL = "https://script.google.com/macros/s/AKfycbzy1gnDB-qXZIhTsgxNvLveRrHWVP7AoYoqG_JsbELBvvReXy4Fx2rYu6ieJNuupMtmdg/exec";
         const PRODUCTS_GAS_URL = "https://script.google.com/macros/s/AKfycbzJxEthfbtGFhesn9zqKz_14bvLY0Q6uvKVzSr2WM8s1VfCTJXaCg7lhNEwqyAql6hUuQ/exec";
@@ -465,7 +473,6 @@
                 },
                 removePolicy(index) { this.currentClient.policies.splice(index, 1); },
                 removeSingleItem(policy, itemIndex) { policy.items.splice(itemIndex, 1); },
-                // 🌟 精準抓取 Google Sheet 中「意外身故」與「意外醫療」產品清單 🌟
                 getProductListForCategory(cat) { 
                     return this.dbProducts[cat] || []; 
                 },
