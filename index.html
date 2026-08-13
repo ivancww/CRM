@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA CRM v2.9.1 Admin (QR Code Restored)</title>
+    <title>AVA CRM v3.1.0 Smart Merge Version</title>
 
     <link rel="manifest" href="manifest-admin.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=2.9.1">
-    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-180.png?v=2.9.1">
+    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=3.1.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-180.png?v=3.1.0">
     <meta name="theme-color" content="#0B0F19">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- 🌟 QRCode 生成函式庫 🌟 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -30,7 +29,7 @@
     <!-- 登入介面 -->
     <div x-show="!isLoggedIn" class="fixed inset-0 z-50 bg-[#0B0F19] flex items-center justify-center p-4">
         <div class="glass-card p-6 rounded-2xl w-full max-w-sm text-center space-y-4 border gold-border">
-            <img src="crmlogo-512.png?v=2.9.1" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
+            <img src="crmlogo-512.png?v=3.1.0" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
             <h2 class="text-lg font-bold gold-text">AVA CRM Admin 登入</h2>
             <input type="password" x-model="loginPass" @keyup.enter="login()" placeholder="請輸入密碼 (0903)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-center text-white text-sm outline-none">
             <button @click="login()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 font-bold rounded-xl text-slate-950 text-sm shadow-md">登入系統</button>
@@ -41,9 +40,9 @@
     <div x-show="isLoggedIn" class="min-h-screen pb-20">
         <header class="sticky top-0 z-40 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <img src="crmlogo-192.png?v=2.9.1" class="w-6 h-6 object-contain rounded">
+                <img src="crmlogo-192.png?v=3.1.0" class="w-6 h-6 object-contain rounded">
                 <span class="font-bold gold-text text-sm">AVA Admin</span>
-                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.9.1</span>
+                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v3.1.0</span>
             </div>
             <div class="flex items-center gap-2">
                 <button @click="initApp()" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/10">🔄 同步 Sheet</button>
@@ -82,10 +81,10 @@
                 <div class="space-y-6">
                     <!-- AI 解析區 -->
                     <section class="glass-card p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 space-y-2">
-                        <h3 class="text-xs font-bold gold-text"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 自動解析保單 (Gemini 3.6 Flash)</h3>
+                        <h3 class="text-xs font-bold gold-text"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 智能解析與資料覆蓋/補充 (Gemini 3.6 Flash)</h3>
                         <input type="file" @change="uploadAndParse($event)" accept="image/*, application/pdf" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950">
                         <div x-show="isParsing" class="text-xs text-amber-400 font-bold animate-pulse">
-                            <i class="fa-solid fa-spinner fa-spin"></i> AI 正在解析保單價值及條款中...
+                            <i class="fa-solid fa-spinner fa-spin"></i> AI 正在比對保單號碼，智能覆蓋舊數據並補充新保單...
                         </div>
                     </section>
 
@@ -249,7 +248,7 @@
                         💾 儲存並同步至 Google Sheet CRM
                     </button>
 
-                    <!-- 🌟 補回：客戶專屬 PWA 二維碼區塊 🌟 -->
+                    <!-- 客戶專屬 PWA 二維碼區塊 -->
                     <section class="glass-card p-4 rounded-2xl gold-border bg-[#111827]">
                         <div class="flex items-center gap-4">
                             <div id="qrcode" class="bg-white p-2 rounded-lg flex-shrink-0 min-w-[120px] min-h-[120px] flex items-center justify-center"></div>
@@ -396,6 +395,8 @@
                 removePolicy(index) { this.currentClient.policies.splice(index, 1); },
                 removeSingleItem(policy, itemIndex) { policy.items.splice(itemIndex, 1); },
                 formatCurrency(item, field) { if (item[field]) item[field] = formatNumber(parseNumber(item[field])); },
+
+                // 🌟 核心智能比對、覆蓋與補充邏輯 🌟
                 uploadAndParse(e) {
                     const file = e.target.files[0];
                     if (!file) return;
@@ -407,9 +408,87 @@
                         .then(r => r.json()).then(res => {
                             this.isParsing = false;
                             if (res.status === 'success' && res.data) {
-                                alert('🎉 AI 保單及價值解析完成！');
+                                const parsedList = res.data;
+                                if (!this.currentClient.policies) this.currentClient.policies = [];
+
+                                let updatedCount = 0;
+                                let newPolicyCount = 0;
+
+                                parsedList.forEach(p => {
+                                    // 1. 同步客戶持有人姓名
+                                    if (p.policyHolder && (!this.currentClient.owner || this.currentClient.owner === '新客戶')) {
+                                        this.currentClient.owner = p.policyHolder;
+                                        this.searchOrNameInput = p.policyHolder;
+                                        this.onNameInput();
+                                    }
+
+                                    const polNum = p.policyNumber || '';
+                                    let targetPolicy = this.currentClient.policies.find(pol => pol.policyNumber && pol.policyNumber === polNum);
+
+                                    // 構造新解析出的項目條目
+                                    const parsedItem = {
+                                        category: p.category || '危疾',
+                                        name: p.productName || '',
+                                        sumAssured: formatNumber(parseNumber(p.sumAssured ? p.sumAssured.amount : 0)),
+                                        saCurrency: (p.sumAssured && p.sumAssured.currency) ? p.sumAssured.currency : 'HKD',
+                                        premium: formatNumber(parseNumber(p.premium ? p.premium.amount : 0)),
+                                        currency: (p.premium && p.premium.currency) ? p.premium.currency : 'HKD',
+                                        deductible: formatNumber(parseNumber(p.deductible ? p.deductible.amount : 0)),
+                                        dedCurrency: (p.deductible && p.deductible.currency) ? p.deductible.currency : 'HKD',
+                                        cvGuaranteed: formatNumber(parseNumber(p.cvGuaranteed || 0)),
+                                        cvAnnualBonus: formatNumber(parseNumber(p.cvAnnualBonus || 0)),
+                                        cvCashValue: formatNumber(parseNumber(p.cvCashValue || 0)),
+                                        cvTerminalBonus: formatNumber(parseNumber(p.cvTerminalBonus || 0)),
+                                        cvReversionaryBonus: formatNumber(parseNumber(p.cvReversionaryBonus || 0)),
+                                        cvCurrency: p.cvCurrency || 'HKD',
+                                        term: p.term || '',
+                                        maturity: p.maturity || '',
+                                        features: p.features || ''
+                                    };
+
+                                    this.onProductSelect(parsedItem);
+
+                                    if (targetPolicy && polNum !== '') {
+                                        // 🌟 保單已存在：覆蓋舊資訊 + 補充空白欄位 🌟
+                                        updatedCount++;
+                                        if (p.insurer) targetPolicy.insurer = p.insurer;
+                                        if (p.commencementDate) targetPolicy.commencementDate = p.commencementDate;
+
+                                        // 比對條款名稱
+                                        let existingItem = targetPolicy.items.find(it => it.name && it.name === parsedItem.name);
+                                        if (existingItem) {
+                                            // 覆蓋已有契約屬性
+                                            Object.assign(existingItem, parsedItem);
+                                        } else {
+                                            // 補充新附加契約
+                                            targetPolicy.items.push(parsedItem);
+                                        }
+                                    } else {
+                                        // 🌟 保單不存在：自動建立全新保單 🌟
+                                        newPolicyCount++;
+                                        this.currentClient.policies.push({
+                                            insurer: p.insurer || '',
+                                            policyNumber: polNum,
+                                            commencementDate: p.commencementDate || '',
+                                            policyHolder: p.policyHolder || this.searchOrNameInput,
+                                            insuredPerson: p.insuredPerson || this.searchOrNameInput,
+                                            items: [parsedItem]
+                                        });
+                                    }
+                                });
+
                                 this.renderQrCode();
+                                this.$nextTick(() => { document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el)); });
+
+                                // 🌟 完成智能覆蓋/補充提示 🌟
+                                alert(`🎉 AI 保單比對與解析完成！\n\n- 智能更新覆蓋：${updatedCount} 份保單資料\n- 自動補充新增：${newPolicyCount} 份新保單`);
+                            } else {
+                                alert('AI 解析失敗：' + (res.message || '請重新上載'));
                             }
+                        })
+                        .catch(err => {
+                            this.isParsing = false;
+                            alert('解析失敗: ' + err.message);
                         });
                     };
                     reader.readAsDataURL(file);
