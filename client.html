@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA Portfolio | 客戶專屬保障首頁</title>
+    <title>AVA Portfolio V2.6.0| 客戶專屬保障首頁</title>
 
-    <link rel="manifest" href="manifest-client.json?v=2.5.3">
-    <link rel="icon" type="image/png" sizes="192x192" href="clientapp-192.png?v=2.5.3">
-    <link rel="apple-touch-icon" sizes="180x180" href="clientapp-192.png?v=2.5.3">
+    <link rel="manifest" href="manifest-client.json?v=2.6.0">
+    <link rel="icon" type="image/png" sizes="192x192" href="clientapp-192.png?v=2.6.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="clientapp-192.png?v=2.6.0">
     <meta name="theme-color" content="#060810">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -28,7 +28,7 @@
     <div class="min-h-screen pb-12">
         <header class="p-4 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-[#060810]/90 backdrop-blur-md z-30">
             <div class="flex items-center gap-2">
-                <img src="clientapp-192.png?v=2.5.3" class="w-8 h-8 object-contain rounded-lg border border-amber-500/30">
+                <img src="clientapp-192.png?v=2.6.0" class="w-8 h-8 object-contain rounded-lg border border-amber-500/30">
                 <div>
                     <span class="font-bold gold-text text-sm block">A.V.A Team Portfolio</span>
                     <p class="text-[10px] text-slate-400">專屬保障管理總覽</p>
@@ -50,7 +50,7 @@
                         </select>
                     </section>
 
-                    <!-- 保障數據加總卡片 -->
+                    <!-- 保障數據加總卡片 (自動採算保額與 7.8 匯率) -->
                     <div class="grid grid-cols-2 gap-3 text-center">
                         <div class="glass-card p-3.5 rounded-xl border-l-4 border-blue-500">
                             <span class="text-[10px] text-slate-400 block">醫療保障總額</span>
@@ -70,7 +70,7 @@
                         </div>
                     </div>
 
-                    <!-- 保單詳細清單 (獨立卡片列出主險與附加契約) -->
+                    <!-- 保單詳細清單 -->
                     <div class="space-y-4">
                         <h3 class="text-xs font-bold gold-text"><i class="fa-solid fa-shield-halved"></i> 保單保障詳情 (<span x-text="getFilteredPolicies().length"></span> 份保單)</h3>
                         <template x-for="(pol, index) in getFilteredPolicies()" :key="index">
@@ -85,16 +85,28 @@
 
                                 <!-- 主險與附加契約全獨立卡片 -->
                                 <template x-for="(item, iIndex) in pol.items" :key="iIndex">
-                                    <div class="glass-card p-3.5 rounded-xl space-y-2 border-l-4" :class="iIndex === 0 ? 'border-l-amber-500' : 'border-l-blue-500'">
+                                    <div class="glass-card p-3.5 rounded-xl space-y-2.5 border-l-4" :class="iIndex === 0 ? 'border-l-amber-500 bg-amber-500/5' : 'border-l-blue-500 bg-slate-900/60'">
                                         <div class="flex justify-between items-center">
                                             <div class="flex items-center gap-1.5">
                                                 <span class="text-[9px] font-bold px-1.5 py-0.5 rounded" :class="iIndex === 0 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'" x-text="iIndex === 0 ? '⭐ 主險' : '➕ 附加契約'"></span>
                                                 <span class="font-bold blue-text text-xs" x-text="item.name || '未命名保障'"></span>
                                             </div>
-                                            <span class="font-mono gold-text font-bold text-xs" x-text="getDisplayPremium(item)"></span>
+                                            <span class="text-[10px] font-semibold text-slate-400" x-text="item.category"></span>
                                         </div>
 
-                                        <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-400 bg-slate-950/60 p-2 rounded-lg">
+                                        <!-- 🌟 獨立呈現：保額與保費雙欄位（含美金 7.8 換算）🌟 -->
+                                        <div class="grid grid-cols-2 gap-2 text-xs bg-slate-950/60 p-2 rounded-lg border border-slate-800/80">
+                                            <div>
+                                                <span class="text-[10px] text-slate-400 block">保額 (Sum Assured)</span>
+                                                <span class="font-mono gold-text font-bold text-xs" x-text="getDisplayValue(item.sumAssured, item.saCurrency)"></span>
+                                            </div>
+                                            <div>
+                                                <span class="text-[10px] text-slate-400 block">每年保費 (Premium)</span>
+                                                <span class="font-mono text-emerald-400 font-bold text-xs" x-text="getDisplayValue(item.premium, item.currency)"></span>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-400 bg-slate-950/40 p-2 rounded-lg">
                                             <span>供款期: <strong class="text-slate-200" x-text="item.term || '--'"></strong></span>
                                             <span>保障期: <strong class="text-slate-200" x-text="item.maturity || '--'"></strong></span>
                                         </div>
@@ -163,9 +175,10 @@
                         return (pol.insuredPerson && pol.insuredPerson === targetName) || (!pol.insuredPerson && this.pwaClient.owner === targetName);
                     });
                 },
-                getDisplayPremium(item) {
-                    const rawVal = parseNumber(item.premium);
-                    if (item.currency === 'USD') {
+                getDisplayValue(amountStr, currency) {
+                    const rawVal = parseNumber(amountStr);
+                    if (rawVal === 0) return 'HK$ 0';
+                    if (currency === 'USD') {
                         return 'US$ ' + formatNumber(rawVal) + ' (≈ HK$ ' + formatNumber(rawVal * 7.8) + ')';
                     }
                     return 'HK$ ' + formatNumber(rawVal);
@@ -176,8 +189,9 @@
                     const sum = policies.reduce((acc, pol) => {
                         return acc + pol.items.reduce((itemAcc, item) => {
                             if (item.category === catType) {
-                                let val = parseNumber(item.premium || item.sumAssured);
-                                if (item.currency === 'USD') val = val * 7.8;
+                                let val = parseNumber(item.sumAssured || item.premium);
+                                let curr = item.saCurrency || item.currency;
+                                if (curr === 'USD') val = val * 7.8;
                                 return itemAcc + val;
                             }
                             return itemAcc;
