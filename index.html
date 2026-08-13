@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA CRM v3.5.0 Admin</title>
+    <title>AVA CRM Admin (意外分拆對應版)</title>
 
     <link rel="manifest" href="manifest-admin.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=3.5.0">
-    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-180.png?v=3.5.0">
+    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=3.5.2">
+    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-180.png?v=3.5.2">
     <meta name="theme-color" content="#0B0F19">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,7 +29,7 @@
     <!-- 登入介面 -->
     <div x-show="!isLoggedIn" class="fixed inset-0 z-50 bg-[#0B0F19] flex items-center justify-center p-4">
         <div class="glass-card p-6 rounded-2xl w-full max-w-sm text-center space-y-4 border gold-border">
-            <img src="crmlogo-512.png?v=3.5.0" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
+            <img src="crmlogo-512.png?v=3.5.2" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
             <h2 class="text-lg font-bold gold-text">AVA CRM Admin 登入</h2>
             <input type="password" x-model="loginPass" @keyup.enter="login()" placeholder="請輸入密碼 (0903)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-center text-white text-sm outline-none">
             <button @click="login()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 font-bold rounded-xl text-slate-950 text-sm shadow-md">登入系統</button>
@@ -40,9 +40,9 @@
     <div x-show="isLoggedIn" class="min-h-screen pb-20">
         <header class="sticky top-0 z-40 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <img src="crmlogo-192.png?v=3.5.0" class="w-6 h-6 object-contain rounded">
+                <img src="crmlogo-192.png?v=3.5.2" class="w-6 h-6 object-contain rounded">
                 <span class="font-bold gold-text text-sm">AVA Admin</span>
-                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v3.5.0</span>
+                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v3.5.2</span>
             </div>
             <div class="flex items-center gap-2">
                 <button @click="fetchClients(true)" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/10">🔄 同步 Sheet</button>
@@ -153,7 +153,7 @@
                                             </div>
                                             <div>
                                                 <label class="text-[10px] text-slate-400">契約/產品名稱</label>
-                                                <!-- 🌟 下拉選項選單連結 🌟 -->
+                                                <!-- 🌟 下拉選項選單連結：精準自動匹配「意外身故」與「意外醫療」分頁數據 🌟 -->
                                                 <input type="text" :list="'plist-' + pIndex + '-' + iIndex" x-model="item.name" @change="onProductSelect(item)" placeholder="選擇或輸入" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-white">
                                                 <datalist :id="'plist-' + pIndex + '-' + iIndex">
                                                     <template x-for="p in getProductListForCategory(item.category)" :key="p.name">
@@ -225,7 +225,6 @@
 
                                         <!-- 保額與保費 -->
                                         <div class="grid grid-cols-2 gap-2 text-xs bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/60">
-                                            <!-- 保額 (儲蓄時隱藏) -->
                                             <div x-show="item.category !== '儲蓄'">
                                                 <div class="flex justify-between items-center">
                                                     <label class="text-[10px] text-slate-400">保額 (Sum Assured)</label>
@@ -243,12 +242,10 @@
                                                 </template>
                                             </div>
 
-                                            <!-- 保費 (區分年繳/月供) -->
                                             <div :class="item.category === '儲蓄' ? 'col-span-2' : 'col-span-1'">
                                                 <div class="flex justify-between items-center">
                                                     <div class="flex items-center gap-1">
                                                         <label class="text-[10px] text-slate-400">保費</label>
-                                                        <!-- 🌟 繳費模式選單 🌟 -->
                                                         <select x-model="item.payMode" class="bg-slate-900 text-amber-400 border border-amber-500/30 rounded px-1 py-0.5 text-[9px]">
                                                             <option value="年繳">年繳</option>
                                                             <option value="月供">月供</option>
@@ -468,7 +465,10 @@
                 },
                 removePolicy(index) { this.currentClient.policies.splice(index, 1); },
                 removeSingleItem(policy, itemIndex) { policy.items.splice(itemIndex, 1); },
-                getProductListForCategory(cat) { return this.dbProducts[cat] || []; },
+                // 🌟 精準抓取 Google Sheet 中「意外身故」與「意外醫療」產品清單 🌟
+                getProductListForCategory(cat) { 
+                    return this.dbProducts[cat] || []; 
+                },
                 onProductSelect(item) {
                     const list = this.getProductListForCategory(item.category);
                     const matched = list.find(p => p.name === item.name);
@@ -482,8 +482,6 @@
                         this.recalculateCurrencies(item);
                     }
                 },
-                
-                // 🌟 核心智能比對、覆蓋、補充與畫面同步邏輯 🌟
                 uploadAndParse(e) {
                     const file = e.target.files[0];
                     if (!file) return;
@@ -560,7 +558,6 @@
                                     }
                                 });
 
-                                // 重新觸發畫面渲染
                                 this.renderQrCode();
                                 this.$nextTick(() => { document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el)); });
 
