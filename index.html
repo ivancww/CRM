@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA CRM v2.8.0 Admin</title>
+    <title>AVA CRM v2.9.1 Admin (QR Code Restored)</title>
 
     <link rel="manifest" href="manifest-admin.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=2.8.0">
-    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-192.png?v=2.8.0">
+    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=2.9.1">
+    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-180.png?v=2.9.1">
     <meta name="theme-color" content="#0B0F19">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- 🌟 QRCode 生成函式庫 🌟 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -26,21 +27,23 @@
 </head>
 <body x-data="app()" x-init="initApp()">
 
+    <!-- 登入介面 -->
     <div x-show="!isLoggedIn" class="fixed inset-0 z-50 bg-[#0B0F19] flex items-center justify-center p-4">
         <div class="glass-card p-6 rounded-2xl w-full max-w-sm text-center space-y-4 border gold-border">
-            <img src="crmlogo-512.png?v=2.8.0" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
+            <img src="crmlogo-512.png?v=2.9.1" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
             <h2 class="text-lg font-bold gold-text">AVA CRM Admin 登入</h2>
             <input type="password" x-model="loginPass" @keyup.enter="login()" placeholder="請輸入密碼 (0903)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-center text-white text-sm outline-none">
             <button @click="login()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 font-bold rounded-xl text-slate-950 text-sm shadow-md">登入系統</button>
         </div>
     </div>
 
+    <!-- 主管理介面 -->
     <div x-show="isLoggedIn" class="min-h-screen pb-20">
         <header class="sticky top-0 z-40 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <img src="crmlogo-192.png?v=2.8.0" class="w-6 h-6 object-contain rounded">
+                <img src="crmlogo-192.png?v=2.9.1" class="w-6 h-6 object-contain rounded">
                 <span class="font-bold gold-text text-sm">AVA Admin</span>
-                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.8.0</span>
+                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.9.1</span>
             </div>
             <div class="flex items-center gap-2">
                 <button @click="initApp()" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/10">🔄 同步 Sheet</button>
@@ -55,6 +58,7 @@
                 </template>
             </datalist>
 
+            <!-- 客戶管理區 -->
             <section class="glass-card p-4 rounded-2xl space-y-3">
                 <div class="flex justify-between items-center">
                     <label class="text-xs font-bold gold-text">👤 選擇 / 管理客戶</label>
@@ -76,14 +80,16 @@
 
             <template x-if="currentClient">
                 <div class="space-y-6">
+                    <!-- AI 解析區 -->
                     <section class="glass-card p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 space-y-2">
                         <h3 class="text-xs font-bold gold-text"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 自動解析保單 (Gemini 3.6 Flash)</h3>
-                        <input type="file" @change="uploadAndParse($event)" accept="image/*, application/pdf" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950">
+                        <input type="file" @change="uploadAndParse($event)" accept="image/*, application/pdf" class="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950">
                         <div x-show="isParsing" class="text-xs text-amber-400 font-bold animate-pulse">
                             <i class="fa-solid fa-spinner fa-spin"></i> AI 正在解析保單價值及條款中...
                         </div>
                     </section>
 
+                    <!-- 保障列表 -->
                     <section class="space-y-4">
                         <div class="flex justify-between items-center">
                             <h3 class="text-xs font-bold blue-text">📜 保障列表 (<span x-text="currentClient.policies ? currentClient.policies.length : 0"></span> 份保單)</h3>
@@ -150,17 +156,29 @@
                                             </div>
                                         </div>
 
-                                        <!-- 🌟 主險專屬：保單價值細項 (當險種為危疾/儲蓄，或有價值時自動彈出) 🌟 -->
+                                        <!-- 醫療專屬自付額 -->
+                                        <template x-if="item.category === '醫療'">
+                                            <div class="bg-blue-500/10 p-2.5 rounded-xl border border-blue-500/30 space-y-1">
+                                                <label class="text-[10px] text-blue-300 font-bold block">🏥 高端醫療自付額 / 墊底費 (Deductible)</label>
+                                                <div class="flex items-center gap-1">
+                                                    <input type="text" x-model="item.deductible" @blur="formatCurrency(item, 'deductible')" class="w-full bg-slate-900 border border-slate-700 rounded p-1 text-white text-xs font-mono" placeholder="若無自付額填 0">
+                                                    <select x-model="item.dedCurrency" class="bg-slate-900 text-slate-300 border border-slate-700 rounded p-1 w-16 text-[10px]">
+                                                        <option value="HKD">HKD</option>
+                                                        <option value="USD">USD</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </template>
+
+                                        <!-- 主險保單價值細項 -->
                                         <template x-if="iIndex === 0 && (item.category === '危疾' || item.category === '儲蓄')">
                                             <div class="bg-amber-500/10 p-3 rounded-xl border border-amber-500/30 space-y-2">
                                                 <div class="flex justify-between items-center border-b border-amber-500/20 pb-1">
                                                     <span class="text-xs font-bold gold-text"><i class="fa-solid fa-coins"></i> 保單價值細項 (主險專屬)</span>
-                                                    <div class="flex items-center gap-1">
-                                                        <select x-model="item.cvCurrency" @change="recalculateCurrencies(item)" class="bg-slate-900 text-slate-200 border border-slate-700 rounded px-1.5 py-0.5 text-[10px]">
-                                                            <option value="HKD">HKD</option>
-                                                            <option value="USD">USD</option>
-                                                        </select>
-                                                    </div>
+                                                    <select x-model="item.cvCurrency" @change="recalculateCurrencies(item)" class="bg-slate-900 text-slate-200 border border-slate-700 rounded px-1.5 py-0.5 text-[10px]">
+                                                        <option value="HKD">HKD</option>
+                                                        <option value="USD">USD</option>
+                                                    </select>
                                                 </div>
 
                                                 <div class="grid grid-cols-2 gap-2 text-[10px]">
@@ -212,7 +230,6 @@
                                         <div>
                                             <div class="flex justify-between items-center mb-1">
                                                 <label class="text-[10px] text-slate-400">契約條款特點說明</label>
-                                                <!-- 🌟 儲蓄種類專屬：歸類為退休醫保勾選框 🌟 -->
                                                 <template x-if="item.category === '儲蓄'">
                                                     <label class="flex items-center gap-1 text-[10px] text-amber-400 font-bold cursor-pointer">
                                                         <input type="checkbox" x-model="item.isMedRetire" class="rounded bg-slate-900 border-slate-700">
@@ -231,6 +248,21 @@
                     <button @click="saveCurrentClient()" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 font-bold rounded-xl text-xs text-white shadow-lg">
                         💾 儲存並同步至 Google Sheet CRM
                     </button>
+
+                    <!-- 🌟 補回：客戶專屬 PWA 二維碼區塊 🌟 -->
+                    <section class="glass-card p-4 rounded-2xl gold-border bg-[#111827]">
+                        <div class="flex items-center gap-4">
+                            <div id="qrcode" class="bg-white p-2 rounded-lg flex-shrink-0 min-w-[120px] min-h-[120px] flex items-center justify-center"></div>
+                            <div class="flex-1 space-y-2 text-xs">
+                                <h4 class="font-bold gold-text"><i class="fa-solid fa-qrcode"></i> 客戶專屬二維碼 (PWA)</h4>
+                                <p class="text-[10px] text-slate-400">請掃描或複製連結分享給客戶觀看其專屬頁面。</p>
+                                <button @click="openPwa()" class="text-xs text-blue-400 hover:underline break-all text-left block">
+                                    🔗 預覽連結：<span x-text="generatePwaUrl(currentClient.id)"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
                 </div>
             </template>
         </main>
@@ -311,6 +343,7 @@
                     });
                     this.currentClient = clientCopy;
                     this.searchOrNameInput = clientCopy.owner;
+                    this.renderQrCode();
                 },
                 onNameInput() {
                     if (this.currentClient) {
@@ -326,6 +359,7 @@
                     this.selectedClientId = newId;
                     this.currentClient = newClient;
                     this.searchOrNameInput = '新客戶';
+                    this.renderQrCode();
                 },
                 deleteCurrentClient() {
                     if (!this.selectedClientId) return;
@@ -334,6 +368,20 @@
                         .then(r => r.json()).then(res => { if (res.status === 'success') { this.selectedClientId = ''; this.currentClient = null; this.fetchClients(); } });
                     }
                 },
+                generatePwaUrl(clientId) {
+                    if (!clientId) return '';
+                    return window.location.href.split('?')[0].replace('index.html', '') + 'client.html?id=' + clientId;
+                },
+                renderQrCode() {
+                    this.$nextTick(() => {
+                        const container = document.getElementById("qrcode");
+                        if (container && this.currentClient) {
+                            container.innerHTML = "";
+                            new QRCode(container, { text: this.generatePwaUrl(this.currentClient.id), width: 120, height: 120 });
+                        }
+                    });
+                },
+                openPwa() { if (this.currentClient) window.open(this.generatePwaUrl(this.currentClient.id), '_blank'); },
                 addEmptyPolicy() {
                     if (!this.currentClient.policies) this.currentClient.policies = [];
                     this.currentClient.policies.push({
@@ -360,6 +408,7 @@
                             this.isParsing = false;
                             if (res.status === 'success' && res.data) {
                                 alert('🎉 AI 保單及價值解析完成！');
+                                this.renderQrCode();
                             }
                         });
                     };
@@ -368,7 +417,12 @@
                 saveCurrentClient() {
                     if (this.currentClient) this.currentClient.owner = this.searchOrNameInput;
                     fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'update', payload: this.currentClient }), redirect: "follow" })
-                    .then(r => r.json()).then(res => { if (res.status === 'success') alert('💾 同步至 Google Sheet 成功！'); });
+                    .then(r => r.json()).then(res => { 
+                        if (res.status === 'success') { 
+                            alert('💾 同步至 Google Sheet 成功！'); 
+                            this.renderQrCode();
+                        } 
+                    });
                 }
             }
         }
