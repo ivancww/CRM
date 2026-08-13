@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AVA Portfolio | 客戶專屬保障首頁</title>
 
-    <link rel="manifest" href="manifest-client.json?v=3.4.0">
-    <link rel="icon" type="image/png" sizes="192x192" href="clientapp-192.png?v=3.4.0">
-    <link rel="apple-touch-icon" sizes="180x180" href="clientapp-192.png?v=3.4.0">
+    <link rel="manifest" href="manifest-client.json?v=3.5.1">
+    <link rel="icon" type="image/png" sizes="192x192" href="clientapp-192.png?v=3.5.1">
+    <link rel="apple-touch-icon" sizes="180x180" href="clientapp-192.png?v=3.5.1">
     <meta name="theme-color" content="#060810">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -33,13 +33,13 @@
         <header class="p-4 border-b border-slate-800 sticky top-0 bg-[#060810]/95 backdrop-blur-md z-30 space-y-3">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <img src="clientapp-192.png?v=3.4.0" class="w-8 h-8 object-contain rounded-lg border border-amber-500/30">
+                    <img src="clientapp-192.png?v=3.5.1" class="w-8 h-8 object-contain rounded-lg border border-amber-500/30">
                     <div>
                         <span class="font-bold gold-text text-sm block">A.V.A Team Portfolio</span>
                         <p class="text-[10px] text-slate-400">專屬保障管理總纜</p>
                     </div>
                 </div>
-                <button @click="openExportModal()" class="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-lg flex items-center gap-1">
+                <button @click="generateAndDownloadPdf()" class="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-1 rounded-lg flex items-center gap-1 active:scale-95 transition-transform">
                     <i class="fa-solid fa-file-pdf"></i> PDF 導出
                 </button>
             </div>
@@ -80,9 +80,9 @@
                     <template x-if="selectedCompany === ''">
                         <div class="space-y-6">
                             
-                            <!-- 人生四大保障卡片 -->
+                            <!-- 人生保障卡片獨立呈現 -->
                             <div class="space-y-3">
-                                <h3 class="text-xs font-bold gold-text"><i class="fa-solid fa-shield-halved"></i> 人生四大保障總括</h3>
+                                <h3 class="text-xs font-bold gold-text"><i class="fa-solid fa-shield-halved"></i> 人生保障總括</h3>
                                 <div class="grid grid-cols-2 gap-3 text-center">
                                     <div class="glass-card p-3 rounded-xl border-l-4 border-blue-500 text-left">
                                         <span class="text-[10px] text-slate-400 block">醫療保障總額</span>
@@ -92,6 +92,8 @@
                                         <span class="text-[10px] text-slate-400 block">危疾總保障</span>
                                         <span class="text-base font-black text-red-400 my-1 block" x-text="getCategorySum('危疾')"></span>
                                     </div>
+                                    
+                                    <!-- 🌟 兩張完全獨立卡片，各自對應 Admin 的「意外身故」與「意外醫療」 🌟 -->
                                     <div class="glass-card p-3 rounded-xl border-l-4 border-amber-500 text-left">
                                         <span class="text-[10px] text-slate-400 block">意外身故保障</span>
                                         <span class="text-base font-black gold-text my-1 block" x-text="getCategorySum('意外身故')"></span>
@@ -100,6 +102,7 @@
                                         <span class="text-[10px] text-slate-400 block">意外醫療保障</span>
                                         <span class="text-base font-black emerald-text my-1 block" x-text="getCategorySum('意外醫療')"></span>
                                     </div>
+
                                     <div class="glass-card p-3 rounded-xl border-l-4 border-purple-500 text-left col-span-2">
                                         <span class="text-[10px] text-slate-400 block">人壽保障總額</span>
                                         <span class="text-base font-black text-purple-400 my-1 block" x-text="getCategorySum('人壽')"></span>
@@ -185,7 +188,7 @@
                                                 <span class="text-[10px] font-semibold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded" x-text="item.category"></span>
                                             </div>
 
-                                            <!-- 保單價值 (只直接顯示總價值) -->
+                                            <!-- 保單價值 -->
                                             <template x-if="compDisplayConfig.showCv && iIndex === 0 && getItemCvHkd(item) > 0">
                                                 <div class="bg-amber-500/10 p-2 rounded-lg border border-amber-500/30 flex justify-between items-center text-xs">
                                                     <span class="gold-text font-bold">預估總保單價值:</span>
@@ -193,7 +196,7 @@
                                                 </div>
                                             </template>
 
-                                            <!-- 保額與保費 (保費保留月繳原本數值) -->
+                                            <!-- 保額與保費 -->
                                             <template x-if="compDisplayConfig.showSa || compDisplayConfig.showPrem">
                                                 <div class="grid grid-cols-2 gap-2 text-xs bg-slate-950/60 p-2 rounded-lg border border-slate-800">
                                                     <div x-show="compDisplayConfig.showSa && item.category !== '儲蓄'">
@@ -249,7 +252,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=3.4.0');
+                navigator.serviceWorker.register('sw.js?v=3.5.1');
             });
         }
     </script>
@@ -304,6 +307,18 @@
                         }
                     });
                 },
+                generateAndDownloadPdf() {
+                    const element = document.getElementById('pdf-container');
+                    if (!element) return;
+                    const opt = {
+                        margin: 0.3,
+                        filename: (this.pwaClient ? this.pwaClient.owner : '客戶') + '_保障總攬分析.pdf',
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#060810' },
+                        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                    };
+                    html2pdf().set(opt).from(element).save();
+                },
                 getAllInsureds() {
                     if (!this.pwaClient || !this.pwaClient.policies) return [];
                     const names = this.pwaClient.policies.map(p => p.insuredPerson || this.pwaClient.owner).filter(Boolean);
@@ -323,7 +338,6 @@
                         return matchName && matchCompany;
                     });
                 },
-                // 🌟 月供自動 * 12 算入每年總額 🌟
                 getTotalAnnualPremiumHkd() {
                     let total = 0;
                     this.getFilteredPolicies().forEach(p => {
@@ -342,6 +356,7 @@
                 getTotalMonthlyEqDisplay() {
                     return 'HK$ ' + formatNumber(this.getTotalAnnualPremiumHkd() / 12);
                 },
+                // 🌟 精準單獨算對應種類（意外身故 / 意外醫療 完全獨立，不跨分類相加） 🌟
                 getCategorySum(catName) {
                     let sum = 0;
                     this.getFilteredPolicies().forEach(p => {
