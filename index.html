@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA CRM v2.5.3 Independent Rider Cards</title>
+    <title>AVA CRM v2.6.0 Sum Assured & Currency Version</title>
 
     <link rel="manifest" href="manifest-admin.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=2.5.3">
-    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-192.png?v=2.5.3">
+    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=2.6.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-192.png?v=2.6.0">
     <meta name="theme-color" content="#0B0F19">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,7 +29,7 @@
     <!-- 登入介面 -->
     <div x-show="!isLoggedIn" class="fixed inset-0 z-50 bg-[#0B0F19] flex items-center justify-center p-4">
         <div class="glass-card p-6 rounded-2xl w-full max-w-sm text-center space-y-4 border gold-border">
-            <img src="crmlogo-512.png?v=2.5.3" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
+            <img src="crmlogo-512.png?v=2.6.0" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
             <h2 class="text-lg font-bold gold-text">AVA CRM Admin 登入</h2>
             <input type="password" x-model="loginPass" @keyup.enter="login()" placeholder="請輸入密碼 (0903)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-center text-white text-sm focus:border-amber-500 outline-none">
             <button @click="login()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 font-bold rounded-xl text-slate-950 text-sm shadow-md">登入系統</button>
@@ -40,9 +40,9 @@
     <div x-show="isLoggedIn" class="min-h-screen pb-20">
         <header class="sticky top-0 z-40 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <img src="crmlogo-192.png?v=2.5.3" class="w-6 h-6 object-contain rounded">
+                <img src="crmlogo-192.png?v=2.6.0" class="w-6 h-6 object-contain rounded">
                 <span class="font-bold gold-text text-sm">AVA Admin</span>
-                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.5.3</span>
+                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v2.6.0</span>
             </div>
             <div class="flex items-center gap-2">
                 <button @click="initApp()" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/10">🔄 同步 Sheet</button>
@@ -88,7 +88,7 @@
                         </div>
                     </section>
 
-                    <!-- 保障列表 (每項契約均為完整獨立卡片) -->
+                    <!-- 保障列表 -->
                     <section class="space-y-4">
                         <div class="flex justify-between items-center">
                             <h3 class="text-xs font-bold blue-text">📜 保障列表 (<span x-text="currentClient.policies ? currentClient.policies.length : 0"></span> 份保單)</h3>
@@ -108,7 +108,7 @@
                                     </div>
                                 </div>
 
-                                <!-- 🌟 每一項契約（主險/附加險）呈現完整卡片 🌟 -->
+                                <!-- 契約卡片列表 -->
                                 <template x-for="(item, iIndex) in pol.items" :key="iIndex">
                                     <div class="glass-card p-4 rounded-xl space-y-3 relative border-l-4" :class="iIndex === 0 ? 'border-l-amber-500 bg-amber-500/5' : 'border-l-blue-500 bg-slate-900/60'">
                                         <div class="flex justify-between items-center">
@@ -164,25 +164,40 @@
                                             </div>
                                         </div>
 
-                                        <div class="grid grid-cols-3 gap-2 text-xs">
-                                            <div class="col-span-1">
-                                                <label class="text-[10px] text-slate-400 block">保費 (每年)</label>
-                                                <div class="flex items-center gap-1">
-                                                    <input type="text" x-model="item.premium" @blur="formatCurrency(item, 'premium')" class="w-full bg-slate-950 border border-slate-800 rounded p-1.5 text-white font-mono">
-                                                    <select x-model="item.currency" @change="recalculateHkd(item)" class="bg-slate-900 text-slate-300 border border-slate-800 rounded p-1.5 w-16">
+                                        <!-- 🌟 升級：獨立保額與保費雙美金 7.8 換算列 🌟 -->
+                                        <div class="grid grid-cols-2 gap-2 text-xs bg-slate-950/40 p-2 rounded-xl border border-slate-800/60">
+                                            <!-- 1. 保額 (Sum Assured) -->
+                                            <div>
+                                                <label class="text-[10px] text-slate-400 block">保額 (Sum Assured)</label>
+                                                <div class="flex items-center gap-1 mt-0.5">
+                                                    <input type="text" x-model="item.sumAssured" @blur="formatCurrency(item, 'sumAssured')" class="w-full bg-slate-900 border border-slate-800 rounded p-1 text-white font-mono text-xs" placeholder="0">
+                                                    <select x-model="item.saCurrency" @change="recalculateCurrencies(item)" class="bg-slate-900 text-slate-300 border border-slate-800 rounded p-1 w-14 text-[10px]">
                                                         <option value="HKD">HKD</option>
                                                         <option value="USD">USD</option>
                                                     </select>
                                                 </div>
+                                                <template x-if="item.saCurrency === 'USD'">
+                                                    <div class="flex items-center justify-between mt-1 text-[10px]">
+                                                        <span class="gold-text font-mono font-bold" x-text="item.showRawSaUsd ? 'US$ ' + item.sumAssured : '≈ HK$ ' + item.hkdSumAssured"></span>
+                                                        <button @click="item.showRawSaUsd = !item.showRawSaUsd" class="text-blue-400 hover:underline">🔄</button>
+                                                    </div>
+                                                </template>
                                             </div>
 
-                                            <div class="col-span-2 flex items-end">
+                                            <!-- 2. 保費 (Premium) -->
+                                            <div>
+                                                <label class="text-[10px] text-slate-400 block">保費 (每年 Premium)</label>
+                                                <div class="flex items-center gap-1 mt-0.5">
+                                                    <input type="text" x-model="item.premium" @blur="formatCurrency(item, 'premium')" class="w-full bg-slate-900 border border-slate-800 rounded p-1 text-white font-mono text-xs" placeholder="0">
+                                                    <select x-model="item.currency" @change="recalculateCurrencies(item)" class="bg-slate-900 text-slate-300 border border-slate-800 rounded p-1 w-14 text-[10px]">
+                                                        <option value="HKD">HKD</option>
+                                                        <option value="USD">USD</option>
+                                                    </select>
+                                                </div>
                                                 <template x-if="item.currency === 'USD'">
-                                                    <div class="flex items-center gap-2 bg-slate-950/80 p-1.5 rounded-lg border border-slate-800 w-full justify-between">
-                                                        <span class="text-[11px] font-mono gold-text font-bold" x-text="item.showRawUsd ? 'US$ ' + item.premium : '≈ HK$ ' + item.hkdPremium"></span>
-                                                        <button @click="item.showRawUsd = !item.showRawUsd" class="text-[10px] text-blue-400 border border-blue-500/30 px-2 py-0.5 rounded hover:bg-blue-500/10 flex-shrink-0">
-                                                            🔄 <span x-text="item.showRawUsd ? '換算 HK$' : '顯示 US$'"></span>
-                                                        </button>
+                                                    <div class="flex items-center justify-between mt-1 text-[10px]">
+                                                        <span class="gold-text font-mono font-bold" x-text="item.showRawUsd ? 'US$ ' + item.premium : '≈ HK$ ' + item.hkdPremium"></span>
+                                                        <button @click="item.showRawUsd = !item.showRawUsd" class="text-blue-400 hover:underline">🔄</button>
                                                     </div>
                                                 </template>
                                             </div>
@@ -308,11 +323,16 @@
                     el.style.height = 'auto';
                     el.style.height = (el.scrollHeight + 4) + 'px';
                 },
-                recalculateHkd(item) {
+                recalculateCurrencies(item) {
                     if (item.currency === 'USD') {
                         const usdVal = parseNumber(item.premium);
                         item.hkdPremium = formatNumber(usdVal * 7.8);
                         if (item.showRawUsd === undefined) item.showRawUsd = false;
+                    }
+                    if (item.saCurrency === 'USD') {
+                        const usdSaVal = parseNumber(item.sumAssured);
+                        item.hkdSumAssured = formatNumber(usdSaVal * 7.8);
+                        if (item.showRawSaUsd === undefined) item.showRawSaUsd = false;
                     }
                 },
                 loadSelectedClient() {
@@ -328,8 +348,10 @@
                         if (pol.items) {
                             pol.items.forEach(item => {
                                 if (!item.currency) item.currency = 'HKD';
+                                if (!item.saCurrency) item.saCurrency = 'HKD';
                                 item.premium = formatNumber(parseNumber(item.premium));
-                                this.recalculateHkd(item);
+                                item.sumAssured = formatNumber(parseNumber(item.sumAssured));
+                                this.recalculateCurrencies(item);
                             });
                         }
                     });
@@ -400,12 +422,12 @@
                     this.currentClient.policies.push({
                         insurer: '', policyNumber: '', commencementDate: '',
                         policyHolder: this.searchOrNameInput, insuredPerson: this.searchOrNameInput,
-                        items: [{ category: '危疾', name: '', term: '', maturity: '', premium: "0", currency: 'HKD', features: '' }]
+                        items: [{ category: '危疾', name: '', term: '', maturity: '', sumAssured: "0", saCurrency: 'HKD', premium: "0", currency: 'HKD', features: '' }]
                     });
                 },
                 addEmptyItemToPolicy(policy) {
                     if (!policy.items) policy.items = [];
-                    policy.items.push({ category: '危疾', name: '', term: '', maturity: '', premium: "0", currency: 'HKD', features: '' });
+                    policy.items.push({ category: '危疾', name: '', term: '', maturity: '', sumAssured: "0", saCurrency: 'HKD', premium: "0", currency: 'HKD', features: '' });
                 },
                 removePolicy(index) {
                     this.currentClient.policies.splice(index, 1);
@@ -431,7 +453,7 @@
                 formatCurrency(item, field) {
                     if (item[field]) {
                         item[field] = formatNumber(parseNumber(item[field]));
-                        this.recalculateHkd(item);
+                        this.recalculateCurrencies(item);
                     }
                 },
                 uploadAndParse(e) {
@@ -470,6 +492,7 @@
                                         category: p.category || '危疾',
                                         name: p.productName || '',
                                         sumAssured: formatNumber(parseNumber(p.sumAssured ? p.sumAssured.amount : 0)),
+                                        saCurrency: (p.sumAssured && p.sumAssured.currency) ? p.sumAssured.currency : 'HKD',
                                         term: p.term || '',
                                         maturity: p.maturity || '',
                                         premium: formatNumber(parseNumber(p.premium ? p.premium.amount : 0)),
@@ -478,7 +501,7 @@
                                     };
 
                                     this.onProductSelect(newItem);
-                                    this.recalculateHkd(newItem);
+                                    this.recalculateCurrencies(newItem);
 
                                     const polNum = p.policyNumber || '';
                                     let existingPolicy = this.currentClient.policies.find(pol => pol.policyNumber && pol.policyNumber === polNum);
@@ -501,7 +524,7 @@
                                 this.$nextTick(() => {
                                     document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el));
                                 });
-                                alert('🎉 AI 解析完成！主險與附加契約已各自建立獨立完整卡片。');
+                                alert('🎉 AI 解析完成！保額與保費均已成功讀取並支援美元換算。');
                             } else {
                                 alert('AI 解析失敗：' + (res.message || '請確認權限'));
                             }
@@ -527,7 +550,7 @@
                         if (res.status === 'success') {
                             this.fetchClients();
                             this.renderQrCode();
-                            alert('💾 成功將所有保單數據同步至 Google Sheet CRM！');
+                            alert('💾 成功將所有保單及保額數據同步至 Google Sheet CRM！');
                         } else {
                             alert('儲存失敗：' + res.message);
                         }
