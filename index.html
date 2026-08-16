@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA CRM Admin (v3.5.3)</title>
+    <title>AVA CRM Admin (v3.5.4)</title>
 
     <link rel="manifest" href="manifest-admin.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=3.5.3">
-    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-180.png?v=3.5.3">
+    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=3.5.4">
+    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-180.png?v=3.5.4">
     <meta name="theme-color" content="#0B0F19">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,7 +29,7 @@
     <!-- 登入介面 -->
     <div x-show="!isLoggedIn" class="fixed inset-0 z-50 bg-[#0B0F19] flex items-center justify-center p-4">
         <div class="glass-card p-6 rounded-2xl w-full max-w-sm text-center space-y-4 border gold-border">
-            <img src="crmlogo-512.png?v=3.5.3" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
+            <img src="crmlogo-512.png?v=3.5.4" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
             <h2 class="text-lg font-bold gold-text">AVA CRM Admin 登入</h2>
             <input type="password" x-model="loginPass" @keyup.enter="login()" placeholder="請輸入密碼 (0903)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-center text-white text-sm outline-none">
             <button @click="login()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 font-bold rounded-xl text-slate-950 text-sm shadow-md">登入系統</button>
@@ -40,9 +40,9 @@
     <div x-show="isLoggedIn" class="min-h-screen pb-20">
         <header class="sticky top-0 z-40 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <img src="crmlogo-192.png?v=3.5.3" class="w-6 h-6 object-contain rounded">
+                <img src="crmlogo-192.png?v=3.5.4" class="w-6 h-6 object-contain rounded">
                 <span class="font-bold gold-text text-sm">AVA Admin</span>
-                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v3.5.3</span>
+                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v3.5.4</span>
             </div>
             <div class="flex items-center gap-2">
                 <button @click="fetchClients(true)" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/10">🔄 同步 Sheet</button>
@@ -176,12 +176,12 @@
                                             </div>
                                         </template>
 
-                                        <!-- 主險保單價值細項 -->
-                                        <template x-if="iIndex === 0 && (item.category === '危疾' || item.category === '儲蓄')">
+                                        <!-- 🌟 主險保單價值細項 (擴充支援：危疾 / 儲蓄 / 人壽 主險) 🌟 -->
+                                        <template x-if="iIndex === 0 && (item.category === '危疾' || item.category === '儲蓄' || item.category === '人壽')">
                                             <div class="bg-amber-500/10 p-3 rounded-xl border border-amber-500/30 space-y-2">
                                                 <div class="flex justify-between items-center border-b border-amber-500/20 pb-1">
                                                     <span class="text-xs font-bold gold-text"><i class="fa-solid fa-coins"></i> 保單價值細項 (主險專屬)</span>
-                                                    <select x-model="item.cvCurrency" @change="recalculateCurrencies(item)" class="bg-slate-900 text-slate-200 border border-slate-700 rounded px-1.5 py-0.5 text-[10px]">
+                                                    <select x-model="item.cvCurrency" class="bg-slate-900 text-slate-200 border border-slate-700 rounded px-1.5 py-0.5 text-[10px]">
                                                         <option value="HKD">HKD</option>
                                                         <option value="USD">USD</option>
                                                     </select>
@@ -222,12 +222,13 @@
                                             </div>
                                         </template>
 
-                                        <!-- 保額與保費 -->
+                                        <!-- 🌟 保額與保費 (使用動態函式，徹底解決 undefined 問題) 🌟 -->
                                         <div class="grid grid-cols-2 gap-2 text-xs bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/60">
+                                            <!-- 保額 -->
                                             <div x-show="item.category !== '儲蓄'">
                                                 <div class="flex justify-between items-center">
                                                     <label class="text-[10px] text-slate-400">保額 (Sum Assured)</label>
-                                                    <select x-model="item.saCurrency" @change="recalculateCurrencies(item)" class="bg-slate-900 text-slate-300 border border-slate-800 rounded px-1 py-0.5 text-[9px]">
+                                                    <select x-model="item.saCurrency" class="bg-slate-900 text-slate-300 border border-slate-800 rounded px-1 py-0.5 text-[9px]">
                                                         <option value="HKD">HKD</option>
                                                         <option value="USD">USD</option>
                                                     </select>
@@ -235,12 +236,13 @@
                                                 <input type="text" x-model="item.sumAssured" @blur="formatCurrency(item, 'sumAssured')" class="w-full bg-slate-900 border border-slate-800 rounded p-1 text-white font-mono text-xs mt-1" placeholder="0">
                                                 <template x-if="item.saCurrency === 'USD'">
                                                     <div class="flex justify-between items-center mt-1 text-[10px]">
-                                                        <span class="gold-text font-mono font-bold" x-text="item.showRawSaUsd ? 'US$ ' + item.sumAssured : '≈ HK$ ' + item.hkdSumAssured"></span>
+                                                        <span class="gold-text font-mono font-bold" x-text="item.showRawSaUsd ? 'US$ ' + (item.sumAssured || '0') : '≈ HK$ ' + getCalculatedHkd(item.sumAssured)"></span>
                                                         <button @click="item.showRawSaUsd = !item.showRawSaUsd" class="text-blue-400">🔄</button>
                                                     </div>
                                                 </template>
                                             </div>
 
+                                            <!-- 保費 -->
                                             <div :class="item.category === '儲蓄' ? 'col-span-2' : 'col-span-1'">
                                                 <div class="flex justify-between items-center">
                                                     <div class="flex items-center gap-1">
@@ -250,7 +252,7 @@
                                                             <option value="月供">月供</option>
                                                         </select>
                                                     </div>
-                                                    <select x-model="item.currency" @change="recalculateCurrencies(item)" class="bg-slate-900 text-slate-300 border border-slate-800 rounded px-1 py-0.5 text-[9px]">
+                                                    <select x-model="item.currency" class="bg-slate-900 text-slate-300 border border-slate-800 rounded px-1 py-0.5 text-[9px]">
                                                         <option value="HKD">HKD</option>
                                                         <option value="USD">USD</option>
                                                     </select>
@@ -258,7 +260,7 @@
                                                 <input type="text" x-model="item.premium" @blur="formatCurrency(item, 'premium')" class="w-full bg-slate-900 border border-slate-800 rounded p-1 text-white font-mono text-xs mt-1" placeholder="0">
                                                 <template x-if="item.currency === 'USD'">
                                                     <div class="flex justify-between items-center mt-1 text-[10px]">
-                                                        <span class="gold-text font-mono font-bold" x-text="item.showRawUsd ? 'US$ ' + item.premium : '≈ HK$ ' + item.hkdPremium"></span>
+                                                        <span class="gold-text font-mono font-bold" x-text="item.showRawUsd ? 'US$ ' + (item.premium || '0') : '≈ HK$ ' + getCalculatedHkd(item.premium)"></span>
                                                         <button @click="item.showRawUsd = !item.showRawUsd" class="text-blue-400">🔄</button>
                                                     </div>
                                                 </template>
@@ -319,7 +321,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=3.5.3');
+                navigator.serviceWorker.register('sw.js?v=3.5.4');
             });
         }
     </script>
@@ -374,6 +376,11 @@
                     el.style.height = 'auto';
                     el.style.height = (el.scrollHeight + 4) + 'px';
                 },
+                // 🌟 即時安全換算 HK$ 函式 (徹底避免 undefined) 🌟
+                getCalculatedHkd(val) {
+                    const parsed = parseNumber(val);
+                    return formatNumber(parsed * 7.8);
+                },
                 calculateTotalCv(item) {
                     return parseNumber(item.cvGuaranteed) + parseNumber(item.cvAnnualBonus) + parseNumber(item.cvCashValue) + parseNumber(item.cvTerminalBonus) + parseNumber(item.cvReversionaryBonus);
                 },
@@ -398,10 +405,6 @@
                 fetchProducts() {
                     fetch(PRODUCTS_GAS_URL).then(r => r.json()).then(res => { if (res.status === 'success') this.dbProducts = res.data || {}; });
                 },
-                recalculateCurrencies(item) {
-                    if (item.currency === 'USD') item.hkdPremium = formatNumber(parseNumber(item.premium) * 7.8);
-                    if (item.saCurrency === 'USD') item.hkdSumAssured = formatNumber(parseNumber(item.sumAssured) * 7.8);
-                },
                 loadSelectedClient() {
                     const found = this.clients.find(c => String(c.id) === String(this.selectedClientId));
                     if (!found) { this.currentClient = null; return; }
@@ -414,7 +417,6 @@
                                 if (!item.saCurrency) item.saCurrency = 'HKD';
                                 if (!item.cvCurrency) item.cvCurrency = 'HKD';
                                 if (item.isMedRetire === undefined) item.isMedRetire = false;
-                                this.recalculateCurrencies(item);
                             });
                         }
                     });
@@ -486,7 +488,6 @@
                 formatCurrency(item, field) {
                     if (item[field]) {
                         item[field] = formatNumber(parseNumber(item[field]));
-                        this.recalculateCurrencies(item);
                     }
                 },
                 uploadAndParse(e) {
