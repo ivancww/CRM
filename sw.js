@@ -1,7 +1,7 @@
 // ==========================================
-// AVA CRM & Portfolio Service Worker (v3.5.4)
+// AVA CRM & Portfolio Service Worker (v3.5.5)
 // ==========================================
-const CACHE_NAME = 'crm-cache-v3.5.4';
+const CACHE_NAME = 'crm-cache-v3.5.5';
 
 const urlsToCache = [
   '/',
@@ -9,10 +9,10 @@ const urlsToCache = [
   '/client.html',
   '/manifest-admin.json',
   '/manifest-client.json',
-  '/crmlogo-192.png?v=3.5.4',
-  '/crmlogo-512.png?v=3.5.4',
-  '/clientapp-192.png?v=3.5.4',
-  '/clientapp-512.png?v=3.5.4',
+  '/crmlogo-192.png?v=3.5.5',
+  '/crmlogo-512.png?v=3.5.5',
+  '/clientapp-192.png?v=3.5.5',
+  '/clientapp-512.png?v=3.5.5',
   'https://cdn.tailwindcss.com',
   'https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
