@@ -1,7 +1,7 @@
 // ==========================================
-// AVA CRM & Portfolio Service Worker (v3.5.1)
+// AVA CRM & Portfolio Service Worker (v3.5.4)
 // ==========================================
-const CACHE_NAME = 'crm-cache-v3.5.3';
+const CACHE_NAME = 'crm-cache-v3.5.4';
 
 const urlsToCache = [
   '/',
@@ -9,10 +9,10 @@ const urlsToCache = [
   '/client.html',
   '/manifest-admin.json',
   '/manifest-client.json',
-  '/crmlogo-192.png?v=3.2.0',
-  '/crmlogo-512.png?v=3.2.0',
-  '/clientapp-192.png?v=3.2.0',
-  '/clientapp-512.png?v=3.2.0',
+  '/crmlogo-192.png?v=3.5.4',
+  '/crmlogo-512.png?v=3.5.4',
+  '/clientapp-192.png?v=3.5.4',
+  '/clientapp-512.png?v=3.5.4',
   'https://cdn.tailwindcss.com',
   'https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
@@ -33,7 +33,6 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheName !== CACHE_NAME) {
-            console.log('清除舊緩存:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -45,7 +44,6 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
-  // 不快取 Google Apps Script (GAS) API 請求
   if (event.request.url.includes('script.google.com')) return;
 
   event.respondWith(
@@ -58,8 +56,6 @@ self.addEventListener('fetch', event => {
         cache.put(event.request, responseClone);
       });
       return response;
-    }).catch(() => {
-      return caches.match(event.request);
-    })
+    }).catch(() => caches.match(event.request))
   );
 });
