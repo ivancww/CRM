@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AVA Portfolio | 客戶專屬保障首頁</title>
 
-    <link rel="manifest" href="manifest-client.json?v=3.5.8">
-    <link rel="icon" type="image/png" sizes="192x192" href="clientapp-192.png?v=3.5.8">
-    <link rel="apple-touch-icon" sizes="180x180" href="clientapp-192.png?v=3.5.8">
+    <link id="dynamic-manifest" rel="manifest" href="manifest-client.json?v=3.6.0">
+    <link rel="icon" type="image/png" sizes="192x192" href="clientapp-192.png?v=3.6.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="clientapp-192.png?v=3.6.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,11 +31,11 @@
 <body x-data="pwaApp()" x-init="initPwa()">
 
     <div class="min-h-screen pb-28 bg-black">
-        <!-- 頂部功能操作列 (僅供畫面操作，不列印進 PDF) -->
+        <!-- 頂部功能操作列 -->
         <header class="p-4 border-b border-slate-800 sticky top-0 bg-black/95 backdrop-blur-md z-30 space-y-3">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <img src="clientapp-192.png?v=3.5.8" class="w-8 h-8 object-contain rounded-lg border border-amber-500/30">
+                    <img src="clientapp-192.png?v=3.6.0" class="w-8 h-8 object-contain rounded-lg border border-amber-500/30">
                     <div>
                         <span class="font-bold gold-text text-sm block">A.V.A Team Portfolio</span>
                         <p class="text-[10px] text-slate-400">專屬保障管理總纜</p>
@@ -86,15 +88,31 @@
             </div>
         </div>
 
-        <!-- 🌟 主內容區域 (PDF 導出核心區域) 🌟 -->
-        <main id="pdf-container" class="p-4 max-w-lg mx-auto space-y-5 bg-black text-white">
+        <!-- 載入中 / 錯誤防護提示 -->
+        <template x-if="!pwaClient && isLoading">
+            <div class="p-8 text-center space-y-3 max-w-sm mx-auto my-12 glass-card rounded-2xl border border-slate-800">
+                <div class="text-amber-400 text-2xl animate-spin"><i class="fa-solid fa-circle-notch"></i></div>
+                <p class="text-xs text-slate-300">正在加載您的專屬保障資料...</p>
+            </div>
+        </template>
+
+        <template x-if="!pwaClient && !isLoading">
+            <div class="p-8 text-center space-y-3 max-w-sm mx-auto my-12 glass-card rounded-2xl border border-red-500/30">
+                <div class="text-red-400 text-2xl"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <p class="text-xs text-slate-200 font-bold">未能讀取客戶資料</p>
+                <p class="text-[11px] text-slate-400">請確認是否已透過專屬二維碼開啟，或聯絡您的顧問獲取專屬連結。</p>
+            </div>
+        </template>
+
+        <!-- 主內容區域 -->
+        <main id="pdf-container" x-show="pwaClient" class="p-4 max-w-lg mx-auto space-y-5 bg-black text-white">
             <template x-if="pwaClient">
                 <div class="space-y-5">
 
-                    <!-- PDF 固定頁首：Logo + A.V.A Team Portfolio + 中文字 + 受保人 -->
+                    <!-- PDF 固定頁首 -->
                     <div class="border-b border-slate-800 pb-3 flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <img src="clientapp-192.png?v=3.5.8" class="w-8 h-8 object-contain rounded-lg border border-amber-500/30">
+                            <img src="clientapp-192.png?v=3.6.0" class="w-8 h-8 object-contain rounded-lg border border-amber-500/30">
                             <div>
                                 <span class="font-bold gold-text text-sm block">A.V.A Team Portfolio</span>
                                 <p class="text-[10px] text-slate-400">專屬保障管理總纜</p>
@@ -105,7 +123,7 @@
                         </div>
                     </div>
 
-                    <!-- 總保費與每月折算保費 (總覽頁與個別公司頁均統一呈現) -->
+                    <!-- 總保費統計 -->
                     <div class="bg-black p-3.5 rounded-xl border border-amber-500/30 flex justify-between items-center text-xs">
                         <div>
                             <span class="text-[10px] text-slate-400 block" x-text="selectedCompany === '' ? '全單總每年保費 (年繳)' : selectedCompany + ' 每年總保費'"></span>
@@ -121,7 +139,7 @@
                     <template x-if="selectedCompany === ''">
                         <div class="space-y-5">
                             
-                            <!-- 人生保障卡片獨立呈現 (純黑底) -->
+                            <!-- 人生保障卡片獨立呈現 -->
                             <div class="space-y-3">
                                 <h3 class="text-xs font-bold gold-text"><i class="fa-solid fa-shield-halved"></i> 人生保障總括</h3>
                                 <div class="grid grid-cols-2 gap-3 text-center">
@@ -158,7 +176,7 @@
                                 </div>
                             </div>
 
-                            <!-- 理財規劃總覽 (純黑底) -->
+                            <!-- 理財規劃總覽 -->
                             <div class="glass-card p-4 rounded-2xl space-y-2 border-emerald-500/30 bg-black">
                                 <h3 class="text-xs font-bold emerald-text"><i class="fa-solid fa-chart-line"></i> 理財規劃 (退休 / 教育) 總覽</h3>
                                 <div class="flex justify-between items-center text-xs bg-black p-2.5 rounded-xl border border-slate-800">
@@ -167,7 +185,7 @@
                                 </div>
                             </div>
 
-                            <!-- 退休醫療保障總纜 (純黑底) -->
+                            <!-- 退休醫療保障總纜 -->
                             <div class="glass-card p-4 rounded-2xl space-y-2 border-blue-500/30 bg-black">
                                 <h3 class="text-xs font-bold blue-text"><i class="fa-solid fa-hospital-user"></i> 退休醫療保障總覽</h3>
                                 <div class="flex justify-between items-center text-xs bg-black p-2.5 rounded-xl border border-slate-800">
@@ -182,7 +200,7 @@
                     <template x-if="selectedCompany !== ''">
                         <div class="space-y-4">
                             
-                            <!-- 顯示/隱藏控制面板 (只在螢幕畫面顯示，PDF 導出時自動隱藏) -->
+                            <!-- 顯示/隱藏控制面板 -->
                             <div class="no-pdf glass-card p-3 rounded-2xl border border-blue-500/40 bg-black space-y-2">
                                 <div class="flex justify-between items-center border-b border-blue-500/20 pb-1.5">
                                     <span class="text-xs font-bold blue-text"><i class="fa-solid fa-sliders"></i> <span x-text="selectedCompany"></span> 專頁：自訂勾選隱藏項目</span>
@@ -212,7 +230,7 @@
                                 </div>
                             </div>
 
-                            <!-- 保單明細卡片 (全部統一為純黑底 bg-black) -->
+                            <!-- 保單明細卡片 -->
                             <template x-for="(pol, index) in getFilteredPolicies()" :key="index">
                                 <div class="space-y-3 p-4 rounded-2xl border border-slate-800 bg-black">
                                     <div class="flex justify-between items-center border-b border-slate-800 pb-2">
@@ -305,7 +323,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=3.5.8');
+                navigator.serviceWorker.register('sw.js?v=3.6.0');
             });
         }
     </script>
@@ -335,6 +353,7 @@
                 selectedInsured: '',
                 selectedCompany: '',
                 showInstallModal: false,
+                isLoading: true,
 
                 compDisplayConfig: {
                     showSa: true,
@@ -344,28 +363,68 @@
                     showFeatures: true
                 },
 
+                // 🌟 核心修復：動態綁定 Manifest 啟動網址與專屬 ID 🌟
                 initPwa() {
                     const urlParams = new URLSearchParams(window.location.search);
-                    const pwaId = urlParams.get('id');
-                    if (pwaId) { this.loadPwaData(pwaId); }
+                    let pwaId = urlParams.get('id');
+
+                    if (!pwaId) {
+                        pwaId = localStorage.getItem('AVA_LAST_CLIENT_ID');
+                    }
+
+                    if (pwaId) {
+                        localStorage.setItem('AVA_LAST_CLIENT_ID', pwaId);
+                        
+                        // 動態將當前帶有 ?id= 的專屬網址寫入 Manifest，解決 iOS 安裝遺失 ID 的問題
+                        try {
+                            const dynamicStartUrl = window.location.href;
+                            const manifestData = {
+                                "name": "A.V.A Portfolio | 客戶保障總攬",
+                                "short_name": "A.V.A Portfolio",
+                                "description": "A.V.A Team 專屬客戶個人及家庭保障總攬 App",
+                                "start_url": dynamicStartUrl,
+                                "display": "standalone",
+                                "background_color": "#000000",
+                                "theme_color": "#000000",
+                                "orientation": "portrait",
+                                "icons": [
+                                    { "src": "clientapp-192.png?v=3.6.0", "sizes": "192x192", "type": "image/png" },
+                                    { "src": "clientapp-512.png?v=3.6.0", "sizes": "512x512", "type": "image/png" }
+                                ]
+                            };
+                            const stringManifest = JSON.stringify(manifestData);
+                            const blob = new Blob([stringManifest], {type: 'application/json'});
+                            const manifestURL = URL.createObjectURL(blob);
+                            const manifestLink = document.getElementById('dynamic-manifest');
+                            if (manifestLink) manifestLink.setAttribute('href', manifestURL);
+                        } catch(e) { console.warn("Manifest dynamic injection skipped", e); }
+
+                        this.loadPwaData(pwaId);
+                    } else {
+                        this.isLoading = false;
+                    }
                 },
                 loadPwaData(pwaId) {
+                    this.isLoading = true;
                     const localData = localStorage.getItem('PWA_CLIENT_' + pwaId);
                     if (localData) {
                         this.pwaClient = JSON.parse(localData);
                         this.selectedInsured = this.pwaClient.owner;
+                        this.isLoading = false;
                     }
                     fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'get' }), redirect: "follow" })
                     .then(r => r.json()).then(res => {
+                        this.isLoading = false;
                         if (res.status === 'success') {
                             const found = res.data.find(c => String(c.id) === String(pwaId));
                             if (found) {
                                 this.pwaClient = found;
                                 this.selectedInsured = found.owner;
                                 localStorage.setItem('PWA_CLIENT_' + pwaId, JSON.stringify(found));
+                                localStorage.setItem('AVA_LAST_CLIENT_ID', String(pwaId));
                             }
                         }
-                    });
+                    }).catch(() => { this.isLoading = false; });
                 },
 
                 triggerInstallOrGuide() {
@@ -397,7 +456,6 @@
                     }
                 },
 
-                // 🌟 PDF 導出 (自動暫時隱藏自訂選項面板，並以純黑底生成 A4) 🌟
                 generateAndDownloadPdf() {
                     const element = document.getElementById('pdf-container');
                     if (!element) return;
