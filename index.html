@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA CRM Admin (v3.5.5)</title>
+    <title>AVA CRM Admin (v3.5.6)</title>
 
     <link rel="manifest" href="manifest-admin.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=3.5.5">
-    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-180.png?v=3.5.5">
+    <link rel="icon" type="image/png" sizes="192x192" href="crmlogo-192.png?v=3.5.6">
+    <link rel="apple-touch-icon" sizes="180x180" href="crmlogo-180.png?v=3.5.6">
     <meta name="theme-color" content="#0B0F19">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -29,7 +29,7 @@
     <!-- 登入介面 -->
     <div x-show="!isLoggedIn" class="fixed inset-0 z-50 bg-[#0B0F19] flex items-center justify-center p-4">
         <div class="glass-card p-6 rounded-2xl w-full max-w-sm text-center space-y-4 border gold-border">
-            <img src="crmlogo-512.png?v=3.5.5" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
+            <img src="crmlogo-512.png?v=3.5.6" class="w-20 h-20 mx-auto object-contain rounded-xl shadow-lg">
             <h2 class="text-lg font-bold gold-text">AVA CRM Admin 登入</h2>
             <input type="password" x-model="loginPass" @keyup.enter="login()" placeholder="請輸入密碼 (0903)" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-center text-white text-sm outline-none">
             <button @click="login()" class="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 font-bold rounded-xl text-slate-950 text-sm shadow-md">登入系統</button>
@@ -40,9 +40,9 @@
     <div x-show="isLoggedIn" class="min-h-screen pb-20">
         <header class="sticky top-0 z-40 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <img src="crmlogo-192.png?v=3.5.5" class="w-6 h-6 object-contain rounded">
+                <img src="crmlogo-192.png?v=3.5.6" class="w-6 h-6 object-contain rounded">
                 <span class="font-bold gold-text text-sm">AVA Admin</span>
-                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v3.5.5</span>
+                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">v3.5.6</span>
             </div>
             <div class="flex items-center gap-2">
                 <button @click="fetchClients(true)" class="text-xs text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-lg hover:bg-amber-500/10">🔄 同步 Sheet</button>
@@ -78,7 +78,7 @@
                 </div>
             </section>
 
-            <!-- 🌟 AI 解析區（支援最多一次 10 份上載） 🌟 -->
+            <!-- AI 解析區 -->
             <section class="glass-card p-4 rounded-2xl border border-amber-500/30 bg-amber-500/5 space-y-2">
                 <div class="flex justify-between items-center">
                     <h3 class="text-xs font-bold gold-text"><i class="fa-solid fa-wand-magic-sparkles"></i> AI 智能解析 (Gemini 3.6 Flash)</h3>
@@ -282,10 +282,17 @@
                                         <div>
                                             <div class="flex justify-between items-center mb-1">
                                                 <label class="text-[10px] text-slate-400">契約條款特點說明</label>
+                                                <!-- 🌟 退休醫保 或 多次賠償 勾選框 🌟 -->
                                                 <template x-if="item.category === '儲蓄'">
                                                     <label class="flex items-center gap-1 text-[10px] text-amber-400 font-bold cursor-pointer">
                                                         <input type="checkbox" x-model="item.isMedRetire" class="rounded bg-slate-900 border-slate-700">
                                                         <span>☑ 歸類為退休醫保</span>
+                                                    </label>
+                                                </template>
+                                                <template x-if="item.category === '危疾'">
+                                                    <label class="flex items-center gap-1 text-[10px] text-red-400 font-bold cursor-pointer">
+                                                        <input type="checkbox" x-model="item.isMultiClaim" class="rounded bg-slate-900 border-slate-700">
+                                                        <span>☑ 設多次賠償</span>
                                                     </label>
                                                 </template>
                                             </div>
@@ -322,7 +329,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=3.5.5');
+                navigator.serviceWorker.register('sw.js?v=3.5.6');
             });
         }
     </script>
@@ -418,6 +425,7 @@
                                 if (!item.saCurrency) item.saCurrency = 'HKD';
                                 if (!item.cvCurrency) item.cvCurrency = 'HKD';
                                 if (item.isMedRetire === undefined) item.isMedRetire = false;
+                                if (item.isMultiClaim === undefined) item.isMultiClaim = false;
                             });
                         }
                     });
@@ -467,12 +475,12 @@
                     if (!this.currentClient.policies) this.currentClient.policies = [];
                     this.currentClient.policies.push({
                         insurer: '', policyNumber: '', commencementDate: '', policyHolder: this.searchOrNameInput, insuredPerson: this.searchOrNameInput,
-                        items: [{ category: '危疾', name: '', term: '', maturity: '', sumAssured: "0", saCurrency: 'HKD', premium: "0", payMode: '年繳', currency: 'HKD', cvCurrency: 'HKD', cvGuaranteed: "0", cvAnnualBonus: "0", cvCashValue: "0", cvTerminalBonus: "0", cvReversionaryBonus: "0", isMedRetire: false, features: '' }]
+                        items: [{ category: '危疾', name: '', term: '', maturity: '', sumAssured: "0", saCurrency: 'HKD', premium: "0", payMode: '年繳', currency: 'HKD', cvCurrency: 'HKD', cvGuaranteed: "0", cvAnnualBonus: "0", cvCashValue: "0", cvTerminalBonus: "0", cvReversionaryBonus: "0", isMedRetire: false, isMultiClaim: false, features: '' }]
                     });
                 },
                 addEmptyItemToPolicy(policy) {
                     if (!policy.items) policy.items = [];
-                    policy.items.push({ category: '危疾', name: '', term: '', maturity: '', sumAssured: "0", saCurrency: 'HKD', premium: "0", payMode: '年繳', currency: 'HKD', cvCurrency: 'HKD', cvGuaranteed: "0", cvAnnualBonus: "0", cvCashValue: "0", cvTerminalBonus: "0", cvReversionaryBonus: "0", isMedRetire: false, features: '' });
+                    policy.items.push({ category: '危疾', name: '', term: '', maturity: '', sumAssured: "0", saCurrency: 'HKD', premium: "0", payMode: '年繳', currency: 'HKD', cvCurrency: 'HKD', cvGuaranteed: "0", cvAnnualBonus: "0", cvCashValue: "0", cvTerminalBonus: "0", cvReversionaryBonus: "0", isMedRetire: false, isMultiClaim: false, features: '' });
                 },
                 removePolicy(index) { this.currentClient.policies.splice(index, 1); },
                 removeSingleItem(policy, itemIndex) { policy.items.splice(itemIndex, 1); },
@@ -491,8 +499,6 @@
                         item[field] = formatNumber(parseNumber(item[field]));
                     }
                 },
-                
-                // 🌟 批次上載（最多 10 份）與智能合併提示邏輯 🌟
                 async uploadAndParseMultiple(e) {
                     const files = Array.from(e.target.files);
                     if (!files || files.length === 0) return;
@@ -524,18 +530,12 @@
                                 const parsedList = res.data;
                                 totalParsedCount += parsedList.length;
 
-                                // 檢查該文件讀出的保單持有人
                                 const detectedHolder = (parsedList[0] && parsedList[0].policyHolder) ? parsedList[0].policyHolder.trim() : '';
-
-                                // 判定目標客戶對象
                                 let targetClient = null;
 
                                 if (detectedHolder) {
-                                    // 在現有客戶名單中查找同名客戶
                                     const existingClient = this.clients.find(c => c.owner && c.owner.trim() === detectedHolder);
-
                                     if (existingClient) {
-                                        // 若目前正處於該客戶頁面，直接合併；若否，跳出提示詢問
                                         if (this.currentClient && this.currentClient.id === existingClient.id) {
                                             targetClient = this.currentClient;
                                         } else {
@@ -549,7 +549,6 @@
                                     }
                                 }
 
-                                // 若無現有客戶或使用者選擇不合併，且當前無選中客戶或為新客戶，則初始化新客戶
                                 if (!targetClient) {
                                     if (!this.currentClient || this.currentClient.owner === '新客戶') {
                                         if (!this.currentClient) this.resetOwner();
@@ -563,7 +562,6 @@
 
                                 if (!targetClient.policies) targetClient.policies = [];
 
-                                // 進行保單合併與附加契約覆蓋
                                 parsedList.forEach(p => {
                                     const polNum = p.policyNumber || '';
                                     let targetPolicy = targetClient.policies.find(pol => pol.policyNumber && pol.policyNumber === polNum);
@@ -586,6 +584,8 @@
                                         cvCurrency: p.cvCurrency || 'HKD',
                                         term: p.term || '',
                                         maturity: p.maturity || '',
+                                        isMedRetire: false,
+                                        isMultiClaim: false,
                                         features: p.features || ''
                                     };
 
