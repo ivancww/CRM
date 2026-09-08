@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA 專屬生活引導與資產檢視系統 · CRM 完整版</title>
+    <title>AVA 專屬生活引導與資產檢視系統 · CRM 完整版 (v6.0.0)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -87,11 +87,12 @@
         </template>
     </datalist>
 
-    <!-- 頂部 NAV (Saving Code 白底風格) -->
+    <!-- 頂部 NAV (加入 Version 標籤) -->
     <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-sm">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
             <span class="font-black text-blue-900 text-sm tracking-wide">🌱 AVA PLANNER</span>
-            <span class="text-[10px] bg-slate-100 text-slate-600 font-bold px-2.5 py-0.5 rounded-full border border-slate-200" x-text="currentClient ? currentClient.owner : '未選客戶'"></span>
+            <span class="text-[10px] bg-blue-100 text-blue-800 font-extrabold px-2 py-0.5 rounded-full border border-blue-200" x-text="systemVersion"></span>
+            <span class="text-[10px] bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded-full border border-slate-200" x-text="currentClient ? currentClient.owner : '未選客戶'"></span>
         </div>
         <div class="flex items-center gap-2">
             <button @click="fetchClients(true)" class="text-xs text-blue-600 border border-blue-200 bg-blue-50 px-2.5 py-1 rounded-lg hover:bg-blue-100 font-bold">🔄 同步 Sheet</button>
@@ -230,7 +231,7 @@
                                                 </div>
                                             </div>
                                         </template>
-                                        <!-- 主險保單價值細項 (危疾 / 儲蓄 / 人壽) -->
+                                        <!-- 主險保單價值細項 -->
                                         <template x-if="iIndex === 0 && (item.category === '危疾' || item.category === '儲蓄' || item.category === '人壽')">
                                             <div class="bg-amber-50/60 p-3 rounded-xl border border-amber-200 space-y-2">
                                                 <div class="flex justify-between items-center border-b border-amber-200/60 pb-1">
@@ -503,7 +504,7 @@
                         <h2 class="text-xl font-extrabold text-slate-900">🌱 時光複利：小金額創造無痛大效果</h2>
                         <p class="text-xs text-slate-500 mt-1">只需 5 年分段儲備，交畀時間滾存終身源源不絕的被動收入：</p>
                     </div>
-                    <!-- 純色圓點開關 Bar (Saving Code 原生) -->
+                    <!-- 純色圓點開關 Bar -->
                     <div class="flex items-center gap-2 bg-slate-100 p-2 rounded-xl border border-slate-200">
                         <div class="pure-color-dot dot-blue-bg" :class="{'dimmed': !colVisibility.annuity}" @click="toggleCol('annuity')" title="切換被動收入"></div>
                         <div class="pure-color-dot dot-green-bg" :class="{'dimmed': !colVisibility.accum}" @click="toggleCol('accum')" title="切換累積已領"></div>
@@ -619,8 +620,10 @@
 
     <script>
         /* ==========================================
-           全數保留之系統 API 與試算表端點
+           系統版本號與 API 端點配置
         ========================================== */
+        const SYSTEM_VERSION = "v6.0.0"; // 每次有新更新在此遞增版本號
+        
         const CRM_GAS_URL = "https://script.google.com/macros/s/AKfycbzy1gnDB-qXZIhTsgxNvLveRrHWVP7AoYoqG_JsbELBvvReXy4Fx2rYu6ieJNuupMtmdg/exec";
         const PRODUCTS_GAS_URL = "https://script.google.com/macros/s/AKfycbzJxEthfbtGFhesn9zqKz_14bvLY0Q6uvKVzSr2WM8s1VfCTJXaCg7lhNEwqyAql6hUuQ/exec";
         const AI_GAS_URL = "https://script.google.com/macros/s/AKfycbzPIlJHqcGWDMeJd_Tc_tpDz-r-vVW9lNXBiVXnD2o0ulVNoGkUHy-Ve3rAxnsWh9dhUQ/exec";
@@ -639,6 +642,7 @@
 
         function app() {
             return {
+                systemVersion: SYSTEM_VERSION,
                 viewMode: 'review', // 'review' | 'crm'
                 currentStep: 1,
                 clients: [],
@@ -732,7 +736,7 @@
                             this.loadSelectedClient();
                         }
                     }
-                    fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'get' }), redirect: "follow" })
+                    fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'get', version: this.systemVersion }), redirect: "follow" })
                     .then(r => r.json()).then(res => {
                         if (res.status === 'success') {
                             this.clients = res.data || [];
@@ -786,7 +790,7 @@
                 deleteCurrentClient() {
                     if (!this.selectedClientId) return;
                     if (confirm('確定要刪除？')) {
-                        fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id: this.selectedClientId }), redirect: "follow" })
+                        fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id: this.selectedClientId, version: this.systemVersion }), redirect: "follow" })
                         .then(r => r.json()).then(res => { if (res.status === 'success') { this.selectedClientId = ''; this.currentClient = null; this.fetchClients(true); } });
                     }
                 },
@@ -835,7 +839,7 @@
                             const base64Data = await this.readFileAsBase64(file);
                             const response = await fetch(AI_GAS_URL, {
                                 method: 'POST',
-                                body: JSON.stringify({ action: 'parsePolicyDocument', fileData: base64Data, mimeType: file.type })
+                                body: JSON.stringify({ action: 'parsePolicyDocument', fileData: base64Data, mimeType: file.type, version: this.systemVersion })
                             });
                             const res = await response.json();
                             if (res.status === 'success' && res.data) {
@@ -941,11 +945,11 @@
                 },
                 saveClientToCloud() {
                     if (this.currentClient) this.currentClient.owner = this.searchOrNameInput;
-                    fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'update', payload: this.currentClient }), redirect: "follow" })
+                    fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'update', payload: this.currentClient, version: this.systemVersion }), redirect: "follow" })
                     .then(r => r.json()).then(res => {
                         if (res.status === 'success') {
                             localStorage.setItem('AVA_CLIENTS_CACHE', JSON.stringify(this.clients));
-                            alert('✅ 儲存成功！已同步至 Google Sheet。');
+                            alert(`✅ 儲存成功！已同步至 Google Sheet。(Version: ${this.systemVersion})`);
                         } else {
                             alert('❌ 儲存失敗：' + res.message);
                         }
@@ -1008,7 +1012,7 @@
                     if (!container) return;
                     container.innerHTML = '';
                     const clientId = this.currentClient ? this.currentClient.id : 'default';
-                    const targetUrl = window.location.href.split('?')[0].replace('index.html', '') + 'client.html?id=' + clientId + '&role=client';
+                    const targetUrl = window.location.href.split('?')[0].replace('index.html', '') + 'client.html?id=' + clientId + '&role=client&v=' + this.systemVersion;
                     new QRCode(container, {
                         text: targetUrl,
                         width: 140,
@@ -1020,7 +1024,7 @@
                 },
                 saveReviewSummary() {
                     this.saveClientToCloud();
-                    alert('🎉 專屬生活藍圖 Review 完成！已為客戶【' + (this.currentClient ? this.currentClient.owner : '新客戶') + '】完成登記。');
+                    alert(`🎉 專屬生活藍圖 Review 完成！已為客戶【${this.currentClient ? this.currentClient.owner : '新客戶'}】完成登記。(Version: ${this.systemVersion})`);
                 }
             }
         }
