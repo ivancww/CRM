@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA 專屬資產檢視與引導系統 · CRM Review Edition</title>
+    <title>AVA 專屬生活引導與資產檢視系統 · CRM 完整版</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,75 +13,98 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- QR Code 生成庫 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
         :root {
-            --bg-dark: #0B0F19;
-            --card-glass: rgba(255, 255, 255, 0.04);
-            --border-glass: rgba(255, 255, 255, 0.08);
-            --brand-primary: #38bdf8;
-            --brand-gold: #d4af37;
-            --brand-green: #10b981;
-            --brand-purple: #a855f7;
-            --brand-red: #f43f5e;
-            --pink-dashed: 1.5px dashed rgba(244, 114, 182, 0.5);
+            --bg-page: #f8fafc;
+            --surface-card: #ffffff;
+            --surface-subtle: #f1f5f9;
+            --border-light: #e2e8f0;
+            --text-main: #0f172a;
+            --text-sub: #475569;
+            --text-muted: #94a3b8;
+            
+            --brand-primary: #1e3a8a;
+            --brand-accent: #2563eb;
+            --brand-soft: #eff6ff;
+            --state-success: #059669;
+            --state-purple: #7c3aed;
+            --state-danger: #dc2626;
+            
+            --pink-dashed: 1.5px dashed #f8bbd0;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 16px -2px rgba(15, 23, 42, 0.06);
         }
         body {
-            background-color: var(--bg-dark);
-            color: #f3f4f6;
+            background-color: var(--bg-page);
+            color: var(--text-main);
             font-family: 'Noto Sans TC', 'Plus Jakarta Sans', -apple-system, sans-serif;
             -webkit-font-smoothing: antialiased;
         }
-        .glass-panel {
-            background: var(--card-glass);
-            backdrop-filter: blur(14px);
-            border: 1px solid var(--border-glass);
-            border-radius: 1.25rem;
+        .content-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-light);
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: var(--shadow-md);
         }
-        .gold-glow { border-color: rgba(212, 175, 55, 0.35); box-shadow: 0 0 20px rgba(212, 175, 55, 0.05); }
         .pink-edit-input {
             width: 100%; padding: 8px 12px; border: var(--pink-dashed); border-radius: 8px;
-            font-size: 0.9rem; background: rgba(15, 23, 42, 0.7); color: #fff; text-align: center;
+            font-size: 0.9rem; background: #ffffff; color: var(--text-main); text-align: center;
         }
         .pure-color-dot {
             width: 22px; height: 22px; border-radius: 50%; cursor: pointer;
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-            border: 2px solid rgba(255,255,255,0.8);
+            border: 2px solid #fff; box-shadow: var(--shadow-sm);
         }
         .pure-color-dot:hover { transform: scale(1.15); }
         .pure-color-dot.dimmed { opacity: 0.25; filter: grayscale(100%); transform: scale(0.9); }
-        .dot-blue-bg { background: var(--brand-primary); }
-        .dot-green-bg { background: var(--brand-green); }
-        .dot-purple-bg { background: var(--brand-purple); }
-        .dot-red-bg { background: var(--brand-red); }
-        .clean-table th, .clean-table td { padding: 10px 14px; text-align: right; border-bottom: 1px solid rgba(255,255,255,0.06); }
-        .clean-table th { color: #94a3b8; font-weight: 600; background: rgba(255,255,255,0.02); }
+        .dot-blue-bg { background: var(--brand-accent); }
+        .dot-green-bg { background: var(--state-success); }
+        .dot-purple-bg { background: var(--state-purple); }
+        .dot-red-bg { background: var(--state-danger); }
+        
+        .clean-table th, .clean-table td { padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--border-light); }
+        .clean-table th { color: var(--text-sub); font-weight: 600; background: #f8fafc; }
+        
         .nav-step-pill {
-            padding: 6px 12px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700;
+            padding: 6px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700;
             cursor: pointer; transition: 0.2s; white-space: nowrap;
         }
-        .nav-step-pill.active { background: #d4af37; color: #020617; }
-        .nav-step-pill.inactive { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1); }
+        .nav-step-pill.active { background: var(--brand-primary); color: #ffffff; }
+        .nav-step-pill.inactive { background: #ffffff; color: var(--text-sub); border: 1px solid var(--border-light); }
+        textarea { resize: none; }
     </style>
 </head>
-<body x-data="reviewApp()" x-init="initApp()" class="min-h-screen flex flex-col">
+<body x-data="app()" x-init="initApp()" class="min-h-screen flex flex-col">
 
-    <!-- 頂部 NAV -->
-    <header class="sticky top-0 z-40 bg-[#0B0F19]/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+    <!-- 保險公司下拉清單 (Datalist) -->
+    <datalist id="companyList">
+        <template x-for="inc in dbProducts['保險公司'] || []" :key="inc">
+            <option :value="inc"></option>
+        </template>
+    </datalist>
+
+    <!-- 頂部 NAV (Saving Code 白底風格) -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-sm">
         <div class="flex items-center gap-3">
-            <span class="font-black text-amber-400 text-sm tracking-wide">🌱 AVA REVIEW</span>
-            <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full border border-slate-700" x-text="currentClient ? currentClient.owner : '未選客戶'"></span>
+            <span class="font-black text-blue-900 text-sm tracking-wide">🌱 AVA PLANNER</span>
+            <span class="text-[10px] bg-slate-100 text-slate-600 font-bold px-2.5 py-0.5 rounded-full border border-slate-200" x-text="currentClient ? currentClient.owner : '未選客戶'"></span>
         </div>
         <div class="flex items-center gap-2">
-            <button @click="openClientSelector = true" class="text-xs text-blue-400 border border-blue-500/30 px-3 py-1 rounded-lg hover:bg-blue-500/10">👥 切換客戶</button>
-            <button @click="resetReview()" class="text-xs text-slate-400 border border-slate-700 px-2.5 py-1 rounded-lg">重設進度</button>
+            <button @click="fetchClients(true)" class="text-xs text-blue-600 border border-blue-200 bg-blue-50 px-2.5 py-1 rounded-lg hover:bg-blue-100 font-bold">🔄 同步 Sheet</button>
+            <button @click="viewMode = (viewMode === 'review' ? 'crm' : 'review')" class="text-xs text-amber-700 border border-amber-200 bg-amber-50 px-2.5 py-1 rounded-lg font-bold">
+                <span x-text="viewMode === 'review' ? '⚙️ 保單管理模式' : '📋 7步引導模式'"></span>
+            </button>
         </div>
     </header>
 
-    <!-- 步驟進度導覽 (7 大步驟) -->
-    <div class="border-b border-slate-800/80 bg-slate-950/60 overflow-x-auto py-2.5 px-4 flex gap-2 no-scrollbar">
+    <!-- 步驟進度導覽 (Review 模式顯示) -->
+    <div x-show="viewMode === 'review'" class="border-b border-slate-200 bg-white overflow-x-auto py-2.5 px-4 flex gap-2 shadow-sm">
         <template x-for="(s, idx) in steps" :key="idx">
-            <button @click="currentStep = idx + 1" :class="currentStep === (idx + 1) ? 'active' : 'inactive'" class="nav-step-pill flex items-center gap-1.5">
+            <button @click="currentStep = idx + 1" :class="currentStep === (idx + 1) ? 'active' : 'inactive'" class="nav-step-pill flex items-center gap-1.5 shadow-sm">
                 <span x-text="s.num"></span>
                 <span x-text="s.name"></span>
             </button>
@@ -91,322 +114,548 @@
     <!-- 主工作區 -->
     <main class="flex-1 max-w-4xl w-full mx-auto p-4 space-y-6">
 
-        <!-- ① OPEN｜人生現況 -->
-        <div x-show="currentStep === 1" class="glass-panel p-6 space-y-6">
-            <div>
-                <span class="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">Step 1 · 現況想法</span>
-                <h2 class="text-xl font-extrabold text-white leading-snug">「最近一年，有冇咩令你開始諗多咗將來？」</h2>
-                <p class="text-xs text-slate-400 mt-1">從你目前最真實、最自在的生活節奏開始探索：</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <template x-for="opt in stepData.step1.options" :key="opt.title">
-                    <div @click="selectOption('step1', opt.title)" 
-                         :class="answers.step1 === opt.title ? 'border-amber-400 bg-amber-400/10' : 'border-slate-800 bg-slate-900/40 hover:border-slate-700'"
-                         class="cursor-pointer border p-4 rounded-xl transition-all">
-                        <div class="font-bold text-sm text-slate-100 mb-1" x-text="opt.title"></div>
-                        <div class="text-xs text-slate-400 leading-relaxed" x-text="opt.sub"></div>
+        <!-- ========================================================
+             模式 A：CRM 完整保單管理與 AI 解析區
+        ======================================================== -->
+        <div x-show="viewMode === 'crm'" class="space-y-6">
+            <!-- 客戶選擇與管理 -->
+            <section class="content-card space-y-3">
+                <div class="flex justify-between items-center">
+                    <label class="text-xs font-bold text-blue-900">👤 選擇 / 管理客戶</label>
+                    <div class="flex items-center gap-3">
+                        <button @click="resetOwner()" class="text-xs text-blue-600 font-bold hover:underline">+ 建立新客戶</button>
+                        <button x-show="selectedClientId" @click="deleteCurrentClient()" class="text-xs text-red-500 font-bold hover:underline"><i class="fa-solid fa-trash-can"></i> 刪除此客戶</button>
                     </div>
-                </template>
-            </div>
-            <div class="flex justify-end pt-4">
-                <button @click="nextStep()" :disabled="!answers.step1" class="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 disabled:opacity-30 text-slate-950 font-bold text-xs rounded-xl shadow">進入未來畫面 →</button>
-            </div>
-        </div>
-
-        <!-- ② EXPLORE｜未來畫面 -->
-        <div x-show="currentStep === 2" class="glass-panel p-6 space-y-6">
-            <div>
-                <span class="text-xs font-bold text-blue-400 uppercase tracking-widest block mb-1">Step 2 · 理想願景</span>
-                <h2 class="text-xl font-extrabold text-white leading-snug">「如果未來 5–10 年照你理想咁發展，你最希望做到咩？」</h2>
-                <p class="text-xs text-slate-400 mt-1">理財唔係數字遊戲，而係為了實現具體的生活畫面：</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <template x-for="opt in stepData.step2.options" :key="opt.title">
-                    <div @click="selectOption('step2', opt.title)" 
-                         :class="answers.step2 === opt.title ? 'border-blue-400 bg-blue-400/10' : 'border-slate-800 bg-slate-900/40 hover:border-slate-700'"
-                         class="cursor-pointer border p-4 rounded-xl transition-all">
-                        <div class="font-bold text-sm text-slate-100 mb-1" x-text="opt.title"></div>
-                        <div class="text-xs text-slate-400 leading-relaxed" x-text="opt.sub"></div>
-                    </div>
-                </template>
-            </div>
-            <div class="flex justify-between pt-4">
-                <button @click="prevStep()" class="px-5 py-2 border border-slate-700 text-xs text-slate-300 rounded-xl">← 上一步</button>
-                <button @click="nextStep()" :disabled="!answers.step2" class="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 disabled:opacity-30 text-slate-950 font-bold text-xs rounded-xl shadow">確認優先次序 →</button>
-            </div>
-        </div>
-
-        <!-- ③ PRIORITY｜最重要嘅嘢 -->
-        <div x-show="currentStep === 3" class="glass-panel p-6 space-y-6">
-            <div>
-                <span class="text-xs font-bold text-purple-400 uppercase tracking-widest block mb-1">Step 3 · 核心聚焦</span>
-                <h2 class="text-xl font-extrabold text-white leading-snug">「如果只能先處理一樣，你最想確保邊一部分？」</h2>
-                <p class="text-xs text-slate-400 mt-1">找出最能令你感到踏實、最不能妥協的核心支柱：</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <template x-for="opt in stepData.step3.options" :key="opt.title">
-                    <div @click="selectOption('step3', opt.title)" 
-                         :class="answers.step3 === opt.title ? 'border-purple-400 bg-purple-400/10' : 'border-slate-800 bg-slate-900/40 hover:border-slate-700'"
-                         class="cursor-pointer border p-4 rounded-xl transition-all">
-                        <div class="font-bold text-sm text-slate-100 mb-1" x-text="opt.title"></div>
-                        <div class="text-xs text-slate-400 leading-relaxed" x-text="opt.sub"></div>
-                    </div>
-                </template>
-            </div>
-            <div class="flex justify-between pt-4">
-                <button @click="prevStep()" class="px-5 py-2 border border-slate-700 text-xs text-slate-300 rounded-xl">← 上一步</button>
-                <button @click="nextStep()" :disabled="!answers.step3" class="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-purple-600 disabled:opacity-30 text-white font-bold text-xs rounded-xl shadow">檢視現有 CRM 安排 →</button>
-            </div>
-        </div>
-
-        <!-- ④ REALITY｜現有安排 (讀取 CRM 資料) -->
-        <div x-show="currentStep === 4" class="glass-panel p-6 space-y-6">
-            <div class="flex justify-between items-start border-b border-slate-800 pb-4">
-                <div>
-                    <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest block mb-1">Step 4 · 現狀盤點</span>
-                    <h2 class="text-xl font-extrabold text-white">「其實你而家已經做咗呢啲安排。」</h2>
-                    <p class="text-xs text-slate-400 mt-1">系統從 CRM 已同步你的既有保障與資產架構：</p>
                 </div>
-                <div class="text-right">
-                    <span class="text-[11px] text-slate-400 block">持有人 / 受保人</span>
-                    <span class="text-sm font-bold text-amber-400" x-text="currentClient ? currentClient.owner : '—'"></span>
-                </div>
-            </div>
-
-            <!-- CRM 既有保單列表摘要 -->
-            <div class="space-y-3">
-                <template x-if="!currentClient || !currentClient.policies || currentClient.policies.length === 0">
-                    <div class="text-center py-8 text-slate-500 text-xs border border-dashed border-slate-800 rounded-xl">
-                        現時 CRM 內未有已登記保單資料，可於上方切換客戶或直接進入下一步。
-                    </div>
-                </template>
-                <template x-for="(pol, idx) in (currentClient ? currentClient.policies : [])" :key="idx">
-                    <div class="border border-slate-800 bg-slate-950/60 p-4 rounded-xl space-y-2">
-                        <div class="flex justify-between items-center text-xs">
-                            <span class="font-bold text-amber-400" x-text="(pol.insurer || '保險公司') + ' · ' + (pol.policyNumber || '保單')"></span>
-                            <span class="text-slate-400 font-mono" x-text="pol.commencementDate ? '生效: ' + pol.commencementDate : ''"></span>
-                        </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-800/60 text-xs">
-                            <template x-for="it in pol.items" :key="it.name">
-                                <div class="bg-slate-900/80 p-2 rounded-lg border border-slate-800">
-                                    <span class="text-[10px] text-blue-400 block font-bold" x-text="it.category + ': ' + it.name"></span>
-                                    <span class="text-slate-300 font-mono text-[11px]" x-text="'保額: $' + (it.sumAssured || 0)"></span>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </template>
-            </div>
-
-            <div class="flex justify-between pt-4">
-                <button @click="prevStep()" class="px-5 py-2 border border-slate-700 text-xs text-slate-300 rounded-xl">← 上一步</button>
-                <button @click="nextStep()" class="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-950 font-bold text-xs rounded-xl shadow">發現潛在落差 →</button>
-            </div>
-        </div>
-
-        <!-- ⑤ GAP｜發現落差 -->
-        <div x-show="currentStep === 5" class="glass-panel p-6 space-y-6">
-            <div>
-                <span class="text-xs font-bold text-rose-400 uppercase tracking-widest block mb-1">Step 5 · 壓力測試</span>
-                <h2 class="text-xl font-extrabold text-white leading-snug">「如果未來發生＿＿＿，現有安排能否做到你想要嘅結果？」</h2>
-                <p class="text-xs text-slate-400 mt-1">選取最可能影響你既有規劃的潛在變數：</p>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <template x-for="opt in stepData.step5.options" :key="opt.title">
-                    <div @click="selectOption('step5', opt.title)" 
-                         :class="answers.step5 === opt.title ? 'border-rose-400 bg-rose-400/10' : 'border-slate-800 bg-slate-900/40 hover:border-slate-700'"
-                         class="cursor-pointer border p-4 rounded-xl transition-all">
-                        <div class="font-bold text-sm text-slate-100 mb-1" x-text="opt.title"></div>
-                        <div class="text-xs text-slate-400 leading-relaxed" x-text="opt.sub"></div>
-                    </div>
-                </template>
-            </div>
-            <div class="flex justify-between pt-4">
-                <button @click="prevStep()" class="px-5 py-2 border border-slate-700 text-xs text-slate-300 rounded-xl">← 上一步</button>
-                <button @click="nextStep()" :disabled="!answers.step5" class="px-6 py-2.5 bg-gradient-to-r from-rose-500 to-rose-600 disabled:opacity-30 text-white font-bold text-xs rounded-xl shadow">將數字具體化 →</button>
-            </div>
-        </div>
-
-        <!-- ⑥ NUMBERS｜數字具體化 (時光複利量化累積表) -->
-        <div x-show="currentStep === 6" class="glass-panel p-6 space-y-6">
-            <div class="flex justify-between items-start flex-wrap gap-4 border-b border-slate-800 pb-4">
-                <div>
-                    <span class="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">Step 6 · 產品＋概念＋數字</span>
-                    <h2 class="text-xl font-extrabold text-white">🌱 時光複利：小金額創造無痛大效果</h2>
-                    <p class="text-xs text-slate-400 mt-1">只需 5 年分段儲備，交畀時間滾存終身源源不絕的被動收入：</p>
-                </div>
-                <!-- 純色圓點開關 Bar -->
-                <div class="flex items-center gap-2.5 bg-slate-950/80 p-2 rounded-xl border border-slate-800">
-                    <div class="pure-color-dot dot-blue-bg" :class="{'dimmed': !colVisibility.annuity}" @click="toggleCol('annuity')" title="被動收入開關"></div>
-                    <div class="pure-color-dot dot-green-bg" :class="{'dimmed': !colVisibility.accum}" @click="toggleCol('accum')" title="累積已領開關"></div>
-                    <div class="pure-color-dot dot-purple-bg" :class="{'dimmed': !colVisibility.asset}" @click="toggleCol('asset')" title="大樹收成開關"></div>
-                    <div class="pure-color-dot dot-red-bg" :class="{'dimmed': !colVisibility.interest}" @click="toggleCol('interest')" title="年化回報率開關"></div>
-                </div>
-            </div>
-
-            <!-- 參數設定與錦囊輸入 -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="text-[11px] font-bold text-slate-400 block mb-1">開始歲數</label>
-                    <input type="number" x-model.number="calcAge" @input="recalc()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-center text-sm font-bold text-white">
-                </div>
-                <div>
-                    <label class="text-[11px] font-bold text-amber-400 block mb-1">每年小額儲備 ($)</label>
-                    <input type="text" x-model="calcPremiumStr" @input="formatPremiumInput()" class="pink-edit-input font-mono font-bold text-sm">
-                </div>
-            </div>
-
-            <!-- 時光複利結果表 -->
-            <div class="overflow-x-auto border border-slate-800 rounded-xl bg-slate-950/40">
-                <table class="w-full text-xs clean-table">
-                    <thead>
-                        <tr>
-                            <th class="text-left">年份 (歲數)</th>
-                            <th>累計本金</th>
-                            <th x-show="colVisibility.annuity" class="text-sky-400 font-bold">被動收入 (每年)</th>
-                            <th x-show="colVisibility.accum" class="text-emerald-400 font-bold">累積已領</th>
-                            <th x-show="colVisibility.asset" class="text-purple-400 font-bold">大樹總資產</th>
-                            <th x-show="colVisibility.interest" class="text-rose-400 font-bold">年化回報率</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <template x-for="row in calcResults" :key="row.year">
-                            <tr class="hover:bg-slate-900/40 font-mono">
-                                <td class="text-left text-slate-300 font-sans" x-text="row.year + ' (' + row.age + '歲)'"></td>
-                                <td class="text-slate-400" x-text="'$' + formatNum(row.cost)"></td>
-                                <td x-show="colVisibility.annuity" class="text-sky-400 font-bold" x-text="'$' + formatNum(row.annuity)"></td>
-                                <td x-show="colVisibility.accum" class="text-emerald-400 font-bold" x-text="'$' + formatNum(row.accum)"></td>
-                                <td x-show="colVisibility.asset" class="text-purple-400 font-bold" x-text="'$' + formatNum(row.asset)"></td>
-                                <td x-show="colVisibility.interest" class="text-rose-400 font-bold" x-text="row.rate"></td>
-                            </tr>
+                <div class="grid grid-cols-3 gap-2">
+                    <select x-model="selectedClientId" @change="loadSelectedClient()" class="col-span-2 w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-800">
+                        <option value="">-- 請選擇客戶 --</option>
+                        <template x-for="c in clients" :key="c.id">
+                            <option :value="c.id" x-text="(c.owner || '未命名') + ' (' + (c.policies ? c.policies.length : 0) + ' 份)'"></option>
                         </template>
-                    </tbody>
-                </table>
-            </div>
+                    </select>
+                    <input type="text" x-model="searchOrNameInput" @input="onNameInput()" class="col-span-1 w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-xs text-slate-800" placeholder="持有人/客戶姓名">
+                </div>
+            </section>
 
-            <div class="flex justify-between pt-4">
-                <button @click="prevStep()" class="px-5 py-2 border border-slate-700 text-xs text-slate-300 rounded-xl">← 上一步</button>
-                <button @click="nextStep()" class="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-xs rounded-xl shadow">檢視落差方案 →</button>
-            </div>
+            <!-- AI 智能解析 (Gemini Flash) -->
+            <section class="content-card border-2 border-dashed border-blue-200 bg-blue-50/50 space-y-2">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xs font-bold text-blue-900"><i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> AI 智能解析 (Gemini Flash)</h3>
+                    <span class="text-[10px] text-blue-600">可一次選取最多 10 份文件</span>
+                </div>
+                <input type="file" @change="uploadAndParseMultiple($event)" multiple accept="image/*, application/pdf" class="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white cursor-pointer">
+                <div x-show="isParsing" class="text-xs text-blue-700 font-bold animate-pulse" x-text="parseProgressText"></div>
+            </section>
+
+            <!-- 保單列表管理 -->
+            <template x-if="currentClient">
+                <div class="space-y-6">
+                    <section class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-xs font-bold text-blue-900">📜 保障列表 (<span x-text="currentClient.policies ? currentClient.policies.length : 0"></span> 份保單)</h3>
+                            <button @click="addEmptyPolicy()" class="text-xs bg-blue-50 px-3 py-1.5 rounded-lg text-blue-700 border border-blue-200 font-bold">+ 新增保單</button>
+                        </div>
+                        <template x-for="(pol, pIndex) in currentClient.policies" :key="pIndex">
+                            <div class="space-y-4 p-4 rounded-2xl border border-slate-200 bg-white shadow-sm">
+                                <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                                    <span class="font-bold text-blue-900 text-xs" x-text="'保單號碼: ' + (pol.policyNumber || '未填寫')"></span>
+                                    <div class="flex items-center gap-2">
+                                        <button @click="addEmptyItemToPolicy(pol)" class="text-[10px] text-blue-600 border border-blue-200 bg-blue-50 px-2 py-0.5 rounded font-bold">+ 加附加契約</button>
+                                        <button @click="removePolicy(pIndex)" class="text-xs text-red-500 hover:text-red-700"><i class="fa-solid fa-xmark"></i> 刪除保單</button>
+                                    </div>
+                                </div>
+                                <template x-for="(item, iIndex) in pol.items" :key="iIndex">
+                                    <div class="p-4 rounded-xl space-y-3 relative border-l-4 border" :class="iIndex === 0 ? 'border-l-blue-600 bg-blue-50/20 border-slate-200' : 'border-l-slate-400 bg-slate-50 border-slate-200'">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded" :class="iIndex === 0 ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-700'" x-text="iIndex === 0 ? '⭐ 主險 (可含價值)' : '➕ 附加契約'"></span>
+                                            <button @click="removeSingleItem(pol, iIndex)" class="text-xs text-red-500 hover:text-red-700"><i class="fa-solid fa-trash-can"></i> 刪除契約</button>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                            <div>
+                                                <label class="text-[10px] text-slate-500">保單持有人</label>
+                                                <input type="text" x-model="pol.policyHolder" class="w-full bg-white border border-slate-300 rounded p-1.5 text-slate-800">
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] text-slate-500">受保人姓名</label>
+                                                <input type="text" x-model="pol.insuredPerson" class="w-full bg-white border border-slate-300 rounded p-1.5 text-slate-800">
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-3 gap-2 text-xs">
+                                            <div>
+                                                <label class="text-[10px] text-slate-500">保險公司</label>
+                                                <input type="text" list="companyList" x-model="pol.insurer" placeholder="選擇或輸入" class="w-full bg-white border border-slate-300 rounded p-1.5 text-slate-800">
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] text-slate-500">保單號碼</label>
+                                                <input type="text" x-model="pol.policyNumber" class="w-full bg-white border border-slate-300 rounded p-1.5 text-slate-800">
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] text-slate-500">生效日期</label>
+                                                <input type="text" x-model="pol.commencementDate" class="w-full bg-white border border-slate-300 rounded p-1.5 text-slate-800">
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                            <div>
+                                                <label class="text-[10px] text-slate-500">保障種類</label>
+                                                <select x-model="item.category" class="w-full bg-white border border-slate-300 rounded p-1.5 text-slate-800">
+                                                    <option value="危疾">危疾</option>
+                                                    <option value="醫療">醫療</option>
+                                                    <option value="意外身故">意外身故</option>
+                                                    <option value="意外醫療">意外醫療</option>
+                                                    <option value="人壽">人壽</option>
+                                                    <option value="儲蓄">儲蓄</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] text-slate-500">契約/產品名稱</label>
+                                                <input type="text" :list="'plist-' + pIndex + '-' + iIndex" x-model="item.name" @change="onProductSelect(item)" placeholder="選擇或輸入" class="w-full bg-white border border-slate-300 rounded p-1.5 text-slate-800">
+                                                <datalist :id="'plist-' + pIndex + '-' + iIndex">
+                                                    <template x-for="p in getProductListForCategory(item.category)" :key="p.name">
+                                                        <option :value="p.name"></option>
+                                                    </template>
+                                                </datalist>
+                                            </div>
+                                        </div>
+                                        <!-- 醫療專屬自付額 -->
+                                        <template x-if="item.category === '醫療'">
+                                            <div class="bg-blue-50 p-2.5 rounded-xl border border-blue-200 space-y-1">
+                                                <label class="text-[10px] text-blue-900 font-bold block">🏥 高端醫療自付額 / 墊底費 (Deductible)</label>
+                                                <div class="flex items-center gap-1">
+                                                    <input type="text" x-model="item.deductible" @blur="formatCurrency(item, 'deductible')" class="w-full bg-white border border-slate-300 rounded p-1 text-slate-800 text-xs font-mono" placeholder="若無自付額填 0">
+                                                    <select x-model="item.dedCurrency" class="bg-white text-slate-700 border border-slate-300 rounded p-1 w-16 text-[10px]">
+                                                        <option value="HKD">HKD</option>
+                                                        <option value="USD">USD</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <!-- 主險保單價值細項 (危疾 / 儲蓄 / 人壽) -->
+                                        <template x-if="iIndex === 0 && (item.category === '危疾' || item.category === '儲蓄' || item.category === '人壽')">
+                                            <div class="bg-amber-50/60 p-3 rounded-xl border border-amber-200 space-y-2">
+                                                <div class="flex justify-between items-center border-b border-amber-200/60 pb-1">
+                                                    <span class="text-xs font-bold text-amber-900"><i class="fa-solid fa-coins text-amber-600"></i> 保單價值細項 (主險專屬)</span>
+                                                    <select x-model="item.cvCurrency" class="bg-white text-slate-700 border border-slate-300 rounded px-1.5 py-0.5 text-[10px]">
+                                                        <option value="HKD">HKD</option>
+                                                        <option value="USD">USD</option>
+                                                    </select>
+                                                </div>
+                                                <div class="grid grid-cols-2 gap-2 text-[10px]">
+                                                    <div>
+                                                        <span class="text-slate-500 block">可支取保證現金</span>
+                                                        <input type="text" x-model="item.cvGuaranteed" @blur="formatCurrency(item, 'cvGuaranteed')" class="w-full bg-white border border-slate-300 rounded p-1 text-slate-800 font-mono" placeholder="0">
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-slate-500 block">週年紅利</span>
+                                                        <input type="text" x-model="item.cvAnnualBonus" @blur="formatCurrency(item, 'cvAnnualBonus')" class="w-full bg-white border border-slate-300 rounded p-1 text-slate-800 font-mono" placeholder="0">
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-slate-500 block">現金價值</span>
+                                                        <input type="text" x-model="item.cvCashValue" @blur="formatCurrency(item, 'cvCashValue')" class="w-full bg-white border border-slate-300 rounded p-1 text-slate-800 font-mono" placeholder="0">
+                                                    </div>
+                                                    <div>
+                                                        <span class="text-slate-500 block">終期紅利</span>
+                                                        <input type="text" x-model="item.cvTerminalBonus" @blur="formatCurrency(item, 'cvTerminalBonus')" class="w-full bg-white border border-slate-300 rounded p-1 text-slate-800 font-mono" placeholder="0">
+                                                    </div>
+                                                    <div class="col-span-2">
+                                                        <span class="text-slate-500 block">復歸紅利</span>
+                                                        <input type="text" x-model="item.cvReversionaryBonus" @blur="formatCurrency(item, 'cvReversionaryBonus')" class="w-full bg-white border border-slate-300 rounded p-1 text-slate-800 font-mono" placeholder="0">
+                                                    </div>
+                                                </div>
+                                                <div class="flex justify-between items-center pt-1 border-t border-amber-200/60 text-xs">
+                                                    <span class="text-slate-700 font-bold">總保單價值:</span>
+                                                    <div class="flex items-center gap-2">
+                                                        <span class="text-amber-800 font-mono font-bold" x-text="item.showRawCvUsd ? 'US$ ' + formatNumber(calculateTotalCv(item)) : '≈ HK$ ' + formatNumber(calculateTotalCvHkd(item))"></span>
+                                                        <template x-if="item.cvCurrency === 'USD'">
+                                                            <button @click="item.showRawCvUsd = !item.showRawCvUsd" class="text-[10px] text-blue-600 border border-blue-200 bg-white px-1.5 py-0.5 rounded">🔄</button>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <!-- 保額與保費 -->
+                                        <div class="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                                            <div x-show="item.category !== '儲蓄'">
+                                                <div class="flex justify-between items-center">
+                                                    <label class="text-[10px] text-slate-500">保額 (Sum Assured)</label>
+                                                    <select x-model="item.saCurrency" class="bg-white text-slate-700 border border-slate-300 rounded px-1 py-0.5 text-[9px]">
+                                                        <option value="HKD">HKD</option>
+                                                        <option value="USD">USD</option>
+                                                    </select>
+                                                </div>
+                                                <input type="text" x-model="item.sumAssured" @blur="formatCurrency(item, 'sumAssured')" class="w-full bg-white border border-slate-300 rounded p-1 text-slate-800 font-mono text-xs mt-1" placeholder="0">
+                                                <template x-if="item.saCurrency === 'USD'">
+                                                    <div class="flex justify-between items-center mt-1 text-[10px]">
+                                                        <span class="text-blue-900 font-mono font-bold" x-text="item.showRawSaUsd ? 'US$ ' + (item.sumAssured || '0') : '≈ HK$ ' + getCalculatedHkd(item.sumAssured)"></span>
+                                                        <button @click="item.showRawSaUsd = !item.showRawSaUsd" class="text-blue-600">🔄</button>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                            <div :class="item.category === '儲蓄' ? 'col-span-2' : 'col-span-1'">
+                                                <div class="flex justify-between items-center">
+                                                    <div class="flex items-center gap-1">
+                                                        <label class="text-[10px] text-slate-500">保費</label>
+                                                        <select x-model="item.payMode" class="bg-white text-blue-900 border border-slate-300 rounded px-1 py-0.5 text-[9px]">
+                                                            <option value="年繳">年繳</option>
+                                                            <option value="月供">月供</option>
+                                                        </select>
+                                                    </div>
+                                                    <select x-model="item.currency" class="bg-white text-slate-700 border border-slate-300 rounded px-1 py-0.5 text-[9px]">
+                                                        <option value="HKD">HKD</option>
+                                                        <option value="USD">USD</option>
+                                                    </select>
+                                                </div>
+                                                <input type="text" x-model="item.premium" @blur="formatCurrency(item, 'premium')" class="w-full bg-white border border-slate-300 rounded p-1 text-slate-800 font-mono text-xs mt-1" placeholder="0">
+                                                <template x-if="item.currency === 'USD'">
+                                                    <div class="flex justify-between items-center mt-1 text-[10px]">
+                                                        <span class="text-blue-900 font-mono font-bold" x-text="item.showRawUsd ? 'US$ ' + (item.premium || '0') : '≈ HK$ ' + getCalculatedHkd(item.premium)"></span>
+                                                        <button @click="item.showRawUsd = !item.showRawUsd" class="text-blue-600">🔄</button>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-2 text-xs">
+                                            <div>
+                                                <label class="text-[10px] text-slate-500">供款年期</label>
+                                                <input type="text" x-model="item.term" class="w-full bg-white border border-slate-300 rounded p-1.5 text-slate-800">
+                                            </div>
+                                            <div>
+                                                <label class="text-[10px] text-slate-500">保障年期</label>
+                                                <input type="text" x-model="item.maturity" class="w-full bg-white border border-slate-300 rounded p-1.5 text-slate-800">
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="flex justify-between items-center mb-1">
+                                                <label class="text-[10px] text-slate-500">契約條款特點說明</label>
+                                                <template x-if="item.category === '儲蓄'">
+                                                    <label class="flex items-center gap-1 text-[10px] text-amber-700 font-bold cursor-pointer">
+                                                        <input type="checkbox" x-model="item.isMedRetire" class="rounded border-slate-300">
+                                                        <span>☑ 歸類為退休醫保</span>
+                                                    </label>
+                                                </template>
+                                                <template x-if="item.category === '危疾'">
+                                                    <label class="flex items-center gap-1 text-[10px] text-red-600 font-bold cursor-pointer">
+                                                        <input type="checkbox" x-model="item.isMultiClaim" class="rounded border-slate-300">
+                                                        <span>☑ 設多次賠償</span>
+                                                    </label>
+                                                </template>
+                                            </div>
+                                            <textarea x-model="item.features" @input="autoResizeTextarea($el)" x-init="$nextTick(() => autoResizeTextarea($el))" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs text-slate-800 leading-relaxed block" placeholder="特點說明..."></textarea>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </section>
+                    <button @click="saveClientToCloud()" class="w-full py-3.5 bg-blue-900 hover:bg-blue-950 font-bold rounded-xl text-xs text-white shadow-md active:scale-95 transition-transform">
+                        💾 儲存客戶保單資料至 Google Sheet
+                    </button>
+                </div>
+            </template>
         </div>
 
-        <!-- ⑦ SOLUTION｜方案 (藍圖筆記總結 + 優惠回贈) -->
-        <div x-show="currentStep === 7" class="glass-panel p-6 space-y-6">
-            <div class="border-b border-slate-800 pb-4">
-                <span class="text-xs font-bold text-amber-400 uppercase tracking-widest block mb-1">Step 7 · 落地共識</span>
-                <h2 class="text-xl font-extrabold text-white">「如果你想縮窄呢個差距，可以睇下有咩方法。」</h2>
-                <p class="text-xs text-slate-400 mt-1">度身建立最舒服、完全不影響目前生活品質的無痛執行藍圖：</p>
+        <!-- ========================================================
+             模式 B：New Saving Code 7 步 Review 引導
+        ======================================================== -->
+        <div x-show="viewMode === 'review'" class="space-y-6">
+
+            <!-- ① OPEN｜人生現況 -->
+            <div x-show="currentStep === 1" class="content-card space-y-6">
+                <div>
+                    <span class="text-xs font-bold text-blue-600 uppercase tracking-widest block mb-1">Step 1 · 現況想法</span>
+                    <h2 class="text-xl font-extrabold text-slate-900 leading-snug">「最近一年，有冇咩令你開始諗多咗將來？」</h2>
+                    <p class="text-xs text-slate-500 mt-1">從你目前最真實、最自在的生活節奏開始探索：</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <template x-for="opt in stepData.step1.options" :key="opt.title">
+                        <div @click="selectOption('step1', opt.title)" 
+                             :class="answers.step1 === opt.title ? 'border-blue-600 bg-blue-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'"
+                             class="cursor-pointer border-1.5 p-4 rounded-xl transition-all border">
+                            <div class="font-bold text-sm text-slate-900 mb-1" x-text="opt.title"></div>
+                            <div class="text-xs text-slate-500 leading-relaxed" x-text="opt.sub"></div>
+                        </div>
+                    </template>
+                </div>
+                <div class="flex justify-end pt-4">
+                    <button @click="nextStep()" :disabled="!answers.step1" class="px-6 py-2.5 bg-blue-900 hover:bg-blue-950 disabled:opacity-35 text-white font-bold text-xs rounded-xl shadow">進入未來畫面 →</button>
+                </div>
             </div>
 
-            <!-- 藍圖雙欄總結 -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- 左側：初衷軌跡 -->
-                <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 p-5 rounded-xl space-y-3">
-                    <h3 class="text-xs font-bold text-amber-400 border-b border-slate-800 pb-2">📋 探索共識軌跡</h3>
-                    <div class="text-xs space-y-1">
-                        <span class="text-slate-500 block text-[10px]">01. 目前人生現況</span>
-                        <div class="font-bold text-slate-200" x-text="answers.step1 || '—'"></div>
-                    </div>
-                    <div class="text-xs space-y-1">
-                        <span class="text-slate-500 block text-[10px]">02. 理想未來畫面</span>
-                        <div class="font-bold text-slate-200" x-text="answers.step2 || '—'"></div>
-                    </div>
-                    <div class="text-xs space-y-1">
-                        <span class="text-slate-500 block text-[10px]">03. 優先確保事項</span>
-                        <div class="font-bold text-slate-200" x-text="answers.step3 || '—'"></div>
-                    </div>
-                    <div class="text-xs space-y-1">
-                        <span class="text-slate-500 block text-[10px]">05. 最關注潛在落差</span>
-                        <div class="font-bold text-rose-400" x-text="answers.step5 || '—'"></div>
-                    </div>
+            <!-- ② EXPLORE｜未來畫面 -->
+            <div x-show="currentStep === 2" class="content-card space-y-6">
+                <div>
+                    <span class="text-xs font-bold text-blue-600 uppercase tracking-widest block mb-1">Step 2 · 理想願景</span>
+                    <h2 class="text-xl font-extrabold text-slate-900 leading-snug">「如果未來 5–10 年照你理想咁發展，你最希望做到咩？」</h2>
+                    <p class="text-xs text-slate-500 mt-1">理財唔係數字遊戲，而係為了實現具體的生活畫面：</p>
                 </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <template x-for="opt in stepData.step2.options" :key="opt.title">
+                        <div @click="selectOption('step2', opt.title)" 
+                             :class="answers.step2 === opt.title ? 'border-blue-600 bg-blue-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'"
+                             class="cursor-pointer border-1.5 p-4 rounded-xl transition-all border">
+                            <div class="font-bold text-sm text-slate-900 mb-1" x-text="opt.title"></div>
+                            <div class="text-xs text-slate-500 leading-relaxed" x-text="opt.sub"></div>
+                        </div>
+                    </template>
+                </div>
+                <div class="flex justify-between pt-4">
+                    <button @click="prevStep()" class="px-5 py-2 border border-slate-300 text-xs text-slate-700 rounded-xl">← 上一步</button>
+                    <button @click="nextStep()" :disabled="!answers.step2" class="px-6 py-2.5 bg-blue-900 hover:bg-blue-950 disabled:opacity-35 text-white font-bold text-xs rounded-xl shadow">確認優先次序 →</button>
+                </div>
+            </div>
 
-                <!-- 右側：方案價值與優惠 -->
-                <div class="bg-emerald-950/20 border border-emerald-500/30 p-5 rounded-xl flex flex-col justify-between space-y-4">
+            <!-- ③ PRIORITY｜最重要嘅嘢 -->
+            <div x-show="currentStep === 3" class="content-card space-y-6">
+                <div>
+                    <span class="text-xs font-bold text-purple-600 uppercase tracking-widest block mb-1">Step 3 · 核心聚焦</span>
+                    <h2 class="text-xl font-extrabold text-slate-900 leading-snug">「如果只能先處理一樣，你最想確保邊一部分？」</h2>
+                    <p class="text-xs text-slate-500 mt-1">找出最能令你感到踏實、最不能妥協的核心支柱：</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <template x-for="opt in stepData.step3.options" :key="opt.title">
+                        <div @click="selectOption('step3', opt.title)" 
+                             :class="answers.step3 === opt.title ? 'border-purple-600 bg-purple-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'"
+                             class="cursor-pointer border-1.5 p-4 rounded-xl transition-all border">
+                            <div class="font-bold text-sm text-slate-900 mb-1" x-text="opt.title"></div>
+                            <div class="text-xs text-slate-500 leading-relaxed" x-text="opt.sub"></div>
+                        </div>
+                    </template>
+                </div>
+                <div class="flex justify-between pt-4">
+                    <button @click="prevStep()" class="px-5 py-2 border border-slate-300 text-xs text-slate-700 rounded-xl">← 上一步</button>
+                    <button @click="nextStep()" :disabled="!answers.step3" class="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-35 text-white font-bold text-xs rounded-xl shadow">檢視現有 CRM 安排 →</button>
+                </div>
+            </div>
+
+            <!-- ④ REALITY｜現有安排 (讀取 CRM 資料) -->
+            <div x-show="currentStep === 4" class="content-card space-y-6">
+                <div class="flex justify-between items-start border-b border-slate-200 pb-4">
                     <div>
-                        <h3 class="text-xs font-bold text-emerald-400 mb-2">💡 替代方案：無痛縮減落差</h3>
-                        <p class="text-xs text-slate-300 leading-relaxed">
-                            完全不影響現有生活享受，只需將每月不知不覺流走的小份額，透過 <strong class="text-amber-400">5 年自動化水庫</strong> 進行儲備，為未來鎖定終身確定性。
-                        </p>
+                        <span class="text-xs font-bold text-emerald-600 uppercase tracking-widest block mb-1">Step 4 · 現狀盤點</span>
+                        <h2 class="text-xl font-extrabold text-slate-900">「其實你而家已經做咗呢啲安排。」</h2>
+                        <p class="text-xs text-slate-500 mt-1">系統從 CRM 已同步你的既有保障與資產架構：</p>
                     </div>
-                    <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-lg text-xs space-y-1.5">
-                        <div class="flex justify-between text-slate-400">
-                            <span>建議年儲備：</span>
-                            <span class="font-mono text-white" x-text="'$' + calcPremiumStr"></span>
-                        </div>
-                        <div class="flex justify-between text-slate-400">
-                            <span>5 年總儲備：</span>
-                            <span class="font-mono text-white" x-text="'$' + formatNum(parseNum(calcPremiumStr) * 5)"></span>
-                        </div>
-                        <div class="flex justify-between text-emerald-400 font-bold pt-1 border-t border-slate-800">
-                            <span>預計第 8 年起每年提取：</span>
-                            <span class="font-mono" x-text="'$' + formatNum(parseNum(calcPremiumStr) * 5 * 0.07)"></span>
-                        </div>
+                    <div class="text-right">
+                        <span class="text-[11px] text-slate-400 block">持有人 / 受保人</span>
+                        <span class="text-sm font-bold text-blue-900" x-text="currentClient ? currentClient.owner : '—'"></span>
                     </div>
+                </div>
+
+                <!-- CRM 既有保單列表摘要 -->
+                <div class="space-y-3">
+                    <template x-if="!currentClient || !currentClient.policies || currentClient.policies.length === 0">
+                        <div class="text-center py-8 text-slate-400 text-xs border border-dashed border-slate-300 rounded-xl">
+                            現時 CRM 內未有已登記保單資料，可於右上角切換至「保單管理模式」進行登記或 AI 讀取。
+                        </div>
+                    </template>
+                    <template x-for="(pol, idx) in (currentClient ? currentClient.policies : [])" :key="idx">
+                        <div class="border border-slate-200 bg-slate-50/50 p-4 rounded-xl space-y-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="font-bold text-blue-900" x-text="(pol.insurer || '保險公司') + ' · ' + (pol.policyNumber || '保單')"></span>
+                                <span class="text-slate-500 font-mono" x-text="pol.commencementDate ? '生效: ' + pol.commencementDate : ''"></span>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-200 text-xs">
+                                <template x-for="it in pol.items" :key="it.name">
+                                    <div class="bg-white p-2 rounded-lg border border-slate-200 shadow-sm">
+                                        <span class="text-[10px] text-blue-600 block font-bold" x-text="it.category + ': ' + it.name"></span>
+                                        <span class="text-slate-700 font-mono text-[11px]" x-text="'保額: $' + (it.sumAssured || 0)"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="flex justify-between pt-4">
+                    <button @click="prevStep()" class="px-5 py-2 border border-slate-300 text-xs text-slate-700 rounded-xl">← 上一步</button>
+                    <button @click="nextStep()" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow">發現潛在落差 →</button>
                 </div>
             </div>
 
-            <div class="flex justify-between pt-4">
-                <button @click="prevStep()" class="px-5 py-2 border border-slate-700 text-xs text-slate-300 rounded-xl">← 上一步</button>
-                <button @click="saveReviewSummary()" class="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold text-xs rounded-xl shadow">💾 儲存並完成 Review</button>
+            <!-- ⑤ GAP｜發現落差 -->
+            <div x-show="currentStep === 5" class="content-card space-y-6">
+                <div>
+                    <span class="text-xs font-bold text-rose-600 uppercase tracking-widest block mb-1">Step 5 · 壓力測試</span>
+                    <h2 class="text-xl font-extrabold text-slate-900 leading-snug">「如果未來發生＿＿＿，現有安排能否做到你想要嘅結果？」</h2>
+                    <p class="text-xs text-slate-500 mt-1">選取最可能影響你既有規劃的潛在變數：</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <template x-for="opt in stepData.step5.options" :key="opt.title">
+                        <div @click="selectOption('step5', opt.title)" 
+                             :class="answers.step5 === opt.title ? 'border-rose-600 bg-rose-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'"
+                             class="cursor-pointer border-1.5 p-4 rounded-xl transition-all border">
+                            <div class="font-bold text-sm text-slate-900 mb-1" x-text="opt.title"></div>
+                            <div class="text-xs text-slate-500 leading-relaxed" x-text="opt.sub"></div>
+                        </div>
+                    </template>
+                </div>
+                <div class="flex justify-between pt-4">
+                    <button @click="prevStep()" class="px-5 py-2 border border-slate-300 text-xs text-slate-700 rounded-xl">← 上一步</button>
+                    <button @click="nextStep()" :disabled="!answers.step5" class="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-35 text-white font-bold text-xs rounded-xl shadow">將數字具體化 →</button>
+                </div>
             </div>
+
+            <!-- ⑥ NUMBERS｜數字具體化 (時光複利量化累積表) -->
+            <div x-show="currentStep === 6" class="content-card space-y-6">
+                <div class="flex justify-between items-start flex-wrap gap-4 border-b border-slate-200 pb-4">
+                    <div>
+                        <span class="text-xs font-bold text-blue-600 uppercase tracking-widest block mb-1">Step 6 · 產品＋概念＋數字</span>
+                        <h2 class="text-xl font-extrabold text-slate-900">🌱 時光複利：小金額創造無痛大效果</h2>
+                        <p class="text-xs text-slate-500 mt-1">只需 5 年分段儲備，交畀時間滾存終身源源不絕的被動收入：</p>
+                    </div>
+                    <!-- 純色圓點開關 Bar (Saving Code 原生) -->
+                    <div class="flex items-center gap-2 bg-slate-100 p-2 rounded-xl border border-slate-200">
+                        <div class="pure-color-dot dot-blue-bg" :class="{'dimmed': !colVisibility.annuity}" @click="toggleCol('annuity')" title="切換被動收入"></div>
+                        <div class="pure-color-dot dot-green-bg" :class="{'dimmed': !colVisibility.accum}" @click="toggleCol('accum')" title="切換累積已領"></div>
+                        <div class="pure-color-dot dot-purple-bg" :class="{'dimmed': !colVisibility.asset}" @click="toggleCol('asset')" title="切換大樹收成"></div>
+                        <div class="pure-color-dot dot-red-bg" :class="{'dimmed': !colVisibility.interest}" @click="toggleCol('interest')" title="切換年化回報率"></div>
+                    </div>
+                </div>
+
+                <!-- 參數設定 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 block mb-1">開始歲數</label>
+                        <input type="number" x-model.number="calcAge" @input="recalc()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-center text-sm font-bold text-slate-800">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-blue-900 block mb-1">每年小額儲備 ($)</label>
+                        <input type="text" x-model="calcPremiumStr" @input="formatPremiumInput()" class="pink-edit-input font-mono font-bold text-sm">
+                    </div>
+                </div>
+
+                <!-- 時光複利結果表 -->
+                <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-sm">
+                    <table class="w-full text-xs clean-table">
+                        <thead>
+                            <tr>
+                                <th class="text-left">年份 (歲數)</th>
+                                <th>累計本金</th>
+                                <th x-show="colVisibility.annuity" class="text-blue-600 font-bold">被動收入 (每年)</th>
+                                <th x-show="colVisibility.accum" class="text-emerald-600 font-bold">累積已領</th>
+                                <th x-show="colVisibility.asset" class="text-purple-600 font-bold">大樹總資產</th>
+                                <th x-show="colVisibility.interest" class="text-rose-600 font-bold">年化回報率</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="row in calcResults" :key="row.year">
+                                <tr class="hover:bg-slate-50 font-mono">
+                                    <td class="text-left text-slate-800 font-sans" x-text="row.year + ' (' + row.age + '歲)'"></td>
+                                    <td class="text-slate-500" x-text="'$' + formatNum(row.cost)"></td>
+                                    <td x-show="colVisibility.annuity" class="text-blue-600 font-bold" x-text="'$' + formatNum(row.annuity)"></td>
+                                    <td x-show="colVisibility.accum" class="text-emerald-600 font-bold" x-text="'$' + formatNum(row.accum)"></td>
+                                    <td x-show="colVisibility.asset" class="text-purple-600 font-bold" x-text="'$' + formatNum(row.asset)"></td>
+                                    <td x-show="colVisibility.interest" class="text-rose-600 font-bold" x-text="row.rate"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex justify-between pt-4">
+                    <button @click="prevStep()" class="px-5 py-2 border border-slate-300 text-xs text-slate-700 rounded-xl">← 上一步</button>
+                    <button @click="nextStep()" class="px-6 py-2.5 bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs rounded-xl shadow">檢視專屬藍圖方案 →</button>
+                </div>
+            </div>
+
+            <!-- ⑦ SOLUTION｜方案 (藍圖筆記總結 + 客戶專屬 QR Code) -->
+            <div x-show="currentStep === 7" class="content-card space-y-6">
+                <div class="border-b border-slate-200 pb-4">
+                    <span class="text-xs font-bold text-blue-600 uppercase tracking-widest block mb-1">Step 7 · 落地共識</span>
+                    <h2 class="text-xl font-extrabold text-slate-900">「如果你想縮窄呢個差距，可以睇下有咩方法。」</h2>
+                    <p class="text-xs text-slate-500 mt-1">度身建立最舒服、完全不影響目前生活品質的無痛執行藍圖：</p>
+                </div>
+
+                <!-- 藍圖雙欄總結 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- 左側：初衷軌跡 -->
+                    <div class="bg-slate-900 text-white p-5 rounded-xl space-y-3 shadow-md">
+                        <h3 class="text-xs font-bold text-amber-400 border-b border-slate-700 pb-2">📋 探索共識軌跡</h3>
+                        <div class="text-xs space-y-1">
+                            <span class="text-slate-400 block text-[10px]">01. 目前人生現況</span>
+                            <div class="font-bold text-slate-100" x-text="answers.step1 || '—'"></div>
+                        </div>
+                        <div class="text-xs space-y-1">
+                            <span class="text-slate-400 block text-[10px]">02. 理想未來畫面</span>
+                            <div class="font-bold text-slate-100" x-text="answers.step2 || '—'"></div>
+                        </div>
+                        <div class="text-xs space-y-1">
+                            <span class="text-slate-400 block text-[10px]">03. 優先確保事項</span>
+                            <div class="font-bold text-slate-100" x-text="answers.step3 || '—'"></div>
+                        </div>
+                        <div class="text-xs space-y-1">
+                            <span class="text-slate-400 block text-[10px]">05. 最關注潛在落差</span>
+                            <div class="font-bold text-yellow-300" x-text="answers.step5 || '—'"></div>
+                        </div>
+                    </div>
+
+                    <!-- 右側：方案價值與 QR Code -->
+                    <div class="bg-emerald-50 border border-emerald-200 p-5 rounded-xl flex flex-col justify-between space-y-4">
+                        <div>
+                            <h3 class="text-xs font-bold text-emerald-800 mb-2">💡 替代方案：無痛縮減落差</h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                完全不影響現有生活享受，只需將每月不知不覺流走的小份額，透過 <strong class="text-emerald-700">5 年自動化水庫</strong> 進行儲備，為未來鎖定終身確定性。
+                            </p>
+                        </div>
+                        
+                        <!-- 二維碼生成區 (QR Code) -->
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 text-center space-y-2 shadow-sm">
+                            <span class="text-[11px] font-bold text-slate-700 block">📲 客戶端專屬檢視二維碼</span>
+                            <div id="qrcode-container" class="flex justify-center p-2"></div>
+                            <span class="text-[10px] text-slate-400 block">客戶可直接掃描在手機查看此專屬 Review 藍圖</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-4">
+                    <button @click="prevStep()" class="px-5 py-2 border border-slate-300 text-xs text-slate-700 rounded-xl">← 上一步</button>
+                    <button @click="saveReviewSummary()" class="px-6 py-2.5 bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs rounded-xl shadow">💾 儲存並完成 Review</button>
+                </div>
+            </div>
+
         </div>
 
     </main>
-
-    <!-- 切換客戶彈窗 (CRM 客戶清單) -->
-    <div x-show="openClientSelector" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="glass-panel p-6 w-full max-w-md space-y-4 border gold-glow bg-slate-900">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                <h3 class="text-sm font-bold text-amber-400">👥 選擇 CRM 客戶檔案</h3>
-                <button @click="openClientSelector = false" class="text-slate-400 text-sm">✕</button>
-            </div>
-            <div class="max-h-60 overflow-y-auto space-y-2">
-                <template x-for="c in clients" :key="c.id">
-                    <div @click="selectClient(c)" class="p-3 rounded-xl border border-slate-800 hover:border-amber-500/40 bg-slate-950/60 cursor-pointer flex justify-between items-center">
-                        <div>
-                            <span class="font-bold text-xs text-white" x-text="c.owner || '未命名'"></span>
-                            <span class="text-[10px] text-slate-500 block" x-text="(c.policies ? c.policies.length : 0) + ' 份既有保單'"></span>
-                        </div>
-                        <span class="text-xs text-amber-400 font-mono">選取 ➔</span>
-                    </div>
-                </template>
-            </div>
-            <button @click="openClientSelector = false" class="w-full py-2 bg-slate-800 text-slate-300 text-xs rounded-xl font-bold">關閉</button>
-        </div>
-    </div>
 
     <script>
         /* ==========================================
            全數保留之系統 API 與試算表端點
         ========================================== */
-        // 1. CRM 客戶資料庫 API[span_2](start_span)[span_2](end_span)
         const CRM_GAS_URL = "https://script.google.com/macros/s/AKfycbzy1gnDB-qXZIhTsgxNvLveRrHWVP7AoYoqG_JsbELBvvReXy4Fx2rYu6ieJNuupMtmdg/exec";
-        
-        // 2. CRM 產品清單 API[span_3](start_span)[span_3](end_span)
         const PRODUCTS_GAS_URL = "https://script.google.com/macros/s/AKfycbzJxEthfbtGFhesn9zqKz_14bvLY0Q6uvKVzSr2WM8s1VfCTJXaCg7lhNEwqyAql6hUuQ/exec";
-        
-        // 3. AI 智能保單解析 API[span_4](start_span)[span_4](end_span)
         const AI_GAS_URL = "https://script.google.com/macros/s/AKfycbzPIlJHqcGWDMeJd_Tc_tpDz-r-vVW9lNXBiVXnD2o0ulVNoGkUHy-Ve3rAxnsWh9dhUQ/exec";
-        
-        // 4. New Saving Code 流程題庫與設定同步 API[span_5](start_span)[span_5](end_span)
         const SAVING_GAS_URL = "https://script.google.com/macros/s/AKfycbwbKrrmiS5vx0Q5TvqqUCHBhU-VrS7WwwY0hj6BaNRwuzPtXXIZZxejPwhycCZhSCr-Rg/exec";
-        
-        // 5. Google Sheet 回報倍數 Excel 導出端點[span_6](start_span)[span_6](end_span)
         const RETURNS_EXCEL_URL = 'https://docs.google.com/spreadsheets/d/1-kawg3ew7CF05g-Dc3cwu1yYROWa73fhWlunv5TYF6E/export?format=xlsx';
 
-        function reviewApp() {
+        const formatNumber = (num) => {
+            if (num === null || num === undefined || isNaN(num) || num === "") return "0";
+            return parseFloat(num).toLocaleString('zh-HK');
+        };
+        const parseNumber = (str) => {
+            if (!str) return 0;
+            if (typeof str === 'number') return str;
+            return parseFloat(str.toString().replace(/,/g, ''));
+        };
+
+        function app() {
             return {
+                viewMode: 'review', // 'review' | 'crm'
                 currentStep: 1,
-                openClientSelector: false,
                 clients: [],
                 dbProducts: {},
+                selectedClientId: '',
+                searchOrNameInput: '',
                 currentClient: null,
+                isParsing: false,
+                parseProgressText: '',
+                
+                // 算式與開關
                 calcAge: 30,
                 calcPremiumStr: "40,000",
                 colVisibility: { annuity: true, accum: true, asset: true, interest: false },
                 calcResults: [],
                 answers: { step1: '', step2: '', step3: '', step5: '' },
+                
                 steps: [
                     { num: '①', name: '人生現況' },
                     { num: '②', name: '未來畫面' },
@@ -416,6 +665,7 @@
                     { num: '⑥', name: '數字具體化' },
                     { num: '⑦', name: '方案落實' }
                 ],
+                
                 stepData: {
                     step1: {
                         options: [
@@ -450,46 +700,268 @@
                         ]
                     }
                 },
+
                 initApp() {
-                    this.loadClientsFromCache();
+                    this.fetchClients();
                     this.fetchProducts();
                     this.recalc();
                 },
-                loadClientsFromCache() {
-                    const cache = localStorage.getItem('AVA_CLIENTS_CACHE');
-                    if (cache) {
-                        try {
-                            this.clients = JSON.parse(cache);
-                            if (this.clients.length > 0) this.currentClient = this.clients[0];
-                        } catch(e) {}
+
+                autoResizeTextarea(el) {
+                    if (!el) return;
+                    el.style.height = 'auto';
+                    el.style.height = (el.scrollHeight + 4) + 'px';
+                },
+                getCalculatedHkd(val) {
+                    const parsed = parseNumber(val);
+                    return formatNumber(parsed * 7.8);
+                },
+                calculateTotalCv(item) {
+                    return parseNumber(item.cvGuaranteed) + parseNumber(item.cvAnnualBonus) + parseNumber(item.cvCashValue) + parseNumber(item.cvTerminalBonus) + parseNumber(item.cvReversionaryBonus);
+                },
+                calculateTotalCvHkd(item) {
+                    const total = this.calculateTotalCv(item);
+                    return item.cvCurrency === 'USD' ? total * 7.8 : total;
+                },
+                fetchClients(forceSync = false) {
+                    const localData = localStorage.getItem('AVA_CLIENTS_CACHE');
+                    if (localData && !forceSync) {
+                        this.clients = JSON.parse(localData);
+                        if (this.clients.length > 0 && !this.selectedClientId) {
+                            this.selectedClientId = this.clients[0].id;
+                            this.loadSelectedClient();
+                        }
                     }
-                    // 調用 CRM_GAS_URL 載入客戶資料[span_7](start_span)[span_7](end_span)
                     fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'get' }), redirect: "follow" })
-                        .then(r => r.json()).then(res => {
-                            if (res.status === 'success' && res.data) {
-                                this.clients = res.data;
-                                localStorage.setItem('AVA_CLIENTS_CACHE', JSON.stringify(this.clients));
-                                if (!this.currentClient && this.clients.length > 0) {
-                                    this.currentClient = this.clients[0];
-                                }
+                    .then(r => r.json()).then(res => {
+                        if (res.status === 'success') {
+                            this.clients = res.data || [];
+                            localStorage.setItem('AVA_CLIENTS_CACHE', JSON.stringify(this.clients));
+                            if (this.selectedClientId) this.loadSelectedClient();
+                            else if (this.clients.length > 0) {
+                                this.selectedClientId = this.clients[0].id;
+                                this.loadSelectedClient();
                             }
-                        }).catch(() => {});
+                        }
+                    });
                 },
                 fetchProducts() {
-                    // 調用 PRODUCTS_GAS_URL 載入產品庫[span_8](start_span)[span_8](end_span)
-                    fetch(PRODUCTS_GAS_URL)
-                        .then(r => r.json()).then(res => { 
-                            if (res.status === 'success') this.dbProducts = res.data || {}; 
-                        }).catch(() => {});
+                    fetch(PRODUCTS_GAS_URL).then(r => r.json()).then(res => { if (res.status === 'success') this.dbProducts = res.data || {}; });
                 },
-                selectClient(c) {
-                    this.currentClient = c;
-                    this.openClientSelector = false;
+                loadSelectedClient() {
+                    const found = this.clients.find(c => String(c.id) === String(this.selectedClientId));
+                    if (!found) { this.currentClient = null; return; }
+                    const clientCopy = JSON.parse(JSON.stringify(found));
+                    clientCopy.policies.forEach(pol => {
+                        if (pol.items) {
+                            pol.items.forEach(item => {
+                                if (!item.payMode) item.payMode = '年繳';
+                                if (!item.currency) item.currency = 'HKD';
+                                if (!item.saCurrency) item.saCurrency = 'HKD';
+                                if (!item.cvCurrency) item.cvCurrency = 'HKD';
+                                if (item.isMedRetire === undefined) item.isMedRetire = false;
+                                if (item.isMultiClaim === undefined) item.isMultiClaim = false;
+                            });
+                        }
+                    });
+                    this.currentClient = clientCopy;
+                    this.searchOrNameInput = clientCopy.owner;
+                    this.$nextTick(() => { document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el)); });
                 },
-                selectOption(stepKey, val) {
-                    this.answers[stepKey] = val;
+                onNameInput() {
+                    if (this.currentClient) {
+                        this.currentClient.owner = this.searchOrNameInput;
+                        const target = this.clients.find(c => String(c.id) === String(this.currentClient.id));
+                        if (target) target.owner = this.searchOrNameInput;
+                    }
                 },
-                nextStep() { if (this.currentStep < 7) this.currentStep++; },
+                resetOwner() {
+                    const newId = Date.now().toString();
+                    const newClient = { id: newId, owner: '新客戶', insured: '新客戶', policies: [] };
+                    this.clients.unshift(newClient);
+                    this.selectedClientId = newId;
+                    this.currentClient = newClient;
+                    this.searchOrNameInput = '新客戶';
+                },
+                deleteCurrentClient() {
+                    if (!this.selectedClientId) return;
+                    if (confirm('確定要刪除？')) {
+                        fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id: this.selectedClientId }), redirect: "follow" })
+                        .then(r => r.json()).then(res => { if (res.status === 'success') { this.selectedClientId = ''; this.currentClient = null; this.fetchClients(true); } });
+                    }
+                },
+                addEmptyPolicy() {
+                    if (!this.currentClient.policies) this.currentClient.policies = [];
+                    this.currentClient.policies.push({
+                        insurer: '', policyNumber: '', commencementDate: '', policyHolder: this.searchOrNameInput, insuredPerson: this.searchOrNameInput,
+                        items: [{ category: '危疾', name: '', term: '', maturity: '', sumAssured: "0", saCurrency: 'HKD', premium: "0", payMode: '年繳', currency: 'HKD', cvCurrency: 'HKD', cvGuaranteed: "0", cvAnnualBonus: "0", cvCashValue: "0", cvTerminalBonus: "0", cvReversionaryBonus: "0", isMedRetire: false, isMultiClaim: false, features: '' }]
+                    });
+                },
+                addEmptyItemToPolicy(policy) {
+                    if (!policy.items) policy.items = [];
+                    policy.items.push({ category: '危疾', name: '', term: '', maturity: '', sumAssured: "0", saCurrency: 'HKD', premium: "0", payMode: '年繳', currency: 'HKD', cvCurrency: 'HKD', cvGuaranteed: "0", cvAnnualBonus: "0", cvCashValue: "0", cvTerminalBonus: "0", cvReversionaryBonus: "0", isMedRetire: false, isMultiClaim: false, features: '' });
+                },
+                removePolicy(index) { this.currentClient.policies.splice(index, 1); },
+                removeSingleItem(policy, itemIndex) { policy.items.splice(itemIndex, 1); },
+                getProductListForCategory(cat) { return this.dbProducts[cat] || []; },
+                onProductSelect(item) {
+                    const list = this.getProductListForCategory(item.category);
+                    const matched = list.find(p => p.name === item.name);
+                    if (matched) item.features = matched.features;
+                    else if (!item.features) item.features = "（請手動輸入/修改特點）";
+                    this.$nextTick(() => { document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el)); });
+                },
+                formatCurrency(item, field) {
+                    if (item[field]) {
+                        item[field] = formatNumber(parseNumber(item[field]));
+                    }
+                },
+                async uploadAndParseMultiple(e) {
+                    const files = Array.from(e.target.files);
+                    if (!files || files.length === 0) return;
+                    if (files.length > 10) {
+                        alert('⚠️ 一次最多只能選擇 10 份文件，請重新選取！');
+                        e.target.value = '';
+                        return;
+                    }
+                    this.isParsing = true;
+                    let totalParsedCount = 0;
+                    let totalNewPolicies = 0;
+                    let totalUpdatedPolicies = 0;
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+                        this.parseProgressText = `⏳ 正在解析第 (${i + 1}/${files.length}) 份文件: ${file.name}...`;
+                        try {
+                            const base64Data = await this.readFileAsBase64(file);
+                            const response = await fetch(AI_GAS_URL, {
+                                method: 'POST',
+                                body: JSON.stringify({ action: 'parsePolicyDocument', fileData: base64Data, mimeType: file.type })
+                            });
+                            const res = await response.json();
+                            if (res.status === 'success' && res.data) {
+                                const parsedList = res.data;
+                                totalParsedCount += parsedList.length;
+                                const detectedHolder = (parsedList[0] && parsedList[0].policyHolder) ? parsedList[0].policyHolder.trim() : '';
+                                let targetClient = null;
+                                if (detectedHolder) {
+                                    const existingClient = this.clients.find(c => c.owner && c.owner.trim() === detectedHolder);
+                                    if (existingClient) {
+                                        if (this.currentClient && this.currentClient.id === existingClient.id) {
+                                            targetClient = this.currentClient;
+                                        } else {
+                                            const confirmMerge = confirm(`📄 文件【${file.name}】讀取到客戶：【${detectedHolder}】\n\n系統發現客戶名單中已存在【${detectedHolder}】，是否將此保單合併至該客戶名下？\n\n- 點擊「確定」：合併至現有客戶\n- 點擊「取消」：建立新客戶記錄`);
+                                            if (confirmMerge) {
+                                                this.selectedClientId = existingClient.id;
+                                                this.loadSelectedClient();
+                                                targetClient = this.currentClient;
+                                            }
+                                        }
+                                    }
+                                }
+                                if (!targetClient) {
+                                    if (!this.currentClient || this.currentClient.owner === '新客戶') {
+                                        if (!this.currentClient) this.resetOwner();
+                                        if (detectedHolder) {
+                                            this.currentClient.owner = detectedHolder;
+                                            this.searchOrNameInput = detectedHolder;
+                                        }
+                                    }
+                                    targetClient = this.currentClient;
+                                }
+                                if (!targetClient.policies) targetClient.policies = [];
+                                parsedList.forEach(p => {
+                                    const polNum = p.policyNumber || '';
+                                    let targetPolicy = targetClient.policies.find(pol => pol.policyNumber && pol.policyNumber === polNum);
+                                    const parsedItem = {
+                                        category: p.category || '危疾',
+                                        name: p.productName || '',
+                                        sumAssured: formatNumber(parseNumber(p.sumAssured ? p.sumAssured.amount : 0)),
+                                        saCurrency: (p.sumAssured && p.sumAssured.currency) ? p.sumAssured.currency : 'HKD',
+                                        premium: formatNumber(parseNumber(p.premium ? p.premium.amount : 0)),
+                                        payMode: p.payMode || '年繳',
+                                        currency: (p.premium && p.premium.currency) ? p.premium.currency : 'HKD',
+                                        deductible: formatNumber(parseNumber(p.deductible ? p.deductible.amount : 0)),
+                                        dedCurrency: (p.deductible && p.deductible.currency) ? p.deductible.currency : 'HKD',
+                                        cvGuaranteed: formatNumber(parseNumber(p.cvGuaranteed || 0)),
+                                        cvAnnualBonus: formatNumber(parseNumber(p.cvAnnualBonus || 0)),
+                                        cvCashValue: formatNumber(parseNumber(p.cvCashValue || 0)),
+                                        cvTerminalBonus: formatNumber(parseNumber(p.cvTerminalBonus || 0)),
+                                        cvReversionaryBonus: formatNumber(parseNumber(p.cvReversionaryBonus || 0)),
+                                        cvCurrency: p.cvCurrency || 'HKD',
+                                        term: p.term || '',
+                                        maturity: p.maturity || '',
+                                        isMedRetire: false,
+                                        isMultiClaim: false,
+                                        features: p.features || ''
+                                    };
+                                    this.onProductSelect(parsedItem);
+                                    if (targetPolicy && polNum !== '') {
+                                        totalUpdatedPolicies++;
+                                        if (p.insurer) targetPolicy.insurer = p.insurer;
+                                        if (p.commencementDate) targetPolicy.commencementDate = p.commencementDate;
+                                        let existingItem = targetPolicy.items.find(it => it.name && it.name === parsedItem.name);
+                                        if (existingItem) {
+                                            Object.assign(existingItem, parsedItem);
+                                        } else {
+                                            targetPolicy.items.push(parsedItem);
+                                        }
+                                    } else {
+                                        totalNewPolicies++;
+                                        targetClient.policies.push({
+                                            insurer: p.insurer || '',
+                                            policyNumber: polNum,
+                                            commencementDate: p.commencementDate || '',
+                                            policyHolder: p.policyHolder || targetClient.owner,
+                                            insuredPerson: p.insuredPerson || targetClient.owner,
+                                            items: [parsedItem]
+                                        });
+                                    }
+                                });
+                            }
+                        } catch (err) {
+                            console.error(`解析檔案 ${file.name} 失敗:`, err);
+                        }
+                    }
+                    this.isParsing = false;
+                    this.parseProgressText = '';
+                    e.target.value = '';
+                    this.$nextTick(() => { document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el)); });
+                    alert(`🎉 批次上載完成（共 ${files.length} 份文件）！\n\n- 新增保單：${totalNewPolicies} 份\n- 更新/補充覆蓋：${totalUpdatedPolicies} 份`);
+                },
+                readFileAsBase64(file) {
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                            const cleanBase64 = ev.target.result.split(',')[1].replace(/[\r\n\s]/g, '');
+                            resolve(cleanBase64);
+                        };
+                        reader.onerror = (err) => reject(err);
+                        reader.readAsDataURL(file);
+                    });
+                },
+                saveClientToCloud() {
+                    if (this.currentClient) this.currentClient.owner = this.searchOrNameInput;
+                    fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'update', payload: this.currentClient }), redirect: "follow" })
+                    .then(r => r.json()).then(res => {
+                        if (res.status === 'success') {
+                            localStorage.setItem('AVA_CLIENTS_CACHE', JSON.stringify(this.clients));
+                            alert('✅ 儲存成功！已同步至 Google Sheet。');
+                        } else {
+                            alert('❌ 儲存失敗：' + res.message);
+                        }
+                    });
+                },
+
+                // 7 步導覽與 QR Code
+                selectOption(stepKey, val) { this.answers[stepKey] = val; },
+                nextStep() { 
+                    if (this.currentStep < 7) {
+                        this.currentStep++;
+                        if (this.currentStep === 7) {
+                            this.$nextTick(() => { this.renderQRCode(); });
+                        }
+                    } 
+                },
                 prevStep() { if (this.currentStep > 1) this.currentStep--; },
                 toggleCol(colKey) {
                     this.colVisibility[colKey] = !this.colVisibility[colKey];
@@ -531,20 +1003,24 @@
                     });
                     this.calcResults = rows;
                 },
-                resetReview() {
-                    this.answers = { step1: '', step2: '', step3: '', step5: '' };
-                    this.currentStep = 1;
+                renderQRCode() {
+                    const container = document.getElementById('qrcode-container');
+                    if (!container) return;
+                    container.innerHTML = '';
+                    const clientId = this.currentClient ? this.currentClient.id : 'default';
+                    const targetUrl = window.location.href.split('?')[0].replace('index.html', '') + 'client.html?id=' + clientId + '&role=client';
+                    new QRCode(container, {
+                        text: targetUrl,
+                        width: 140,
+                        height: 140,
+                        colorDark: "#1e3a8a",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
                 },
                 saveReviewSummary() {
-                    // 同步寫入 CRM_GAS_URL[span_9](start_span)[span_9](end_span)
-                    if (this.currentClient) {
-                        fetch(CRM_GAS_URL, { 
-                            method: 'POST', 
-                            body: JSON.stringify({ action: 'update', payload: this.currentClient }), 
-                            redirect: "follow" 
-                        }).catch(() => {});
-                    }
-                    alert('🎉 專屬生活藍圖 Review 規劃完成！已成功為客戶【' + (this.currentClient ? this.currentClient.owner : '新客戶') + '】儲存紀錄。');
+                    this.saveClientToCloud();
+                    alert('🎉 專屬生活藍圖 Review 完成！已為客戶【' + (this.currentClient ? this.currentClient.owner : '新客戶') + '】完成登記。');
                 }
             }
         }
