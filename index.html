@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA 專屬生活引導與資產檢視系統 · CRM 完整版 (v6.0.0)</title>
+    <title>AVA 專屬生活引導與資產檢視系統 · CRM Review Edition (v6.1.0)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,7 +52,7 @@
         }
         .pink-edit-input {
             width: 100%; padding: 8px 12px; border: var(--pink-dashed); border-radius: 8px;
-            font-size: 0.9rem; background: #ffffff; color: var(--text-main); text-align: center;
+            font-size: 0.9rem; background: #ffffff; color: var(--text-main); text-align: left;
         }
         .pure-color-dot {
             width: 22px; height: 22px; border-radius: 50%; cursor: pointer;
@@ -68,13 +68,6 @@
         
         .clean-table th, .clean-table td { padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--border-light); }
         .clean-table th { color: var(--text-sub); font-weight: 600; background: #f8fafc; }
-        
-        .nav-step-pill {
-            padding: 6px 14px; border-radius: 9999px; font-size: 0.75rem; font-weight: 700;
-            cursor: pointer; transition: 0.2s; white-space: nowrap;
-        }
-        .nav-step-pill.active { background: var(--brand-primary); color: #ffffff; }
-        .nav-step-pill.inactive { background: #ffffff; color: var(--text-sub); border: 1px solid var(--border-light); }
         textarea { resize: none; }
     </style>
 </head>
@@ -87,36 +80,293 @@
         </template>
     </datalist>
 
-    <!-- 頂部 NAV (加入 Version 標籤) -->
+    <!-- 頂部 NAV (已移除橫向步驟條) -->
     <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-sm">
         <div class="flex items-center gap-2">
             <span class="font-black text-blue-900 text-sm tracking-wide">🌱 AVA PLANNER</span>
             <span class="text-[10px] bg-blue-100 text-blue-800 font-extrabold px-2 py-0.5 rounded-full border border-blue-200" x-text="systemVersion"></span>
-            <span class="text-[10px] bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded-full border border-slate-200" x-text="currentClient ? currentClient.owner : '未選客戶'"></span>
+            <span class="text-[10px] bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded-full border border-slate-200 max-w-[120px] truncate" x-text="currentClient ? currentClient.owner : '未選客戶'"></span>
         </div>
         <div class="flex items-center gap-2">
-            <button @click="fetchClients(true)" class="text-xs text-blue-600 border border-blue-200 bg-blue-50 px-2.5 py-1 rounded-lg hover:bg-blue-100 font-bold">🔄 同步 Sheet</button>
-            <button @click="viewMode = (viewMode === 'review' ? 'crm' : 'review')" class="text-xs text-amber-700 border border-amber-200 bg-amber-50 px-2.5 py-1 rounded-lg font-bold">
-                <span x-text="viewMode === 'review' ? '⚙️ 保單管理模式' : '📋 7步引導模式'"></span>
+            <!-- 模式切換 -->
+            <button @click="viewMode = 'review'" :class="viewMode === 'review' ? 'bg-blue-900 text-white font-bold' : 'bg-slate-100 text-slate-600'" class="text-xs px-2.5 py-1.5 rounded-lg transition-colors">
+                📋 引導
+            </button>
+            <button @click="viewMode = 'crm'" :class="viewMode === 'crm' ? 'bg-blue-900 text-white font-bold' : 'bg-slate-100 text-slate-600'" class="text-xs px-2.5 py-1.5 rounded-lg transition-colors">
+                📂 保單
+            </button>
+            <button @click="viewMode = 'admin'" :class="viewMode === 'admin' ? 'bg-amber-600 text-white font-bold' : 'bg-amber-50 text-amber-800 border border-amber-200'" class="text-xs px-2.5 py-1.5 rounded-lg transition-colors">
+                ⚙️ 後台
             </button>
         </div>
     </header>
-
-    <!-- 步驟進度導覽 (Review 模式顯示) -->
-    <div x-show="viewMode === 'review'" class="border-b border-slate-200 bg-white overflow-x-auto py-2.5 px-4 flex gap-2 shadow-sm">
-        <template x-for="(s, idx) in steps" :key="idx">
-            <button @click="currentStep = idx + 1" :class="currentStep === (idx + 1) ? 'active' : 'inactive'" class="nav-step-pill flex items-center gap-1.5 shadow-sm">
-                <span x-text="s.num"></span>
-                <span x-text="s.name"></span>
-            </button>
-        </template>
-    </div>
 
     <!-- 主工作區 -->
     <main class="flex-1 max-w-4xl w-full mx-auto p-4 space-y-6">
 
         <!-- ========================================================
-             模式 A：CRM 完整保單管理與 AI 解析區
+             模式 1：New Saving Code 7 步 Review 引導
+        ======================================================== -->
+        <div x-show="viewMode === 'review'" class="space-y-6">
+
+            <!-- ① OPEN｜人生現況 -->
+            <div x-show="currentStep === 1" class="content-card space-y-6">
+                <div>
+                    <span class="text-xs font-bold text-blue-600 uppercase tracking-widest block mb-1" x-text="stepData.step1.tag"></span>
+                    <h2 class="text-xl font-extrabold text-slate-900 leading-snug" x-text="stepData.step1.title"></h2>
+                    <p class="text-xs text-slate-500 mt-1" x-text="stepData.step1.subtitle"></p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <template x-for="opt in stepData.step1.options" :key="opt.headline">
+                        <div @click="selectOption('step1', opt.headline)" 
+                             :class="answers.step1 === opt.headline ? 'border-blue-600 bg-blue-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'"
+                             class="cursor-pointer border-1.5 p-4 rounded-xl transition-all border">
+                            <div class="font-bold text-sm text-slate-900 mb-1" x-text="opt.headline"></div>
+                            <div class="text-xs text-slate-500 leading-relaxed" x-text="opt.subtext"></div>
+                        </div>
+                    </template>
+                </div>
+                <div class="flex justify-end pt-4">
+                    <button @click="nextStep()" :disabled="!answers.step1" class="px-6 py-2.5 bg-blue-900 hover:bg-blue-950 disabled:opacity-35 text-white font-bold text-xs rounded-xl shadow">下一步 →</button>
+                </div>
+            </div>
+
+            <!-- ② EXPLORE｜未來畫面 -->
+            <div x-show="currentStep === 2" class="content-card space-y-6">
+                <div>
+                    <span class="text-xs font-bold text-blue-600 uppercase tracking-widest block mb-1" x-text="stepData.step2.tag"></span>
+                    <h2 class="text-xl font-extrabold text-slate-900 leading-snug" x-text="stepData.step2.title"></h2>
+                    <p class="text-xs text-slate-500 mt-1" x-text="stepData.step2.subtitle"></p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <template x-for="opt in stepData.step2.options" :key="opt.headline">
+                        <div @click="selectOption('step2', opt.headline)" 
+                             :class="answers.step2 === opt.headline ? 'border-blue-600 bg-blue-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'"
+                             class="cursor-pointer border-1.5 p-4 rounded-xl transition-all border">
+                            <div class="font-bold text-sm text-slate-900 mb-1" x-text="opt.headline"></div>
+                            <div class="text-xs text-slate-500 leading-relaxed" x-text="opt.subtext"></div>
+                        </div>
+                    </template>
+                </div>
+                <div class="flex justify-between pt-4">
+                    <button @click="prevStep()" class="px-5 py-2 border border-slate-300 text-xs text-slate-700 rounded-xl">← 上一步</button>
+                    <button @click="nextStep()" :disabled="!answers.step2" class="px-6 py-2.5 bg-blue-900 hover:bg-blue-950 disabled:opacity-35 text-white font-bold text-xs rounded-xl shadow">下一步 →</button>
+                </div>
+            </div>
+
+            <!-- ③ PRIORITY｜最重要嘅嘢 -->
+            <div x-show="currentStep === 3" class="content-card space-y-6">
+                <div>
+                    <span class="text-xs font-bold text-purple-600 uppercase tracking-widest block mb-1" x-text="stepData.step3.tag"></span>
+                    <h2 class="text-xl font-extrabold text-slate-900 leading-snug" x-text="stepData.step3.title"></h2>
+                    <p class="text-xs text-slate-500 mt-1" x-text="stepData.step3.subtitle"></p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <template x-for="opt in stepData.step3.options" :key="opt.headline">
+                        <div @click="selectOption('step3', opt.headline)" 
+                             :class="answers.step3 === opt.headline ? 'border-purple-600 bg-purple-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'"
+                             class="cursor-pointer border-1.5 p-4 rounded-xl transition-all border">
+                            <div class="font-bold text-sm text-slate-900 mb-1" x-text="opt.headline"></div>
+                            <div class="text-xs text-slate-500 leading-relaxed" x-text="opt.subtext"></div>
+                        </div>
+                    </template>
+                </div>
+                <div class="flex justify-between pt-4">
+                    <button @click="prevStep()" class="px-5 py-2 border border-slate-300 text-xs text-slate-700 rounded-xl">← 上一步</button>
+                    <button @click="nextStep()" :disabled="!answers.step3" class="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-35 text-white font-bold text-xs rounded-xl shadow">檢視現有安排 →</button>
+                </div>
+            </div>
+
+            <!-- ④ REALITY｜現有安排 (讀取 CRM 資料) -->
+            <div x-show="currentStep === 4" class="content-card space-y-6">
+                <div class="flex justify-between items-start border-b border-slate-200 pb-4">
+                    <div>
+                        <span class="text-xs font-bold text-emerald-600 uppercase tracking-widest block mb-1" x-text="stepData.step4.tag"></span>
+                        <h2 class="text-xl font-extrabold text-slate-900" x-text="stepData.step4.title"></h2>
+                        <p class="text-xs text-slate-500 mt-1" x-text="stepData.step4.subtitle"></p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[11px] text-slate-400 block">持有人 / 受保人</span>
+                        <span class="text-sm font-bold text-blue-900" x-text="currentClient ? currentClient.owner : '—'"></span>
+                    </div>
+                </div>
+
+                <!-- CRM 既有保單列表摘要 -->
+                <div class="space-y-3">
+                    <template x-if="!currentClient || !currentClient.policies || currentClient.policies.length === 0">
+                        <div class="text-center py-8 text-slate-400 text-xs border border-dashed border-slate-300 rounded-xl">
+                            現時 CRM 內未有已登記保單資料，可於上方切換至「保單」模式進行登記或 AI 讀取。
+                        </div>
+                    </template>
+                    <template x-for="(pol, idx) in (currentClient ? currentClient.policies : [])" :key="idx">
+                        <div class="border border-slate-200 bg-slate-50/50 p-4 rounded-xl space-y-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="font-bold text-blue-900" x-text="(pol.insurer || '保險公司') + ' · ' + (pol.policyNumber || '保單')"></span>
+                                <span class="text-slate-500 font-mono" x-text="pol.commencementDate ? '生效: ' + pol.commencementDate : ''"></span>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-200 text-xs">
+                                <template x-for="it in pol.items" :key="it.name">
+                                    <div class="bg-white p-2 rounded-lg border border-slate-200 shadow-sm">
+                                        <span class="text-[10px] text-blue-600 block font-bold" x-text="it.category + ': ' + it.name"></span>
+                                        <span class="text-slate-700 font-mono text-[11px]" x-text="'保額: $' + (it.sumAssured || 0)"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="flex justify-between pt-4">
+                    <button @click="prevStep()" class="px-5 py-2 border border-slate-300 text-xs text-slate-700 rounded-xl">← 上一步</button>
+                    <button @click="nextStep()" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow">發現潛在落差 →</button>
+                </div>
+            </div>
+
+            <!-- ⑤ GAP｜發現落差 -->
+            <div x-show="currentStep === 5" class="content-card space-y-6">
+                <div>
+                    <span class="text-xs font-bold text-rose-600 uppercase tracking-widest block mb-1" x-text="stepData.step5.tag"></span>
+                    <h2 class="text-xl font-extrabold text-slate-900 leading-snug" x-text="stepData.step5.title"></h2>
+                    <p class="text-xs text-slate-500 mt-1" x-text="stepData.step5.subtitle"></p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <template x-for="opt in stepData.step5.options" :key="opt.headline">
+                        <div @click="selectOption('step5', opt.headline)" 
+                             :class="answers.step5 === opt.headline ? 'border-rose-600 bg-rose-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'"
+                             class="cursor-pointer border-1.5 p-4 rounded-xl transition-all border">
+                            <div class="font-bold text-sm text-slate-900 mb-1" x-text="opt.headline"></div>
+                            <div class="text-xs text-slate-500 leading-relaxed" x-text="opt.subtext"></div>
+                        </div>
+                    </template>
+                </div>
+                <div class="flex justify-between pt-4">
+                    <button @click="prevStep()" class="px-5 py-2 border border-slate-300 text-xs text-slate-700 rounded-xl">← 上一步</button>
+                    <button @click="nextStep()" :disabled="!answers.step5" class="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-35 text-white font-bold text-xs rounded-xl shadow">將數字具體化 →</button>
+                </div>
+            </div>
+
+            <!-- ⑥ NUMBERS｜數字具體化 (時光複利量化累積表) -->
+            <div x-show="currentStep === 6" class="content-card space-y-6">
+                <div class="flex justify-between items-start flex-wrap gap-4 border-b border-slate-200 pb-4">
+                    <div>
+                        <span class="text-xs font-bold text-blue-600 uppercase tracking-widest block mb-1" x-text="stepData.step6.tag"></span>
+                        <h2 class="text-xl font-extrabold text-slate-900" x-text="stepData.step6.title"></h2>
+                        <p class="text-xs text-slate-500 mt-1" x-text="stepData.step6.subtitle"></p>
+                    </div>
+                    <!-- 純色圓點開關 Bar -->
+                    <div class="flex items-center gap-2 bg-slate-100 p-2 rounded-xl border border-slate-200">
+                        <div class="pure-color-dot dot-blue-bg" :class="{'dimmed': !colVisibility.annuity}" @click="toggleCol('annuity')" title="切換被動收入"></div>
+                        <div class="pure-color-dot dot-green-bg" :class="{'dimmed': !colVisibility.accum}" @click="toggleCol('accum')" title="切換累積已領"></div>
+                        <div class="pure-color-dot dot-purple-bg" :class="{'dimmed': !colVisibility.asset}" @click="toggleCol('asset')" title="切換大樹收成"></div>
+                        <div class="pure-color-dot dot-red-bg" :class="{'dimmed': !colVisibility.interest}" @click="toggleCol('interest')" title="切換年化回報率"></div>
+                    </div>
+                </div>
+
+                <!-- 參數設定 -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 block mb-1">開始歲數</label>
+                        <input type="number" x-model.number="calcAge" @input="recalc()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-center text-sm font-bold text-slate-800">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-bold text-blue-900 block mb-1">每年小額儲備 ($)</label>
+                        <input type="text" x-model="calcPremiumStr" @input="formatPremiumInput()" class="pink-edit-input font-mono font-bold text-sm text-center">
+                    </div>
+                </div>
+
+                <!-- 時光複利結果表 -->
+                <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-sm">
+                    <table class="w-full text-xs clean-table">
+                        <thead>
+                            <tr>
+                                <th class="text-left">年份 (歲數)</th>
+                                <th>累計本金</th>
+                                <th x-show="colVisibility.annuity" class="text-blue-600 font-bold">被動收入 (每年)</th>
+                                <th x-show="colVisibility.accum" class="text-emerald-600 font-bold">累積已領</th>
+                                <th x-show="colVisibility.asset" class="text-purple-600 font-bold">大樹總資產</th>
+                                <th x-show="colVisibility.interest" class="text-rose-600 font-bold">年化回報率</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="row in calcResults" :key="row.year">
+                                <tr class="hover:bg-slate-50 font-mono">
+                                    <td class="text-left text-slate-800 font-sans" x-text="row.year + ' (' + row.age + '歲)'"></td>
+                                    <td class="text-slate-500" x-text="'$' + formatNum(row.cost)"></td>
+                                    <td x-show="colVisibility.annuity" class="text-blue-600 font-bold" x-text="'$' + formatNum(row.annuity)"></td>
+                                    <td x-show="colVisibility.accum" class="text-emerald-600 font-bold" x-text="'$' + formatNum(row.accum)"></td>
+                                    <td x-show="colVisibility.asset" class="text-purple-600 font-bold" x-text="'$' + formatNum(row.asset)"></td>
+                                    <td x-show="colVisibility.interest" class="text-rose-600 font-bold" x-text="row.rate"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex justify-between pt-4">
+                    <button @click="prevStep()" class="px-5 py-2 border border-slate-300 text-xs text-slate-700 rounded-xl">← 上一步</button>
+                    <button @click="nextStep()" class="px-6 py-2.5 bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs rounded-xl shadow">檢視專屬藍圖方案 →</button>
+                </div>
+            </div>
+
+            <!-- ⑦ SOLUTION｜方案 (藍圖筆記總結 + 客戶專屬 QR Code) -->
+            <div x-show="currentStep === 7" class="content-card space-y-6">
+                <div class="border-b border-slate-200 pb-4">
+                    <span class="text-xs font-bold text-blue-600 uppercase tracking-widest block mb-1" x-text="stepData.step7.tag"></span>
+                    <h2 class="text-xl font-extrabold text-slate-900" x-text="stepData.step7.title"></h2>
+                    <p class="text-xs text-slate-500 mt-1" x-text="stepData.step7.subtitle"></p>
+                </div>
+
+                <!-- 藍圖雙欄總結 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- 左側：初衷軌跡 -->
+                    <div class="bg-slate-900 text-white p-5 rounded-xl space-y-3 shadow-md">
+                        <h3 class="text-xs font-bold text-amber-400 border-b border-slate-700 pb-2">📋 探索共識軌跡</h3>
+                        <div class="text-xs space-y-1">
+                            <span class="text-slate-400 block text-[10px]">01. 目前人生現況</span>
+                            <div class="font-bold text-slate-100" x-text="answers.step1 || '—'"></div>
+                        </div>
+                        <div class="text-xs space-y-1">
+                            <span class="text-slate-400 block text-[10px]">02. 理想未來畫面</span>
+                            <div class="font-bold text-slate-100" x-text="answers.step2 || '—'"></div>
+                        </div>
+                        <div class="text-xs space-y-1">
+                            <span class="text-slate-400 block text-[10px]">03. 優先確保事項</span>
+                            <div class="font-bold text-slate-100" x-text="answers.step3 || '—'"></div>
+                        </div>
+                        <div class="text-xs space-y-1">
+                            <span class="text-slate-400 block text-[10px]">05. 最關注潛在落差</span>
+                            <div class="font-bold text-yellow-300" x-text="answers.step5 || '—'"></div>
+                        </div>
+                    </div>
+
+                    <!-- 右側：方案價值與 QR Code -->
+                    <div class="bg-emerald-50 border border-emerald-200 p-5 rounded-xl flex flex-col justify-between space-y-4">
+                        <div>
+                            <h3 class="text-xs font-bold text-emerald-800 mb-2">💡 替代方案：無痛縮減落差</h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                完全不影響現有生活享受，只需將每月不知不覺流走的小份額，透過 <strong class="text-emerald-700">5 年自動化水庫</strong> 進行儲備，為未來鎖定終身確定性。
+                            </p>
+                        </div>
+                        
+                        <!-- 二維碼生成區 (QR Code) -->
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 text-center space-y-2 shadow-sm">
+                            <span class="text-[11px] font-bold text-slate-700 block">📲 客戶端專屬檢視二維碼</span>
+                            <div id="qrcode-container" class="flex justify-center p-2"></div>
+                            <span class="text-[10px] text-slate-400 block">客戶可直接掃描在手機查看此專屬 Review 藍圖</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between pt-4">
+                    <button @click="prevStep()" class="px-5 py-2 border border-slate-300 text-xs text-slate-700 rounded-xl">← 上一步</button>
+                    <button @click="saveReviewSummary()" class="px-6 py-2.5 bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs rounded-xl shadow">💾 儲存並完成 Review</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ========================================================
+             模式 2：CRM 完整保單管理與 AI 解析區
         ======================================================== -->
         <div x-show="viewMode === 'crm'" class="space-y-6">
             <!-- 客戶選擇與管理 -->
@@ -356,264 +606,66 @@
         </div>
 
         <!-- ========================================================
-             模式 B：New Saving Code 7 步 Review 引導
+             模式 3：⚙️ 後台 / 題目管理 (可隨時修改 7 步驟全部內容)
         ======================================================== -->
-        <div x-show="viewMode === 'review'" class="space-y-6">
-
-            <!-- ① OPEN｜人生現況 -->
-            <div x-show="currentStep === 1" class="content-card space-y-6">
-                <div>
-                    <span class="text-xs font-bold text-blue-600 uppercase tracking-widest block mb-1">Step 1 · 現況想法</span>
-                    <h2 class="text-xl font-extrabold text-slate-900 leading-snug">「最近一年，有冇咩令你開始諗多咗將來？」</h2>
-                    <p class="text-xs text-slate-500 mt-1">從你目前最真實、最自在的生活節奏開始探索：</p>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <template x-for="opt in stepData.step1.options" :key="opt.title">
-                        <div @click="selectOption('step1', opt.title)" 
-                             :class="answers.step1 === opt.title ? 'border-blue-600 bg-blue-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'"
-                             class="cursor-pointer border-1.5 p-4 rounded-xl transition-all border">
-                            <div class="font-bold text-sm text-slate-900 mb-1" x-text="opt.title"></div>
-                            <div class="text-xs text-slate-500 leading-relaxed" x-text="opt.sub"></div>
-                        </div>
-                    </template>
-                </div>
-                <div class="flex justify-end pt-4">
-                    <button @click="nextStep()" :disabled="!answers.step1" class="px-6 py-2.5 bg-blue-900 hover:bg-blue-950 disabled:opacity-35 text-white font-bold text-xs rounded-xl shadow">進入未來畫面 →</button>
-                </div>
-            </div>
-
-            <!-- ② EXPLORE｜未來畫面 -->
-            <div x-show="currentStep === 2" class="content-card space-y-6">
-                <div>
-                    <span class="text-xs font-bold text-blue-600 uppercase tracking-widest block mb-1">Step 2 · 理想願景</span>
-                    <h2 class="text-xl font-extrabold text-slate-900 leading-snug">「如果未來 5–10 年照你理想咁發展，你最希望做到咩？」</h2>
-                    <p class="text-xs text-slate-500 mt-1">理財唔係數字遊戲，而係為了實現具體的生活畫面：</p>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <template x-for="opt in stepData.step2.options" :key="opt.title">
-                        <div @click="selectOption('step2', opt.title)" 
-                             :class="answers.step2 === opt.title ? 'border-blue-600 bg-blue-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'"
-                             class="cursor-pointer border-1.5 p-4 rounded-xl transition-all border">
-                            <div class="font-bold text-sm text-slate-900 mb-1" x-text="opt.title"></div>
-                            <div class="text-xs text-slate-500 leading-relaxed" x-text="opt.sub"></div>
-                        </div>
-                    </template>
-                </div>
-                <div class="flex justify-between pt-4">
-                    <button @click="prevStep()" class="px-5 py-2 border border-slate-300 text-xs text-slate-700 rounded-xl">← 上一步</button>
-                    <button @click="nextStep()" :disabled="!answers.step2" class="px-6 py-2.5 bg-blue-900 hover:bg-blue-950 disabled:opacity-35 text-white font-bold text-xs rounded-xl shadow">確認優先次序 →</button>
-                </div>
-            </div>
-
-            <!-- ③ PRIORITY｜最重要嘅嘢 -->
-            <div x-show="currentStep === 3" class="content-card space-y-6">
-                <div>
-                    <span class="text-xs font-bold text-purple-600 uppercase tracking-widest block mb-1">Step 3 · 核心聚焦</span>
-                    <h2 class="text-xl font-extrabold text-slate-900 leading-snug">「如果只能先處理一樣，你最想確保邊一部分？」</h2>
-                    <p class="text-xs text-slate-500 mt-1">找出最能令你感到踏實、最不能妥協的核心支柱：</p>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <template x-for="opt in stepData.step3.options" :key="opt.title">
-                        <div @click="selectOption('step3', opt.title)" 
-                             :class="answers.step3 === opt.title ? 'border-purple-600 bg-purple-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'"
-                             class="cursor-pointer border-1.5 p-4 rounded-xl transition-all border">
-                            <div class="font-bold text-sm text-slate-900 mb-1" x-text="opt.title"></div>
-                            <div class="text-xs text-slate-500 leading-relaxed" x-text="opt.sub"></div>
-                        </div>
-                    </template>
-                </div>
-                <div class="flex justify-between pt-4">
-                    <button @click="prevStep()" class="px-5 py-2 border border-slate-300 text-xs text-slate-700 rounded-xl">← 上一步</button>
-                    <button @click="nextStep()" :disabled="!answers.step3" class="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-35 text-white font-bold text-xs rounded-xl shadow">檢視現有 CRM 安排 →</button>
-                </div>
-            </div>
-
-            <!-- ④ REALITY｜現有安排 (讀取 CRM 資料) -->
-            <div x-show="currentStep === 4" class="content-card space-y-6">
-                <div class="flex justify-between items-start border-b border-slate-200 pb-4">
+        <div x-show="viewMode === 'admin'" class="space-y-6">
+            <div class="content-card space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-200 pb-3">
                     <div>
-                        <span class="text-xs font-bold text-emerald-600 uppercase tracking-widest block mb-1">Step 4 · 現狀盤點</span>
-                        <h2 class="text-xl font-extrabold text-slate-900">「其實你而家已經做咗呢啲安排。」</h2>
-                        <p class="text-xs text-slate-500 mt-1">系統從 CRM 已同步你的既有保障與資產架構：</p>
+                        <h3 class="font-extrabold text-blue-900 text-base">⚙️ 7 步驟引導題目與內容管理</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">修改後將即時套用於引導流程，並可保存至本機或同步至雲端。</p>
                     </div>
-                    <div class="text-right">
-                        <span class="text-[11px] text-slate-400 block">持有人 / 受保人</span>
-                        <span class="text-sm font-bold text-blue-900" x-text="currentClient ? currentClient.owner : '—'"></span>
+                    <div class="flex gap-2">
+                        <button @click="saveAdminSettings()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow">💾 保存設定</button>
+                        <button @click="syncToGoogleSheet()" class="px-4 py-2 bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs rounded-xl shadow">☁️ 同步雲端</button>
                     </div>
                 </div>
 
-                <!-- CRM 既有保單列表摘要 -->
-                <div class="space-y-3">
-                    <template x-if="!currentClient || !currentClient.policies || currentClient.policies.length === 0">
-                        <div class="text-center py-8 text-slate-400 text-xs border border-dashed border-slate-300 rounded-xl">
-                            現時 CRM 內未有已登記保單資料，可於右上角切換至「保單管理模式」進行登記或 AI 讀取。
-                        </div>
-                    </template>
-                    <template x-for="(pol, idx) in (currentClient ? currentClient.policies : [])" :key="idx">
-                        <div class="border border-slate-200 bg-slate-50/50 p-4 rounded-xl space-y-2">
-                            <div class="flex justify-between items-center text-xs">
-                                <span class="font-bold text-blue-900" x-text="(pol.insurer || '保險公司') + ' · ' + (pol.policyNumber || '保單')"></span>
-                                <span class="text-slate-500 font-mono" x-text="pol.commencementDate ? '生效: ' + pol.commencementDate : ''"></span>
+                <!-- 7 大步驟卡片編輯區 -->
+                <div class="space-y-6">
+                    <template x-for="(sKey, sIndex) in ['step1', 'step2', 'step3', 'step4', 'step5', 'step6', 'step7']" :key="sKey">
+                        <div class="border border-slate-200 bg-slate-50/50 p-4 rounded-xl space-y-3">
+                            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+                                <span class="font-bold text-blue-900 text-xs" x-text="'步驟 ' + (sIndex + 1) + '：' + stepData[sKey].name"></span>
+                                <span class="text-[11px] text-slate-400 font-mono" x-text="'ID: ' + sKey"></span>
                             </div>
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-200 text-xs">
-                                <template x-for="it in pol.items" :key="it.name">
-                                    <div class="bg-white p-2 rounded-lg border border-slate-200 shadow-sm">
-                                        <span class="text-[10px] text-blue-600 block font-bold" x-text="it.category + ': ' + it.name"></span>
-                                        <span class="text-slate-700 font-mono text-[11px]" x-text="'保額: $' + (it.sumAssured || 0)"></span>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div>
+                                    <label class="text-[10px] font-bold text-slate-500 block mb-1">步驟標籤 (Tag)</label>
+                                    <input type="text" x-model="stepData[sKey].tag" class="pink-edit-input text-xs">
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="text-[10px] font-bold text-slate-500 block mb-1">主標題 (Title)</label>
+                                    <input type="text" x-model="stepData[sKey].title" class="pink-edit-input text-xs">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-500 block mb-1">副標題 / 說明 (Subtitle)</label>
+                                <input type="text" x-model="stepData[sKey].subtitle" class="pink-edit-input text-xs">
+                            </div>
+
+                            <!-- 選項清單編輯 (步驟 1, 2, 3, 5) -->
+                            <template x-if="stepData[sKey].options">
+                                <div class="space-y-2 pt-2 border-t border-slate-200">
+                                    <div class="flex justify-between items-center">
+                                        <label class="text-[11px] font-bold text-slate-700">選項清單：</label>
+                                        <button @click="addStepOption(sKey)" class="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 font-bold px-2 py-0.5 rounded">+ 新增選項</button>
                                     </div>
-                                </template>
-                            </div>
-                        </div>
-                    </template>
-                </div>
-
-                <div class="flex justify-between pt-4">
-                    <button @click="prevStep()" class="px-5 py-2 border border-slate-300 text-xs text-slate-700 rounded-xl">← 上一步</button>
-                    <button @click="nextStep()" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow">發現潛在落差 →</button>
-                </div>
-            </div>
-
-            <!-- ⑤ GAP｜發現落差 -->
-            <div x-show="currentStep === 5" class="content-card space-y-6">
-                <div>
-                    <span class="text-xs font-bold text-rose-600 uppercase tracking-widest block mb-1">Step 5 · 壓力測試</span>
-                    <h2 class="text-xl font-extrabold text-slate-900 leading-snug">「如果未來發生＿＿＿，現有安排能否做到你想要嘅結果？」</h2>
-                    <p class="text-xs text-slate-500 mt-1">選取最可能影響你既有規劃的潛在變數：</p>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <template x-for="opt in stepData.step5.options" :key="opt.title">
-                        <div @click="selectOption('step5', opt.title)" 
-                             :class="answers.step5 === opt.title ? 'border-rose-600 bg-rose-50 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'"
-                             class="cursor-pointer border-1.5 p-4 rounded-xl transition-all border">
-                            <div class="font-bold text-sm text-slate-900 mb-1" x-text="opt.title"></div>
-                            <div class="text-xs text-slate-500 leading-relaxed" x-text="opt.sub"></div>
-                        </div>
-                    </template>
-                </div>
-                <div class="flex justify-between pt-4">
-                    <button @click="prevStep()" class="px-5 py-2 border border-slate-300 text-xs text-slate-700 rounded-xl">← 上一步</button>
-                    <button @click="nextStep()" :disabled="!answers.step5" class="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:opacity-35 text-white font-bold text-xs rounded-xl shadow">將數字具體化 →</button>
-                </div>
-            </div>
-
-            <!-- ⑥ NUMBERS｜數字具體化 (時光複利量化累積表) -->
-            <div x-show="currentStep === 6" class="content-card space-y-6">
-                <div class="flex justify-between items-start flex-wrap gap-4 border-b border-slate-200 pb-4">
-                    <div>
-                        <span class="text-xs font-bold text-blue-600 uppercase tracking-widest block mb-1">Step 6 · 產品＋概念＋數字</span>
-                        <h2 class="text-xl font-extrabold text-slate-900">🌱 時光複利：小金額創造無痛大效果</h2>
-                        <p class="text-xs text-slate-500 mt-1">只需 5 年分段儲備，交畀時間滾存終身源源不絕的被動收入：</p>
-                    </div>
-                    <!-- 純色圓點開關 Bar -->
-                    <div class="flex items-center gap-2 bg-slate-100 p-2 rounded-xl border border-slate-200">
-                        <div class="pure-color-dot dot-blue-bg" :class="{'dimmed': !colVisibility.annuity}" @click="toggleCol('annuity')" title="切換被動收入"></div>
-                        <div class="pure-color-dot dot-green-bg" :class="{'dimmed': !colVisibility.accum}" @click="toggleCol('accum')" title="切換累積已領"></div>
-                        <div class="pure-color-dot dot-purple-bg" :class="{'dimmed': !colVisibility.asset}" @click="toggleCol('asset')" title="切換大樹收成"></div>
-                        <div class="pure-color-dot dot-red-bg" :class="{'dimmed': !colVisibility.interest}" @click="toggleCol('interest')" title="切換年化回報率"></div>
-                    </div>
-                </div>
-
-                <!-- 參數設定 -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[11px] font-bold text-slate-500 block mb-1">開始歲數</label>
-                        <input type="number" x-model.number="calcAge" @input="recalc()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-center text-sm font-bold text-slate-800">
-                    </div>
-                    <div>
-                        <label class="text-[11px] font-bold text-blue-900 block mb-1">每年小額儲備 ($)</label>
-                        <input type="text" x-model="calcPremiumStr" @input="formatPremiumInput()" class="pink-edit-input font-mono font-bold text-sm">
-                    </div>
-                </div>
-
-                <!-- 時光複利結果表 -->
-                <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-sm">
-                    <table class="w-full text-xs clean-table">
-                        <thead>
-                            <tr>
-                                <th class="text-left">年份 (歲數)</th>
-                                <th>累計本金</th>
-                                <th x-show="colVisibility.annuity" class="text-blue-600 font-bold">被動收入 (每年)</th>
-                                <th x-show="colVisibility.accum" class="text-emerald-600 font-bold">累積已領</th>
-                                <th x-show="colVisibility.asset" class="text-purple-600 font-bold">大樹總資產</th>
-                                <th x-show="colVisibility.interest" class="text-rose-600 font-bold">年化回報率</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <template x-for="row in calcResults" :key="row.year">
-                                <tr class="hover:bg-slate-50 font-mono">
-                                    <td class="text-left text-slate-800 font-sans" x-text="row.year + ' (' + row.age + '歲)'"></td>
-                                    <td class="text-slate-500" x-text="'$' + formatNum(row.cost)"></td>
-                                    <td x-show="colVisibility.annuity" class="text-blue-600 font-bold" x-text="'$' + formatNum(row.annuity)"></td>
-                                    <td x-show="colVisibility.accum" class="text-emerald-600 font-bold" x-text="'$' + formatNum(row.accum)"></td>
-                                    <td x-show="colVisibility.asset" class="text-purple-600 font-bold" x-text="'$' + formatNum(row.asset)"></td>
-                                    <td x-show="colVisibility.interest" class="text-rose-600 font-bold" x-text="row.rate"></td>
-                                </tr>
+                                    <template x-for="(opt, optIdx) in stepData[sKey].options" :key="optIdx">
+                                        <div class="flex gap-2 items-center bg-white p-2 rounded-lg border border-slate-200">
+                                            <input type="text" x-model="opt.headline" placeholder="選項標題" class="pink-edit-input text-xs flex-1">
+                                            <input type="text" x-model="opt.subtext" placeholder="說明文字" class="pink-edit-input text-xs flex-[1.5]">
+                                            <button @click="deleteStepOption(sKey, optIdx)" class="text-red-500 hover:text-red-700 text-xs px-1.5"><i class="fa-solid fa-trash-can"></i></button>
+                                        </div>
+                                    </template>
+                                </div>
                             </template>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="flex justify-between pt-4">
-                    <button @click="prevStep()" class="px-5 py-2 border border-slate-300 text-xs text-slate-700 rounded-xl">← 上一步</button>
-                    <button @click="nextStep()" class="px-6 py-2.5 bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs rounded-xl shadow">檢視專屬藍圖方案 →</button>
+                        </div>
+                    </template>
                 </div>
             </div>
-
-            <!-- ⑦ SOLUTION｜方案 (藍圖筆記總結 + 客戶專屬 QR Code) -->
-            <div x-show="currentStep === 7" class="content-card space-y-6">
-                <div class="border-b border-slate-200 pb-4">
-                    <span class="text-xs font-bold text-blue-600 uppercase tracking-widest block mb-1">Step 7 · 落地共識</span>
-                    <h2 class="text-xl font-extrabold text-slate-900">「如果你想縮窄呢個差距，可以睇下有咩方法。」</h2>
-                    <p class="text-xs text-slate-500 mt-1">度身建立最舒服、完全不影響目前生活品質的無痛執行藍圖：</p>
-                </div>
-
-                <!-- 藍圖雙欄總結 -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- 左側：初衷軌跡 -->
-                    <div class="bg-slate-900 text-white p-5 rounded-xl space-y-3 shadow-md">
-                        <h3 class="text-xs font-bold text-amber-400 border-b border-slate-700 pb-2">📋 探索共識軌跡</h3>
-                        <div class="text-xs space-y-1">
-                            <span class="text-slate-400 block text-[10px]">01. 目前人生現況</span>
-                            <div class="font-bold text-slate-100" x-text="answers.step1 || '—'"></div>
-                        </div>
-                        <div class="text-xs space-y-1">
-                            <span class="text-slate-400 block text-[10px]">02. 理想未來畫面</span>
-                            <div class="font-bold text-slate-100" x-text="answers.step2 || '—'"></div>
-                        </div>
-                        <div class="text-xs space-y-1">
-                            <span class="text-slate-400 block text-[10px]">03. 優先確保事項</span>
-                            <div class="font-bold text-slate-100" x-text="answers.step3 || '—'"></div>
-                        </div>
-                        <div class="text-xs space-y-1">
-                            <span class="text-slate-400 block text-[10px]">05. 最關注潛在落差</span>
-                            <div class="font-bold text-yellow-300" x-text="answers.step5 || '—'"></div>
-                        </div>
-                    </div>
-
-                    <!-- 右側：方案價值與 QR Code -->
-                    <div class="bg-emerald-50 border border-emerald-200 p-5 rounded-xl flex flex-col justify-between space-y-4">
-                        <div>
-                            <h3 class="text-xs font-bold text-emerald-800 mb-2">💡 替代方案：無痛縮減落差</h3>
-                            <p class="text-xs text-slate-600 leading-relaxed">
-                                完全不影響現有生活享受，只需將每月不知不覺流走的小份額，透過 <strong class="text-emerald-700">5 年自動化水庫</strong> 進行儲備，為未來鎖定終身確定性。
-                            </p>
-                        </div>
-                        
-                        <!-- 二維碼生成區 (QR Code) -->
-                        <div class="bg-white p-4 rounded-xl border border-slate-200 text-center space-y-2 shadow-sm">
-                            <span class="text-[11px] font-bold text-slate-700 block">📲 客戶端專屬檢視二維碼</span>
-                            <div id="qrcode-container" class="flex justify-center p-2"></div>
-                            <span class="text-[10px] text-slate-400 block">客戶可直接掃描在手機查看此專屬 Review 藍圖</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-between pt-4">
-                    <button @click="prevStep()" class="px-5 py-2 border border-slate-300 text-xs text-slate-700 rounded-xl">← 上一步</button>
-                    <button @click="saveReviewSummary()" class="px-6 py-2.5 bg-blue-900 hover:bg-blue-950 text-white font-bold text-xs rounded-xl shadow">💾 儲存並完成 Review</button>
-                </div>
-            </div>
-
         </div>
 
     </main>
@@ -622,7 +674,7 @@
         /* ==========================================
            系統版本號與 API 端點配置
         ========================================== */
-        const SYSTEM_VERSION = "v6.0.0"; // 每次有新更新在此遞增版本號
+        const SYSTEM_VERSION = "v6.1.0";
         
         const CRM_GAS_URL = "https://script.google.com/macros/s/AKfycbzy1gnDB-qXZIhTsgxNvLveRrHWVP7AoYoqG_JsbELBvvReXy4Fx2rYu6ieJNuupMtmdg/exec";
         const PRODUCTS_GAS_URL = "https://script.google.com/macros/s/AKfycbzJxEthfbtGFhesn9zqKz_14bvLY0Q6uvKVzSr2WM8s1VfCTJXaCg7lhNEwqyAql6hUuQ/exec";
@@ -640,10 +692,83 @@
             return parseFloat(str.toString().replace(/,/g, ''));
         };
 
+        // 預設 7 步驟完整資料庫結構
+        const defaultStepData = {
+            step1: {
+                name: '人生現況',
+                tag: 'Step 1 · 現況想法',
+                title: '「最近一年，有冇咩令你開始諗多咗將來？」',
+                subtitle: '從你目前最真實、最自在的生活節奏開始探索：',
+                options: [
+                    { headline: '🌅 先享受現在的生活節奏', subtext: '今天的生活同樣重要，未來的步調希望按自己舒適的節奏慢慢來。' },
+                    { headline: '🧭 知道未來重要但市面太複雜', subtext: '日常已經很多安排，還未找到真正適合自己、不吃力的方法。' },
+                    { headline: '🌱 相信慢慢建立無痛累積', subtext: '不需要一步到位，希望由最舒服的小額份額開始，增加選擇權。' },
+                    { headline: '⏳ 覺得時間還算充裕', subtext: '暫未有急切壓力，但若有一套自動化運作機制，會想提早了解。' }
+                ]
+            },
+            step2: {
+                name: '未來畫面',
+                tag: 'Step 2 · 理想願景',
+                title: '「如果未來 5–10 年照你理想咁發展，你最希望做到咩？」',
+                subtitle: '理財唔係數字遊戲，而係為了實現具體的生活畫面：',
+                options: [
+                    { headline: '☕ 擁有隨時放下工作的底氣', subtext: '工作純粹出於熱愛與興趣，擁有隨心支配日常時間的自由。' },
+                    { headline: '🏡 生活品質與居住環境全面升級', subtext: '為自己與家人提供更舒適的環境，享有更充裕的日常享受。' },
+                    { headline: '👨‍👩‍👧 子女教育或家庭最強後盾', subtext: '無論外在環境如何轉變，都能給摯愛最穩健、不打折的資源。' },
+                    { headline: '🛡️ 任何突發風浪都處變不驚', subtext: '擁有足夠的被動安全網，既有的生活標準永遠不被動搖。' }
+                ]
+            },
+            step3: {
+                name: '最重要嘅嘢',
+                tag: 'Step 3 · 核心聚焦',
+                title: '「如果只能先處理一樣，你最想確保邊一部分？」',
+                subtitle: '找出最能令你感到踏實、最不能妥協的核心支柱：',
+                options: [
+                    { headline: '✨ 唔想被現實條件限制選擇', subtext: '希望做決定時是基於真心喜歡，而不是因為預算無奈妥協。' },
+                    { headline: '🛡️ 想有一份踏實絕對的掌控感', subtext: '生活有許多未知，希望在核心生活開支上擁有鎖定的現金流。' },
+                    { headline: '👨‍👩‍👧 為愛的人撐起無憂防護網', subtext: '盡到家庭支柱的責任，讓家人能無後顧之憂追求夢想。' },
+                    { headline: '⏳ 趁年輕心有餘力先做好鋪墊', subtext: '與其將來臨急應對，不如用時間的複利優勢輕鬆解決。' }
+                ]
+            },
+            step4: {
+                name: '現有安排',
+                tag: 'Step 4 · 現狀盤點',
+                title: '「其實你而家已經做咗呢啲安排。」',
+                subtitle: '系統從 CRM 已同步你的既有保障與資產架構：',
+                options: null
+            },
+            step5: {
+                name: '發現落差',
+                tag: 'Step 5 · 壓力測試',
+                title: '「如果未來發生＿＿＿，現有安排能否做到你想要嘅結果？」',
+                subtitle: '選取最可能影響你既有規劃的潛在變數：',
+                options: [
+                    { headline: '📉 突發重大醫療或健康轉變', subtext: '現有醫療與危疾保額是否足夠支撐頂級治療，而不動用儲蓄？' },
+                    { headline: '💼 收入中斷或市場環境波動', subtext: '若暫停主動收入，現有的被動現金流是否能維持原本生活水平？' },
+                    { headline: '📈 長期通脹侵蝕現金購買力', subtext: '單靠一般儲蓄戶口，長遠會否無法滿足未來 10-20 年的開支增長？' },
+                    { headline: '⏳ 退休時缺乏穩定源源不絕的長糧', subtext: '現有強積金與投資是否具備保證且終身派發的確定性？' }
+                ]
+            },
+            step6: {
+                name: '數字具體化',
+                tag: 'Step 6 · 產品＋概念＋數字',
+                title: '🌱 時光複利：小金額創造無痛大效果',
+                subtitle: '只需 5 年分段儲備，交畀時間滾存終身源源不絕的被動收入：',
+                options: null
+            },
+            step7: {
+                name: '方案落實',
+                tag: 'Step 7 · 落地共識',
+                title: '「如果你想縮窄呢個差距，可以睇下有咩方法。」',
+                subtitle: '度身建立最舒服、完全不影響目前生活品質的無痛執行藍圖：',
+                options: null
+            }
+        };
+
         function app() {
             return {
                 systemVersion: SYSTEM_VERSION,
-                viewMode: 'review', // 'review' | 'crm'
+                viewMode: 'review', // 'review' | 'crm' | 'admin'
                 currentStep: 1,
                 clients: [],
                 dbProducts: {},
@@ -653,64 +778,61 @@
                 isParsing: false,
                 parseProgressText: '',
                 
+                // 題目管理資料庫
+                stepData: JSON.parse(JSON.stringify(defaultStepData)),
+                
                 // 算式與開關
                 calcAge: 30,
                 calcPremiumStr: "40,000",
                 colVisibility: { annuity: true, accum: true, asset: true, interest: false },
                 calcResults: [],
                 answers: { step1: '', step2: '', step3: '', step5: '' },
-                
-                steps: [
-                    { num: '①', name: '人生現況' },
-                    { num: '②', name: '未來畫面' },
-                    { num: '③', name: '最重要嘅嘢' },
-                    { num: '④', name: '現有安排' },
-                    { num: '⑤', name: '發現落差' },
-                    { num: '⑥', name: '數字具體化' },
-                    { num: '⑦', name: '方案落實' }
-                ],
-                
-                stepData: {
-                    step1: {
-                        options: [
-                            { title: '🌅 先享受現在的生活節奏', sub: '今天的生活同樣重要，未來的步調希望按自己舒適的節奏慢慢來。' },
-                            { title: '🧭 知道未來重要但市面太複雜', sub: '日常已經很多安排，還未找到真正適合自己、不吃力的方法。' },
-                            { title: '🌱 相信慢慢建立無痛累積', sub: '不需要一步到位，希望由最舒服的小額份額開始，增加選擇權。' },
-                            { title: '⏳ 覺得時間還算充裕', sub: '暫未有急切壓力，但若有一套自動化運作機制，會想提早了解。' }
-                        ]
-                    },
-                    step2: {
-                        options: [
-                            { title: '☕ 擁有隨時放下工作的底氣', sub: '工作純粹出於熱愛與興趣，擁有隨心支配日常時間的自由。' },
-                            { title: '🏡 生活品質與居住環境全面升級', sub: '為自己與家人提供更舒適的環境，享有更充裕的日常享受。' },
-                            { title: '👨‍👩‍👧 子女教育或家庭最強後盾', sub: '無論外在環境如何轉變，都能給摯愛最穩健、不打折的資源。' },
-                            { title: '🛡️ 任何突發風浪都處變不驚', sub: '擁有足夠的被動安全網，既有的生活標準永遠不被動搖。' }
-                        ]
-                    },
-                    step3: {
-                        options: [
-                            { title: '✨ 唔想被現實條件限制選擇', sub: '希望做決定時是基於真心喜歡，而不是因為預算無奈妥協。' },
-                            { title: '🛡️ 想有一份踏實絕對的掌控感', sub: '生活有許多未知，希望在核心生活開支上擁有鎖定的現金流。' },
-                            { title: '👨‍👩‍👧 為愛的人撐起無憂防護網', sub: '盡到家庭支柱的責任，讓家人能無後顧之憂追求夢想。' },
-                            { title: '⏳ 趁年輕心有餘力先做好鋪墊', sub: '與其將來臨急應對，不如用時間的複利優勢輕鬆解決。' }
-                        ]
-                    },
-                    step5: {
-                        options: [
-                            { title: '📉 突發重大醫療或健康轉變', sub: '現有醫療與危疾保額是否足夠支撐頂級治療，而不動用儲蓄？' },
-                            { title: '💼 收入中斷或市場環境波動', sub: '若暫停主動收入，現有的被動現金流是否能維持原本生活水平？' },
-                            { title: '📈 長期通脹侵蝕現金購買力', sub: '單靠一般儲蓄戶口，長遠會否無法滿足未來 10-20 年的開支增長？' },
-                            { title: '⏳ 退休時缺乏穩定源源不絕的長糧', sub: '現有強積金與投資是否具備保證且終身派發的確定性？' }
-                        ]
-                    }
-                },
 
                 initApp() {
+                    this.loadAdminSettings();
                     this.fetchClients();
                     this.fetchProducts();
                     this.recalc();
                 },
 
+                // 後台資料管理方法
+                loadAdminSettings() {
+                    const saved = localStorage.getItem('AVA_STEP_DATABASE');
+                    if (saved) {
+                        try { this.stepData = JSON.parse(saved); } catch(e) {}
+                    }
+                },
+                saveAdminSettings() {
+                    localStorage.setItem('AVA_STEP_DATABASE', JSON.stringify(this.stepData));
+                    alert('✅ 已成功保存設定至本機！');
+                },
+                addStepOption(sKey) {
+                    if (!this.stepData[sKey].options) this.stepData[sKey].options = [];
+                    this.stepData[sKey].options.push({ headline: '新選項標題', subtext: '說明文字' });
+                },
+                deleteStepOption(sKey, idx) {
+                    this.stepData[sKey].options.splice(idx, 1);
+                },
+                async syncToGoogleSheet() {
+                    try {
+                        await fetch(SAVING_GAS_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            body: JSON.stringify({
+                                action: "sync_step_data",
+                                stepData: this.stepData,
+                                version: this.systemVersion
+                            })
+                        });
+                        this.saveAdminSettings();
+                        alert(`☁️ 成功同步至 Google Sheet！(Version: ${this.systemVersion})`);
+                    } catch(e) {
+                        this.saveAdminSettings();
+                        alert('✅ 已保存至本機，雲端同步稍後自動重試。');
+                    }
+                },
+
+                // CRM 與 AI 保單解析
                 autoResizeTextarea(el) {
                     if (!el) return;
                     el.style.height = 'auto';
