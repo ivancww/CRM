@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA 專屬生活引導與資產檢視系統 · CRM Review Edition (v6.1.0)</title>
+    <title>AVA 專屬生活引導與資產檢視系統 · CRM Review Edition (v6.1.1)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,7 +13,6 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- QR Code 生成庫 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
@@ -68,19 +67,26 @@
         
         .clean-table th, .clean-table td { padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--border-light); }
         .clean-table th { color: var(--text-sub); font-weight: 600; background: #f8fafc; }
-        textarea { resize: none; }
+        
+        /* 修正特點說明 textarea 高度顯示問題 */
+        textarea.policy-features-box {
+            min-height: 80px;
+            height: auto;
+            line-height: 1.5;
+            resize: vertical;
+        }
     </style>
 </head>
 <body x-data="app()" x-init="initApp()" class="min-h-screen flex flex-col">
 
-    <!-- 保險公司下拉清單 (Datalist) -->
+    <!-- 保險公司下拉清單 -->
     <datalist id="companyList">
         <template x-for="inc in dbProducts['保險公司'] || []" :key="inc">
             <option :value="inc"></option>
         </template>
     </datalist>
 
-    <!-- 頂部 NAV (已移除橫向步驟條) -->
+    <!-- 頂部 NAV -->
     <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-sm">
         <div class="flex items-center gap-2">
             <span class="font-black text-blue-900 text-sm tracking-wide">🌱 AVA PLANNER</span>
@@ -88,7 +94,6 @@
             <span class="text-[10px] bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded-full border border-slate-200 max-w-[120px] truncate" x-text="currentClient ? currentClient.owner : '未選客戶'"></span>
         </div>
         <div class="flex items-center gap-2">
-            <!-- 模式切換 -->
             <button @click="viewMode = 'review'" :class="viewMode === 'review' ? 'bg-blue-900 text-white font-bold' : 'bg-slate-100 text-slate-600'" class="text-xs px-2.5 py-1.5 rounded-lg transition-colors">
                 📋 引導
             </button>
@@ -101,12 +106,9 @@
         </div>
     </header>
 
-    <!-- 主工作區 -->
     <main class="flex-1 max-w-4xl w-full mx-auto p-4 space-y-6">
 
-        <!-- ========================================================
-             模式 1：New Saving Code 7 步 Review 引導
-        ======================================================== -->
+        <!-- 模式 1：New Saving Code 7 步 Review 引導 -->
         <div x-show="viewMode === 'review'" class="space-y-6">
 
             <!-- ① OPEN｜人生現況 -->
@@ -177,7 +179,7 @@
                 </div>
             </div>
 
-            <!-- ④ REALITY｜現有安排 (讀取 CRM 資料) -->
+            <!-- ④ REALITY｜現有安排 -->
             <div x-show="currentStep === 4" class="content-card space-y-6">
                 <div class="flex justify-between items-start border-b border-slate-200 pb-4">
                     <div>
@@ -191,7 +193,6 @@
                     </div>
                 </div>
 
-                <!-- CRM 既有保單列表摘要 -->
                 <div class="space-y-3">
                     <template x-if="!currentClient || !currentClient.policies || currentClient.policies.length === 0">
                         <div class="text-center py-8 text-slate-400 text-xs border border-dashed border-slate-300 rounded-xl">
@@ -245,7 +246,7 @@
                 </div>
             </div>
 
-            <!-- ⑥ NUMBERS｜數字具體化 (時光複利量化累積表) -->
+            <!-- ⑥ NUMBERS｜數字具體化 -->
             <div x-show="currentStep === 6" class="content-card space-y-6">
                 <div class="flex justify-between items-start flex-wrap gap-4 border-b border-slate-200 pb-4">
                     <div>
@@ -253,7 +254,6 @@
                         <h2 class="text-xl font-extrabold text-slate-900" x-text="stepData.step6.title"></h2>
                         <p class="text-xs text-slate-500 mt-1" x-text="stepData.step6.subtitle"></p>
                     </div>
-                    <!-- 純色圓點開關 Bar -->
                     <div class="flex items-center gap-2 bg-slate-100 p-2 rounded-xl border border-slate-200">
                         <div class="pure-color-dot dot-blue-bg" :class="{'dimmed': !colVisibility.annuity}" @click="toggleCol('annuity')" title="切換被動收入"></div>
                         <div class="pure-color-dot dot-green-bg" :class="{'dimmed': !colVisibility.accum}" @click="toggleCol('accum')" title="切換累積已領"></div>
@@ -262,7 +262,6 @@
                     </div>
                 </div>
 
-                <!-- 參數設定 -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="text-[11px] font-bold text-slate-500 block mb-1">開始歲數</label>
@@ -274,7 +273,6 @@
                     </div>
                 </div>
 
-                <!-- 時光複利結果表 -->
                 <div class="overflow-x-auto border border-slate-200 rounded-xl bg-white shadow-sm">
                     <table class="w-full text-xs clean-table">
                         <thead>
@@ -308,7 +306,7 @@
                 </div>
             </div>
 
-            <!-- ⑦ SOLUTION｜方案 (藍圖筆記總結 + 客戶專屬 QR Code) -->
+            <!-- ⑦ SOLUTION｜方案 -->
             <div x-show="currentStep === 7" class="content-card space-y-6">
                 <div class="border-b border-slate-200 pb-4">
                     <span class="text-xs font-bold text-blue-600 uppercase tracking-widest block mb-1" x-text="stepData.step7.tag"></span>
@@ -316,9 +314,7 @@
                     <p class="text-xs text-slate-500 mt-1" x-text="stepData.step7.subtitle"></p>
                 </div>
 
-                <!-- 藍圖雙欄總結 -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- 左側：初衷軌跡 -->
                     <div class="bg-slate-900 text-white p-5 rounded-xl space-y-3 shadow-md">
                         <h3 class="text-xs font-bold text-amber-400 border-b border-slate-700 pb-2">📋 探索共識軌跡</h3>
                         <div class="text-xs space-y-1">
@@ -339,7 +335,6 @@
                         </div>
                     </div>
 
-                    <!-- 右側：方案價值與 QR Code -->
                     <div class="bg-emerald-50 border border-emerald-200 p-5 rounded-xl flex flex-col justify-between space-y-4">
                         <div>
                             <h3 class="text-xs font-bold text-emerald-800 mb-2">💡 替代方案：無痛縮減落差</h3>
@@ -348,7 +343,6 @@
                             </p>
                         </div>
                         
-                        <!-- 二維碼生成區 (QR Code) -->
                         <div class="bg-white p-4 rounded-xl border border-slate-200 text-center space-y-2 shadow-sm">
                             <span class="text-[11px] font-bold text-slate-700 block">📲 客戶端專屬檢視二維碼</span>
                             <div id="qrcode-container" class="flex justify-center p-2"></div>
@@ -365,11 +359,8 @@
 
         </div>
 
-        <!-- ========================================================
-             模式 2：CRM 完整保單管理與 AI 解析區
-        ======================================================== -->
+        <!-- 模式 2：CRM 保單管理與 AI 解析區 -->
         <div x-show="viewMode === 'crm'" class="space-y-6">
-            <!-- 客戶選擇與管理 -->
             <section class="content-card space-y-3">
                 <div class="flex justify-between items-center">
                     <label class="text-xs font-bold text-blue-900">👤 選擇 / 管理客戶</label>
@@ -389,7 +380,6 @@
                 </div>
             </section>
 
-            <!-- AI 智能解析 (Gemini Flash) -->
             <section class="content-card border-2 border-dashed border-blue-200 bg-blue-50/50 space-y-2">
                 <div class="flex justify-between items-center">
                     <h3 class="text-xs font-bold text-blue-900"><i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> AI 智能解析 (Gemini Flash)</h3>
@@ -399,7 +389,6 @@
                 <div x-show="isParsing" class="text-xs text-blue-700 font-bold animate-pulse" x-text="parseProgressText"></div>
             </section>
 
-            <!-- 保單列表管理 -->
             <template x-if="currentClient">
                 <div class="space-y-6">
                     <section class="space-y-4">
@@ -468,7 +457,7 @@
                                                 </datalist>
                                             </div>
                                         </div>
-                                        <!-- 醫療專屬自付額 -->
+
                                         <template x-if="item.category === '醫療'">
                                             <div class="bg-blue-50 p-2.5 rounded-xl border border-blue-200 space-y-1">
                                                 <label class="text-[10px] text-blue-900 font-bold block">🏥 高端醫療自付額 / 墊底費 (Deductible)</label>
@@ -481,7 +470,7 @@
                                                 </div>
                                             </div>
                                         </template>
-                                        <!-- 主險保單價值細項 -->
+
                                         <template x-if="iIndex === 0 && (item.category === '危疾' || item.category === '儲蓄' || item.category === '人壽')">
                                             <div class="bg-amber-50/60 p-3 rounded-xl border border-amber-200 space-y-2">
                                                 <div class="flex justify-between items-center border-b border-amber-200/60 pb-1">
@@ -524,7 +513,7 @@
                                                 </div>
                                             </div>
                                         </template>
-                                        <!-- 保額與保費 -->
+
                                         <div class="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-200">
                                             <div x-show="item.category !== '儲蓄'">
                                                 <div class="flex justify-between items-center">
@@ -565,6 +554,7 @@
                                                 </template>
                                             </div>
                                         </div>
+
                                         <div class="grid grid-cols-2 gap-2 text-xs">
                                             <div>
                                                 <label class="text-[10px] text-slate-500">供款年期</label>
@@ -575,9 +565,11 @@
                                                 <input type="text" x-model="item.maturity" class="w-full bg-white border border-slate-300 rounded p-1.5 text-slate-800">
                                             </div>
                                         </div>
+
+                                        <!-- 修正特點說明輸入框 -->
                                         <div>
                                             <div class="flex justify-between items-center mb-1">
-                                                <label class="text-[10px] text-slate-500">契約條款特點說明</label>
+                                                <label class="text-[10px] text-slate-500 font-bold">契約條款特點說明</label>
                                                 <template x-if="item.category === '儲蓄'">
                                                     <label class="flex items-center gap-1 text-[10px] text-amber-700 font-bold cursor-pointer">
                                                         <input type="checkbox" x-model="item.isMedRetire" class="rounded border-slate-300">
@@ -591,7 +583,7 @@
                                                     </label>
                                                 </template>
                                             </div>
-                                            <textarea x-model="item.features" @input="autoResizeTextarea($el)" x-init="$nextTick(() => autoResizeTextarea($el))" class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs text-slate-800 leading-relaxed block" placeholder="特點說明..."></textarea>
+                                            <textarea rows="3" x-model="item.features" @input="autoResizeTextarea($el)" x-init="$nextTick(() => autoResizeTextarea($el))" class="policy-features-box w-full bg-white border border-slate-300 rounded-lg p-2 text-xs text-slate-800 block" placeholder="請輸入條款特點說明..."></textarea>
                                         </div>
                                     </div>
                                 </template>
@@ -605,9 +597,7 @@
             </template>
         </div>
 
-        <!-- ========================================================
-             模式 3：⚙️ 後台 / 題目管理 (可隨時修改 7 步驟全部內容)
-        ======================================================== -->
+        <!-- 模式 3：⚙️ 後台 / 題目管理 -->
         <div x-show="viewMode === 'admin'" class="space-y-6">
             <div class="content-card space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-200 pb-3">
@@ -621,7 +611,6 @@
                     </div>
                 </div>
 
-                <!-- 7 大步驟卡片編輯區 -->
                 <div class="space-y-6">
                     <template x-for="(sKey, sIndex) in ['step1', 'step2', 'step3', 'step4', 'step5', 'step6', 'step7']" :key="sKey">
                         <div class="border border-slate-200 bg-slate-50/50 p-4 rounded-xl space-y-3">
@@ -646,7 +635,6 @@
                                 <input type="text" x-model="stepData[sKey].subtitle" class="pink-edit-input text-xs">
                             </div>
 
-                            <!-- 選項清單編輯 (步驟 1, 2, 3, 5) -->
                             <template x-if="stepData[sKey].options">
                                 <div class="space-y-2 pt-2 border-t border-slate-200">
                                     <div class="flex justify-between items-center">
@@ -671,10 +659,7 @@
     </main>
 
     <script>
-        /* ==========================================
-           系統版本號與 API 端點配置
-        ========================================== */
-        const SYSTEM_VERSION = "v6.1.0";
+        const SYSTEM_VERSION = "v6.1.1";
         
         const CRM_GAS_URL = "https://script.google.com/macros/s/AKfycbzy1gnDB-qXZIhTsgxNvLveRrHWVP7AoYoqG_JsbELBvvReXy4Fx2rYu6ieJNuupMtmdg/exec";
         const PRODUCTS_GAS_URL = "https://script.google.com/macros/s/AKfycbzJxEthfbtGFhesn9zqKz_14bvLY0Q6uvKVzSr2WM8s1VfCTJXaCg7lhNEwqyAql6hUuQ/exec";
@@ -692,7 +677,6 @@
             return parseFloat(str.toString().replace(/,/g, ''));
         };
 
-        // 預設 7 步驟完整資料庫結構
         const defaultStepData = {
             step1: {
                 name: '人生現況',
@@ -768,7 +752,7 @@
         function app() {
             return {
                 systemVersion: SYSTEM_VERSION,
-                viewMode: 'review', // 'review' | 'crm' | 'admin'
+                viewMode: 'review',
                 currentStep: 1,
                 clients: [],
                 dbProducts: {},
@@ -778,10 +762,8 @@
                 isParsing: false,
                 parseProgressText: '',
                 
-                // 題目管理資料庫
                 stepData: JSON.parse(JSON.stringify(defaultStepData)),
                 
-                // 算式與開關
                 calcAge: 30,
                 calcPremiumStr: "40,000",
                 colVisibility: { annuity: true, accum: true, asset: true, interest: false },
@@ -792,10 +774,10 @@
                     this.loadAdminSettings();
                     this.fetchClients();
                     this.fetchProducts();
+                    this.fetchStepDataFromSheet();
                     this.recalc();
                 },
 
-                // 後台資料管理方法
                 loadAdminSettings() {
                     const saved = localStorage.getItem('AVA_STEP_DATABASE');
                     if (saved) {
@@ -831,12 +813,32 @@
                         alert('✅ 已保存至本機，雲端同步稍後自動重試。');
                     }
                 },
+                async fetchStepDataFromSheet() {
+                    try {
+                        const res = await fetch(SAVING_GAS_URL);
+                        const json = await res.json();
+                        if (json && json.status === "success" && json.cards && json.cards.length > 0) {
+                            const cloudStepData = JSON.parse(JSON.stringify(defaultStepData));
+                            json.cards.forEach(c => {
+                                const sKey = c.step_id || ('step' + c.step_num);
+                                if (cloudStepData[sKey]) {
+                                    if (c.title) cloudStepData[sKey].title = c.title;
+                                    if (c.subtitle) cloudStepData[sKey].subtitle = c.subtitle;
+                                    if (c.step_name) cloudStepData[sKey].name = c.step_name;
+                                    if (c.options_json) {
+                                        cloudStepData[sKey].options = typeof c.options_json === 'string' ? JSON.parse(c.options_json) : c.options_json;
+                                    }
+                                }
+                            });
+                            this.stepData = cloudStepData;
+                        }
+                    } catch(e) {}
+                },
 
-                // CRM 與 AI 保單解析
                 autoResizeTextarea(el) {
                     if (!el) return;
                     el.style.height = 'auto';
-                    el.style.height = (el.scrollHeight + 4) + 'px';
+                    el.style.height = Math.max(80, el.scrollHeight + 4) + 'px';
                 },
                 getCalculatedHkd(val) {
                     const parsed = parseNumber(val);
@@ -892,7 +894,9 @@
                     });
                     this.currentClient = clientCopy;
                     this.searchOrNameInput = clientCopy.owner;
-                    this.$nextTick(() => { document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el)); });
+                    this.$nextTick(() => { 
+                        document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el)); 
+                    });
                 },
                 onNameInput() {
                     if (this.currentClient) {
@@ -1078,7 +1082,6 @@
                     });
                 },
 
-                // 7 步導覽與 QR Code
                 selectOption(stepKey, val) { this.answers[stepKey] = val; },
                 nextStep() { 
                     if (this.currentStep < 7) {
