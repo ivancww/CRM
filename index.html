@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA 專屬生活引導與資產檢視系統 · CRM Review Edition (v6.1.1)</title>
+    <title>AVA CRM · 客戶工作台 (v6.2.0)</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,13 +17,22 @@
 
     <style>
         :root {
-            --bg-page: #f8fafc;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-soft: #eff6ff;
+            --bg-page: #f6f8fb;
             --surface-card: #ffffff;
             --surface-subtle: #f1f5f9;
-            --border-light: #e2e8f0;
-            --text-main: #0f172a;
-            --text-sub: #475569;
-            --text-muted: #94a3b8;
+            --border-light: #e7ebf1;
+            --text-main: #172033;
+            --text-sub: #718096;
+            --text-muted: #98a2b3;
+            --sidebar-width: 230px;
+            --page-title: 32px;
+            --section-title: 23px;
+            --card-title: 17px;
+            --control-height: 42px;
+            --radius: 14px;
             
             --brand-primary: #1e3a8a;
             --brand-accent: #2563eb;
@@ -34,19 +43,53 @@
             
             --pink-dashed: 1.5px dashed #f8bbd0;
             --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
-            --shadow-md: 0 4px 16px -2px rgba(15, 23, 42, 0.06);
+            --shadow-md: 0 10px 28px rgba(23, 32, 51, 0.08);
         }
+        * { box-sizing: border-box; }
         body {
             background-color: var(--bg-page);
             color: var(--text-main);
-            font-family: 'Noto Sans TC', 'Plus Jakarta Sans', -apple-system, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", 'Noto Sans TC', sans-serif;
+            font-size: 14px;
             -webkit-font-smoothing: antialiased;
         }
+        button, input, select, textarea { font: inherit; }
+        .crm-sidebar {
+            width: var(--sidebar-width); background: #fff; border-right: 1px solid var(--border-light);
+            position: fixed; inset: 0 auto 0 0; padding: 24px 16px; display: flex; flex-direction: column;
+            z-index: 60; transition: transform .22s ease;
+        }
+        .crm-logo { font-size: 21px; font-weight: 800; padding: 4px 10px 24px; }
+        .crm-logo span { color: var(--primary); }
+        .crm-menu-title { font-size: 10px; color: #a0a8b5; letter-spacing: 1.2px; margin: 18px 10px 7px; }
+        .crm-menu-item {
+            width: 100%; padding: 11px 12px; border: 0; border-radius: 10px; color: #626b79;
+            margin: 2px 0; cursor: pointer; background: transparent; text-align: left;
+        }
+        .crm-menu-item:hover, .crm-menu-item.active { background: var(--primary-soft); color: var(--primary); }
+        .crm-menu-item.active { font-weight: 650; }
+        .crm-sidebar-bottom { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border-light); }
+        .crm-version { margin: 10px 12px 0; color: var(--text-muted); font-size: 11px; }
+        .crm-sidebar-mask { display: none; position: fixed; inset: 0; background: rgba(16,24,40,.25); z-index: 50; }
+        .crm-mobile-toggle {
+            display: none; width: var(--control-height); height: var(--control-height); border: 1px solid var(--border-light);
+            background: #fff; border-radius: 11px; font-size: 21px; cursor: pointer; flex: 0 0 auto;
+        }
+        .crm-topbar {
+            margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); min-height: 86px;
+            padding: 24px 42px 12px; display: flex; align-items: center; justify-content: space-between;
+            gap: 20px; background: transparent;
+        }
+        .crm-heading { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .crm-heading h1 { font-size: var(--page-title); line-height: 1.2; letter-spacing: -.02em; font-weight: 800; }
+        .crm-heading p { color: var(--text-sub); margin-top: 7px; }
+        .crm-client-pill { border: 1px solid var(--border-light); background: #fff; border-radius: 10px; padding: 10px 15px; color: var(--text-main); font-weight: 600; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .crm-workspace { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); max-width: 1500px; padding: 12px 42px 60px; }
         .content-card {
             background: var(--surface-card);
             border: 1px solid var(--border-light);
-            border-radius: 18px;
-            padding: 24px;
+            border-radius: 16px;
+            padding: 22px;
             box-shadow: var(--shadow-md);
         }
         .pink-edit-input {
@@ -75,9 +118,47 @@
             line-height: 1.5;
             resize: vertical;
         }
+        input:not([type="checkbox"]):not([type="radio"]), select, textarea { min-height: var(--control-height); }
+        @media (max-width: 1000px) {
+            .crm-sidebar { transform: translateX(-105%); box-shadow: 12px 0 35px rgba(16,24,40,.12); }
+            .crm-sidebar.open { transform: translateX(0); }
+            .crm-sidebar-mask.open { display: block; }
+            .crm-mobile-toggle { display: block; }
+            .crm-topbar, .crm-workspace { margin-left: 0; width: 100%; }
+            .crm-topbar { padding: 22px 24px 10px; }
+            .crm-workspace { padding: 12px 24px 60px; }
+        }
+        @media (max-width: 650px) {
+            :root { --page-title: 26px; --section-title: 21px; }
+            .crm-topbar { padding: 18px 16px 8px; align-items: flex-start; }
+            .crm-workspace { padding: 10px 16px 50px; }
+            .crm-heading { align-items: flex-start; }
+            .crm-heading p { font-size: 12px; }
+            .crm-client-pill { max-width: 128px; padding: 10px 11px; }
+            .content-card { padding: 18px; }
+        }
     </style>
 </head>
 <body x-data="app()" x-init="initApp()" class="min-h-screen flex flex-col">
+
+    <!-- AVA Mother Standard：User / Admin 分層 Navigation -->
+    <aside id="crmSidebar" class="crm-sidebar">
+        <div class="crm-logo">AVA <span>CRM</span></div>
+
+        <div class="crm-menu-title">USER WORKSPACE</div>
+        <button type="button" @click="viewMode = 'review'; closeCrmSidebar()" :class="viewMode === 'review' ? 'active' : ''" class="crm-menu-item">◇　客戶引導</button>
+        <button type="button" @click="viewMode = 'crm'; closeCrmSidebar()" :class="viewMode === 'crm' ? 'active' : ''" class="crm-menu-item">▣　保單管理</button>
+
+        <div class="crm-menu-title">CLIENT VIEW</div>
+        <a href="client.html" class="crm-menu-item block no-underline">◎　客戶專屬頁</a>
+
+        <div class="crm-sidebar-bottom">
+            <div class="crm-menu-title !mt-0">ADMIN</div>
+            <button type="button" @click="viewMode = 'admin'; closeCrmSidebar()" :class="viewMode === 'admin' ? 'active' : ''" class="crm-menu-item">🔒　CRM Studio</button>
+            <div class="crm-version" x-text="systemVersion"></div>
+        </div>
+    </aside>
+    <div id="crmSidebarMask" class="crm-sidebar-mask" onclick="closeCrmSidebar()"></div>
 
     <!-- 保險公司下拉清單 -->
     <datalist id="companyList">
@@ -86,27 +167,19 @@
         </template>
     </datalist>
 
-    <!-- 頂部 NAV -->
-    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-sm">
-        <div class="flex items-center gap-2">
-            <span class="font-black text-blue-900 text-sm tracking-wide">🌱 AVA PLANNER</span>
-            <span class="text-[10px] bg-blue-100 text-blue-800 font-extrabold px-2 py-0.5 rounded-full border border-blue-200" x-text="systemVersion"></span>
-            <span class="text-[10px] bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded-full border border-slate-200 max-w-[120px] truncate" x-text="currentClient ? currentClient.owner : '未選客戶'"></span>
+    <!-- AVA Mother Standard：Page Header -->
+    <header class="crm-topbar">
+        <div class="crm-heading">
+            <button type="button" class="crm-mobile-toggle" onclick="toggleCrmSidebar()" aria-label="開啟導覽">☰</button>
+            <div>
+                <h1 x-text="viewMode === 'review' ? '客戶引導' : (viewMode === 'crm' ? '客戶工作台' : 'CRM Studio')"></h1>
+                <p x-text="viewMode === 'admin' ? '管理官方流程與預設內容' : 'AVA CRM · Review & Policy Workspace'"></p>
+            </div>
         </div>
-        <div class="flex items-center gap-2">
-            <button @click="viewMode = 'review'" :class="viewMode === 'review' ? 'bg-blue-900 text-white font-bold' : 'bg-slate-100 text-slate-600'" class="text-xs px-2.5 py-1.5 rounded-lg transition-colors">
-                📋 引導
-            </button>
-            <button @click="viewMode = 'crm'" :class="viewMode === 'crm' ? 'bg-blue-900 text-white font-bold' : 'bg-slate-100 text-slate-600'" class="text-xs px-2.5 py-1.5 rounded-lg transition-colors">
-                📂 保單
-            </button>
-            <button @click="viewMode = 'admin'" :class="viewMode === 'admin' ? 'bg-amber-600 text-white font-bold' : 'bg-amber-50 text-amber-800 border border-amber-200'" class="text-xs px-2.5 py-1.5 rounded-lg transition-colors">
-                ⚙️ 後台
-            </button>
-        </div>
+        <div class="crm-client-pill" x-text="currentClient ? currentClient.owner : '未選客戶'"></div>
     </header>
 
-    <main class="flex-1 max-w-4xl w-full mx-auto p-4 space-y-6">
+    <main class="crm-workspace space-y-6">
 
         <!-- 模式 1：New Saving Code 7 步 Review 引導 -->
         <div x-show="viewMode === 'review'" class="space-y-6">
@@ -659,7 +732,17 @@
     </main>
 
     <script>
-        const SYSTEM_VERSION = "v6.1.1";
+        const SYSTEM_VERSION = "v6.2.0";
+
+        function toggleCrmSidebar() {
+            document.getElementById('crmSidebar')?.classList.toggle('open');
+            document.getElementById('crmSidebarMask')?.classList.toggle('open');
+        }
+
+        function closeCrmSidebar() {
+            document.getElementById('crmSidebar')?.classList.remove('open');
+            document.getElementById('crmSidebarMask')?.classList.remove('open');
+        }
         
         const CRM_GAS_URL = "https://script.google.com/macros/s/AKfycbzy1gnDB-qXZIhTsgxNvLveRrHWVP7AoYoqG_JsbELBvvReXy4Fx2rYu6ieJNuupMtmdg/exec";
         const PRODUCTS_GAS_URL = "https://script.google.com/macros/s/AKfycbzJxEthfbtGFhesn9zqKz_14bvLY0Q6uvKVzSr2WM8s1VfCTJXaCg7lhNEwqyAql6hUuQ/exec";
