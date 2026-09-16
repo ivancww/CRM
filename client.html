@@ -10,7 +10,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="clientapp-192.png?v=3.6.3">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#000000">
+    <meta name="theme-color" content="#f6f8fb">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -19,14 +19,38 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        body { background-color: #000000; color: #F3F4F6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        .glass-card { background: #000000; border: 1px solid rgba(255, 255, 255, 0.15); }
-        .gold-border { border-color: rgba(212, 175, 55, 0.4); }
-        .gold-text { color: #D4AF37; }
-        .blue-text { color: #38BDF8; }
-        .emerald-text { color: #10B981; }
+        :root {
+            --primary: #2563eb; --primary-dark: #1d4ed8; --primary-soft: #eff6ff;
+            --background: #f6f8fb; --surface: #ffffff; --text: #172033;
+            --secondary: #718096; --light: #98a2b3; --border: #e7ebf1;
+            --control-height: 42px; --radius: 14px; --shadow: 0 10px 28px rgba(23,32,51,.08);
+        }
+        * { box-sizing: border-box; }
+        body { background-color: var(--background); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang HK", "Noto Sans TC", sans-serif; font-size: 14px; }
+        button, input, select { font: inherit; }
+        .glass-card { background: var(--surface) !important; border: 1px solid var(--border); box-shadow: var(--shadow); }
+        .gold-border { border-color: #bfdbfe; }
+        .gold-text, .blue-text { color: var(--primary-dark) !important; }
+        .emerald-text { color: #059669 !important; }
+        .bg-black { background-color: var(--surface) !important; }
+        .text-white, .text-slate-200, .text-slate-300 { color: var(--text) !important; }
+        .text-slate-400 { color: var(--secondary) !important; }
+        .border-slate-700, .border-slate-800, .border-slate-900 { border-color: var(--border) !important; }
+        header.bg-black\/95, footer.bg-black\/95 { background: rgba(255,255,255,.96) !important; }
+        header { border-color: var(--border) !important; box-shadow: 0 1px 0 var(--border); }
+        header > div, header > template + div { max-width: 1100px; margin-left: auto; margin-right: auto; }
+        #pdf-container { max-width: 1100px; padding: 24px; }
+        #pdf-container > template + div, #pdf-container > div { max-width: 760px; margin-left: auto; margin-right: auto; }
+        select { min-height: var(--control-height); color: var(--text) !important; }
+        select option { background: #fff !important; color: var(--text) !important; }
+        footer button { min-height: 38px; background: #fff !important; border-color: var(--border) !important; color: var(--secondary) !important; }
+        footer button.bg-amber-500\/20, footer button.bg-blue-500\/20 { background: var(--primary-soft) !important; color: var(--primary) !important; border-color: #bfdbfe !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @media (max-width: 650px) {
+            #pdf-container { padding: 16px; }
+            header { padding: 14px 16px !important; }
+        }
     </style>
 </head>
 <body x-data="pwaApp()" x-init="initPwa()">
