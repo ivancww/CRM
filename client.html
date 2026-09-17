@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AVA Portfolio | 客戶專屬保障首頁</title>
 
-    <link id="dynamic-manifest" rel="manifest" href="manifest-client.json?v=7.0.0">
+    <link id="dynamic-manifest" rel="manifest" href="manifest-client.json?v=7.1.0">
     <link rel="icon" type="image/png" sizes="192x192" href="clientapp-192.png?v=3.6.3">
     <link rel="apple-touch-icon" sizes="180x180" href="clientapp-192.png?v=3.6.3">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,7 +13,7 @@
     <meta name="theme-color" content="#f6f8fb">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="crm-data.js?v=7.0.0"></script>
+    <script src="crm-data.js?v=7.1.0"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -398,7 +398,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=7.0.0');
+                navigator.serviceWorker.register('sw.js?v=7.1.0');
             });
         }
     </script>
@@ -464,8 +464,11 @@
                                 "name": "A.V.A Portfolio | 客戶保障總攬",
                                 "short_name": "A.V.A Portfolio",
                                 "description": "A.V.A Team 專屬客戶個人及家庭保障總攬 App",
+                                "id": window.location.pathname,
                                 "start_url": dynamicStartUrl,
+                                "scope": new URL('./', window.location.href).pathname,
                                 "display": "standalone",
+                                "display_override": ["standalone", "minimal-ui"],
                                 "background_color": "#000000",
                                 "theme_color": "#000000",
                                 "orientation": "portrait",
@@ -655,6 +658,6 @@
             }
         }
     </script>
-    <script src="client-v7.js?v=7.0.0"></script>
+    <script src="client-v7.js?v=7.1.0"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 // ==========================================
-// AVA CRM & Portfolio Service Worker (v7.0.0)
+// AVA CRM & Portfolio Service Worker (v7.1.0)
 // ==========================================
-const CACHE_NAME = 'crm-cache-v7.0.0';
+const CACHE_NAME = 'crm-cache-v7.1.0';
 
 const urlsToCache = [
   './',
