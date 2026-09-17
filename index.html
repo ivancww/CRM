@@ -88,6 +88,8 @@
         .crm-heading h1 { font-size: var(--page-title); line-height: 1.2; letter-spacing: -.02em; font-weight: 800; }
         .crm-heading p { color: var(--text-sub); margin-top: 7px; }
         .crm-client-pill { border: 1px solid var(--border-light); background: #fff; border-radius: 10px; padding: 10px 15px; color: var(--text-main); font-weight: 600; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .crm-header-actions { display:flex; align-items:center; gap:8px; min-width:0; }
+        .ava-return-button { border:1px solid var(--border-light); background:#fff; color:var(--primary); border-radius:10px; min-height:var(--control-height); padding:0 14px; font-weight:700; cursor:pointer; white-space:nowrap; }
         .crm-workspace { margin-left: var(--sidebar-width); width: calc(100% - var(--sidebar-width)); max-width: 1500px; padding: 12px 42px 60px; }
         .content-card {
             background: var(--surface-card);
@@ -139,6 +141,8 @@
             .crm-heading { align-items: flex-start; }
             .crm-heading p { font-size: 12px; }
             .crm-client-pill { max-width: 128px; padding: 10px 11px; }
+            .crm-topbar { flex-wrap:wrap; }
+            .crm-header-actions { width:100%; justify-content:space-between; }
             .content-card { padding: 18px; }
         }
         [x-cloak] { display: none !important; }
@@ -202,7 +206,10 @@
                 <p x-text="viewMode === 'admin' ? '管理官方流程與預設內容' : 'AVA CRM · Review & Policy Workspace'"></p>
             </div>
         </div>
-        <div class="crm-client-pill" x-text="currentClient ? currentClient.owner : '未選客戶'"></div>
+        <div class="crm-header-actions">
+            <button x-show="integratedEntry" x-cloak type="button" class="ava-return-button" @click="returnToAva()">← 返回 AVA</button>
+            <div class="crm-client-pill" x-text="currentClient ? currentClient.owner : '未選客戶'"></div>
+        </div>
     </header>
 
     <main class="crm-workspace space-y-6">
@@ -830,7 +837,12 @@
     </main>
 
     <script>
-        if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js?v=7.0.0'));
+        const AVA_ENTRY_MODES = Object.freeze({ frontend: 'review', user: 'user', admin: 'admin' });
+        const AVA_ENTRY = new URLSearchParams(window.location.search).get('avaEntry');
+        const AVA_PLATFORM_URL = 'https://ivancww.github.io/avaplatform/';
+        const isAvaIntegratedEntry = () => Object.prototype.hasOwnProperty.call(AVA_ENTRY_MODES, AVA_ENTRY);
+        if (isAvaIntegratedEntry()) document.querySelector('link[rel="manifest"]')?.remove();
+        if ('serviceWorker' in navigator && !isAvaIntegratedEntry()) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js?v=7.0.0'));
         const SYSTEM_VERSION = "v7.0.0";
 
         function toggleCrmSidebar() {
@@ -933,7 +945,8 @@
         function app() {
             return {
                 systemVersion: SYSTEM_VERSION,
-                viewMode: 'review',
+                viewMode: AVA_ENTRY_MODES[AVA_ENTRY] || 'review',
+                integratedEntry: isAvaIntegratedEntry(),
                 currentStep: 1,
                 clients: [],
                 dbProducts: {},
@@ -971,6 +984,11 @@
 
                 get coverageSummary() { return AVACRM.aggregateCoverage(this.currentClient); },
                 get activeDraftGroup() { return this.aiDraftGroups[this.activeDraftIndex] || null; },
+
+                returnToAva() {
+                    const surface = AVA_ENTRY === 'admin' ? 'admin' : (AVA_ENTRY === 'user' ? 'user' : 'frontend');
+                    window.location.assign(surface === 'frontend' ? AVA_PLATFORM_URL : `${AVA_PLATFORM_URL}?avaSurface=${surface}`);
+                },
 
                 loadAdminSettings() {
                     const saved = localStorage.getItem('AVA_STEP_DATABASE');
