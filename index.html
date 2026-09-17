@@ -3,13 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AVA CRM · 客戶工作台 (v6.2.0)</title>
+    <title>AVA CRM · Client Review Center (v7.0.0)</title>
+    <link rel="manifest" href="manifest-admin.json?v=7.0.0">
+    <meta name="theme-color" content="#2563eb">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="crm-data.js?v=7.0.0"></script>
+    <script src="crm-ai-adapter.js?v=7.0.0"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -137,6 +141,26 @@
             .crm-client-pill { max-width: 128px; padding: 10px 11px; }
             .content-card { padding: 18px; }
         }
+        [x-cloak] { display: none !important; }
+        .metric-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+        .metric-card { border:1px solid var(--border-light); border-radius:16px; padding:18px; background:#fff; text-align:left; min-height:132px; cursor:pointer; }
+        .metric-card:hover,.metric-card.active { border-color:#93b4f4; box-shadow:var(--shadow-md); }
+        .metric-label { color:var(--text-sub); font-size:12px; font-weight:700; }
+        .metric-value { color:var(--text-main); font-size:clamp(22px,3vw,34px); font-weight:800; line-height:1.15; margin-top:12px; }
+        .metric-note { color:var(--text-muted); font-size:11px; margin-top:8px; }
+        .segmented { display:flex; gap:4px; padding:4px; border-radius:12px; background:var(--surface-subtle); width:max-content; max-width:100%; overflow:auto; }
+        .segmented button { border:0; background:transparent; border-radius:9px; padding:9px 13px; color:var(--text-sub); white-space:nowrap; }
+        .segmented button.active { background:#fff; color:var(--primary); font-weight:700; box-shadow:var(--shadow-sm); }
+        .source-row { display:flex; justify-content:space-between; gap:16px; padding:14px 0; border-bottom:1px solid var(--border-light); }
+        .source-row:last-child { border-bottom:0; }
+        .status-chip { display:inline-flex; align-items:center; border-radius:999px; padding:5px 9px; background:#fff7ed; color:#9a3412; font-size:11px; font-weight:700; }
+        .flow-row { display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; padding:13px; border:1px solid var(--border-light); border-radius:12px; background:#fff; }
+        .flow-actions { display:flex; gap:6px; }
+        .flow-actions button { width:38px; height:38px; border:1px solid var(--border-light); border-radius:9px; background:#fff; }
+        .draft-grid { display:grid; grid-template-columns:minmax(220px,.65fr) minmax(0,1.35fr); gap:16px; }
+        .draft-file { padding:10px 12px; border:1px solid var(--border-light); border-radius:10px; background:#f8fafc; font-size:12px; }
+        @media (max-width:1000px){.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+        @media (max-width:650px){.metric-grid{grid-template-columns:1fr}.draft-grid{grid-template-columns:1fr}.flow-row{grid-template-columns:1fr}.flow-actions{justify-content:flex-end}.source-row{align-items:flex-start}.metric-card{min-height:116px}}
     </style>
 </head>
 <body x-data="app()" x-init="initApp()" class="min-h-screen flex flex-col">
@@ -147,7 +171,9 @@
 
         <div class="crm-menu-title">USER WORKSPACE</div>
         <button type="button" @click="viewMode = 'review'; closeCrmSidebar()" :class="viewMode === 'review' ? 'active' : ''" class="crm-menu-item">◇　客戶引導</button>
+        <button type="button" @click="viewMode = 'coverage'; closeCrmSidebar()" :class="viewMode === 'coverage' ? 'active' : ''" class="crm-menu-item">◫　保障總覽</button>
         <button type="button" @click="viewMode = 'crm'; closeCrmSidebar()" :class="viewMode === 'crm' ? 'active' : ''" class="crm-menu-item">▣　保單管理</button>
+        <button type="button" @click="viewMode = 'user'; closeCrmSidebar()" :class="viewMode === 'user' ? 'active' : ''" class="crm-menu-item">⚙　我的設定</button>
 
         <div class="crm-menu-title">CLIENT VIEW</div>
         <a href="client.html" class="crm-menu-item block no-underline">◎　客戶專屬頁</a>
@@ -172,7 +198,7 @@
         <div class="crm-heading">
             <button type="button" class="crm-mobile-toggle" onclick="toggleCrmSidebar()" aria-label="開啟導覽">☰</button>
             <div>
-                <h1 x-text="viewMode === 'review' ? '客戶引導' : (viewMode === 'crm' ? '客戶工作台' : 'CRM Studio')"></h1>
+                <h1 x-text="viewMode === 'review' ? '客戶引導' : (viewMode === 'coverage' ? '保障總覽' : (viewMode === 'crm' ? '保單管理' : (viewMode === 'user' ? '我的設定' : 'CRM Studio')))"></h1>
                 <p x-text="viewMode === 'admin' ? '管理官方流程與預設內容' : 'AVA CRM · Review & Policy Workspace'"></p>
             </div>
         </div>
@@ -180,6 +206,58 @@
     </header>
 
     <main class="crm-workspace space-y-6">
+
+        <!-- Coverage View：TOTAL → SOURCE → DETAIL -->
+        <div x-show="viewMode === 'coverage'" x-cloak class="space-y-5">
+            <section class="content-card space-y-5">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div><p class="text-xs font-bold text-blue-600 tracking-widest">LEVEL 1 · TOTAL</p><h2 class="text-xl font-extrabold mt-1">全部加埋，而家有幾多保障／資源？</h2></div>
+                    <span class="status-chip" x-text="coverageDataStateLabel()"></span>
+                </div>
+                <div class="metric-grid">
+                    <button type="button" class="metric-card" :class="coverageFocus === 'ci' ? 'active' : ''" @click="coverageFocus='ci'; coverageLevel=2"><span class="metric-label block">危疾保障</span><span class="metric-value block" x-text="money(coverageSummary.ci)"></span><span class="metric-note block" x-text="coverageSummary.sources.ci.length + ' 個保障來源'"></span></button>
+                    <button type="button" class="metric-card" :class="coverageFocus === 'life' ? 'active' : ''" @click="coverageFocus='life'; coverageLevel=2"><span class="metric-label block">人壽保障</span><span class="metric-value block" x-text="money(coverageSummary.life)"></span><span class="metric-note block" x-text="coverageSummary.sources.life.length + ' 個保障來源'"></span></button>
+                    <button type="button" class="metric-card" :class="coverageFocus === 'medical' ? 'active' : ''" @click="coverageFocus='medical'; coverageLevel=2"><span class="metric-label block">醫療保障</span><span class="metric-value block" x-text="coverageSummary.medical + ' 份'"></span><span class="metric-note block">按保單來源查看</span></button>
+                    <button type="button" class="metric-card" :class="coverageFocus === 'values' ? 'active' : ''" @click="coverageFocus='values'; coverageLevel=2"><span class="metric-label block">保單價值</span><span class="text-lg font-extrabold mt-3 block">保證 <span x-text="money(coverageSummary.guaranteed)"></span></span><span class="text-sm font-bold text-slate-500 mt-2 block">非保證 <span x-text="money(coverageSummary.nonGuaranteed)"></span></span></button>
+                </div>
+                <p class="text-xs text-slate-500">「沒有相關保單」只代表目前未有保單資料，並不等於沒有其他資源或存在財務缺口。</p>
+            </section>
+
+            <section x-show="coverageLevel >= 2" class="content-card" x-cloak>
+                <p class="text-xs font-bold text-blue-600 tracking-widest">LEVEL 2 · SOURCE</p>
+                <div class="flex justify-between items-center gap-3 mt-1 mb-3"><h2 class="text-xl font-extrabold" x-text="coverageFocusLabel()"></h2><button @click="coverageLevel=1" class="text-xs text-blue-600 font-bold">收起</button></div>
+                <template x-if="coverageSources().length === 0"><div class="py-8 text-center text-slate-400 text-sm">目前未有相關保單資料</div></template>
+                <template x-for="source in coverageSources()" :key="source.policyId + (source.benefitId || '')"><button class="source-row w-full text-left" @click="openPolicyDetail(source.policyId)"><span class="font-bold text-slate-800" x-text="source.label"></span><span class="font-extrabold text-blue-900" x-text="source.amount !== undefined ? money(source.amount) : (source.guaranteed !== undefined ? '保證 ' + money(source.guaranteed) + ' · 非保證 ' + money(source.nonGuaranteed) : '查看')"></span></button></template>
+            </section>
+
+            <section x-show="coverageLevel === 3 && selectedPolicyDetail" class="content-card space-y-4" x-cloak>
+                <div class="flex justify-between gap-3"><div><p class="text-xs font-bold text-blue-600 tracking-widest">LEVEL 3 · DETAIL</p><h2 class="text-xl font-extrabold mt-1" x-text="policyDisplayName(selectedPolicyDetail)"></h2></div><button @click="coverageLevel=2" class="text-xs text-blue-600 font-bold">返回來源</button></div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                    <div><span class="text-slate-400 block text-xs">保險公司</span><strong x-text="selectedPolicyDetail?.insurer || '—'"></strong></div>
+                    <div><span class="text-slate-400 block text-xs">保單號碼</span><strong x-text="maskPolicyNumber(selectedPolicyDetail?.policyNumber)"></strong></div>
+                    <div><span class="text-slate-400 block text-xs">受保人</span><strong x-text="selectedPolicyDetail?.insuredPerson || '—'"></strong></div>
+                </div>
+            </section>
+
+            <section class="content-card space-y-4">
+                <div><h2 class="text-lg font-extrabold">未來資源來源</h2><p class="text-xs text-slate-500 mt-1">留下客戶今次嘅思考，作下一次 Review 入口；可多選，並非產品「解決方案」。</p></div>
+                <div class="flex flex-wrap gap-2"><template x-for="source in resourceSourceOptions" :key="source"><button @click="toggleResourceSource(source)" :class="resourceAnswers.includes(source) ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-700 border-slate-200'" class="px-3 py-2 rounded-xl border text-xs font-bold" x-text="source"></button></template></div>
+                <button @click="saveResourceAnswers()" class="px-4 py-2.5 bg-blue-900 text-white rounded-xl text-xs font-bold">保存今次答案</button>
+            </section>
+        </div>
+
+        <!-- User layer：本機流程、Override、備份 -->
+        <div x-show="viewMode === 'user'" x-cloak class="space-y-5">
+            <section class="content-card space-y-4">
+                <div><h2 class="text-lg font-extrabold">我的流程</h2><p class="text-xs text-slate-500 mt-1">本機版本優先於官方 Cloud Default；修改只影響你呢部裝置。</p></div>
+                <template x-for="(step, index) in userFlow" :key="step.step_id"><div class="flow-row"><button @click="toggleFlowStep(index)" class="status-chip" x-text="step.enabled === false ? '已隱藏' : '顯示中'"></button><div><strong x-text="step.step_name"></strong><p class="text-xs text-slate-500 mt-1" x-text="step.title"></p></div><div class="flow-actions"><button @click="moveFlowStep(index,-1)" :disabled="index===0" aria-label="上移">↑</button><button @click="moveFlowStep(index,1)" :disabled="index===userFlow.length-1" aria-label="下移">↓</button><button @click="deleteUserFlowStep(index)" aria-label="刪除">×</button></div></div></template>
+                <div class="flex flex-wrap gap-2"><button @click="addUserFlowStep()" class="px-4 py-2 border border-blue-200 text-blue-700 rounded-xl text-xs font-bold">+ 新增步驟</button><button @click="saveUserFlow()" class="px-4 py-2 bg-blue-900 text-white rounded-xl text-xs font-bold">保存本機流程</button><button @click="resetUserFlow()" class="px-4 py-2 border border-slate-200 rounded-xl text-xs font-bold">Reset to Default</button></div>
+            </section>
+            <section class="content-card space-y-4">
+                <div><h2 class="text-lg font-extrabold">Backup / Restore</h2><p class="text-xs text-slate-500 mt-1">備份包含結構化 CRM 資料，不包含 AI 上載原始文件。</p></div>
+                <div class="flex flex-wrap gap-2"><button @click="exportBackupFile()" class="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-bold">Export Backup</button><label class="px-4 py-2.5 border border-slate-200 rounded-xl text-xs font-bold cursor-pointer">Import / Restore<input type="file" accept="application/json,.json" class="hidden" @change="importBackupFile($event)"></label></div>
+            </section>
+        </div>
 
         <!-- 模式 1：New Saving Code 7 步 Review 引導 -->
         <div x-show="viewMode === 'review'" class="space-y-6">
@@ -460,6 +538,26 @@
                 </div>
                 <input type="file" @change="uploadAndParseMultiple($event)" multiple accept="image/*, application/pdf" class="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white cursor-pointer">
                 <div x-show="isParsing" class="text-xs text-blue-700 font-bold animate-pulse" x-text="parseProgressText"></div>
+                <p class="text-[11px] text-slate-500">原始文件只作今次暫時處理；確認或取消後會從記憶體清除，不會加入 IndexedDB 或 Backup。</p>
+            </section>
+
+            <section x-show="aiDraftGroups.length" x-cloak class="content-card space-y-4">
+                <div class="flex flex-wrap justify-between items-start gap-3"><div><span class="status-chip">AI DRAFT · 未寫入 CRM</span><h2 class="text-lg font-extrabold mt-2">AI 已整理以下資料，請確認</h2><p class="text-xs text-slate-500 mt-1">可先調整文件分組及欄位；只有按「確認並加入保單」才會正式寫入。</p></div><button @click="cancelAiIntake()" class="text-xs text-red-600 font-bold">取消並清除文件</button></div>
+                <div class="segmented"><template x-for="(group,index) in aiDraftGroups" :key="group.groupId"><button @click="activeDraftIndex=index" :class="activeDraftIndex===index ? 'active' : ''" x-text="'保單組 ' + (index+1) + (group.status==='needs_confirmation' ? ' · 請確認' : '')"></button></template></div>
+                <template x-if="activeDraftGroup"><div class="draft-grid">
+                    <div class="space-y-2"><h3 class="text-xs font-bold text-slate-500">文件分組</h3><template x-for="file in activeDraftGroup.files" :key="file.id"><div class="draft-file flex justify-between gap-2"><span class="truncate" x-text="file.name"></span><button x-show="aiDraftGroups.length>1" @click="moveDraftFile(file.id)" class="text-blue-600 font-bold">移動</button></div></template><button x-show="activeDraftGroup.files.length>1" @click="splitDraftGroup()" class="text-xs text-blue-600 font-bold">拆分最後一份文件</button><button x-show="aiDraftGroups.length>1" @click="mergeDraftGroup()" class="text-xs text-blue-600 font-bold ml-3">合併到上一組</button></div>
+                    <div class="space-y-4">
+                        <div x-show="activeDraftGroup.status==='needs_confirmation'" class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs font-bold text-amber-800">⚠️ 請確認：資料不確定或不同頁面存在矛盾，系統不會自行猜測。</div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                            <label>保險公司<input type="text" class="pink-edit-input mt-1" x-model="activeDraftGroup.draft.insurer"></label><label>保單類型<input type="text" class="pink-edit-input mt-1" x-model="activeDraftGroup.draft.type"></label>
+                            <label>計劃名稱<input type="text" class="pink-edit-input mt-1" x-model="activeDraftGroup.draft.productName"></label><label>保單號碼<input type="text" class="pink-edit-input mt-1" x-model="activeDraftGroup.draft.policyNumber"></label>
+                            <label>受保人<input type="text" class="pink-edit-input mt-1" x-model="activeDraftGroup.draft.insuredPerson"></label><label>生效日期<input type="text" class="pink-edit-input mt-1" x-model="activeDraftGroup.draft.commencementDate"></label>
+                            <label>保費<input type="text" class="pink-edit-input mt-1" x-model="activeDraftGroup.draft.premium.amount"></label><label>繳費年期<input type="text" class="pink-edit-input mt-1" x-model="activeDraftGroup.draft.premiumTerm"></label>
+                            <label>保證價值<input type="text" class="pink-edit-input mt-1" x-model="activeDraftGroup.draft.policyValues.guaranteed"></label><label>非保證價值<input type="text" class="pink-edit-input mt-1" x-model="activeDraftGroup.draft.policyValues.nonGuaranteed"></label>
+                        </div>
+                        <div class="flex flex-wrap gap-2"><button @click="reanalyzeDraftGroup()" class="px-4 py-2 border border-blue-200 text-blue-700 rounded-xl text-xs font-bold">重新分析</button><button @click="confirmAiDraft()" class="px-4 py-2 bg-blue-900 text-white rounded-xl text-xs font-bold">確認並加入保單</button></div>
+                    </div>
+                </div></template>
             </section>
 
             <template x-if="currentClient">
@@ -663,8 +761,8 @@
                             </div>
                         </template>
                     </section>
-                    <button @click="saveClientToCloud()" class="w-full py-3.5 bg-blue-900 hover:bg-blue-950 font-bold rounded-xl text-xs text-white shadow-md active:scale-95 transition-transform">
-                        💾 儲存客戶保單資料至 Google Sheet
+                    <button @click="saveClientLocal()" class="w-full py-3.5 bg-blue-900 hover:bg-blue-950 font-bold rounded-xl text-xs text-white shadow-md active:scale-95 transition-transform">
+                        💾 儲存客戶保單資料至本機
                     </button>
                 </div>
             </template>
@@ -732,7 +830,8 @@
     </main>
 
     <script>
-        const SYSTEM_VERSION = "v6.2.0";
+        if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js?v=7.0.0'));
+        const SYSTEM_VERSION = "v7.0.0";
 
         function toggleCrmSidebar() {
             document.getElementById('crmSidebar')?.classList.toggle('open');
@@ -744,7 +843,6 @@
             document.getElementById('crmSidebarMask')?.classList.remove('open');
         }
         
-        const CRM_GAS_URL = "https://script.google.com/macros/s/AKfycbzy1gnDB-qXZIhTsgxNvLveRrHWVP7AoYoqG_JsbELBvvReXy4Fx2rYu6ieJNuupMtmdg/exec";
         const PRODUCTS_GAS_URL = "https://script.google.com/macros/s/AKfycbzJxEthfbtGFhesn9zqKz_14bvLY0Q6uvKVzSr2WM8s1VfCTJXaCg7lhNEwqyAql6hUuQ/exec";
         const AI_GAS_URL = "https://script.google.com/macros/s/AKfycbzPIlJHqcGWDMeJd_Tc_tpDz-r-vVW9lNXBiVXnD2o0ulVNoGkUHy-Ve3rAxnsWh9dhUQ/exec";
         const SAVING_GAS_URL = "https://script.google.com/macros/s/AKfycbwbKrrmiS5vx0Q5TvqqUCHBhU-VrS7WwwY0hj6BaNRwuzPtXXIZZxejPwhycCZhSCr-Rg/exec";
@@ -844,6 +942,15 @@
                 currentClient: null,
                 isParsing: false,
                 parseProgressText: '',
+                aiDraftGroups: [],
+                activeDraftIndex: 0,
+                coverageLevel: 1,
+                coverageFocus: 'ci',
+                selectedPolicyDetail: null,
+                resourceSourceOptions: ['銀行存款','股票','基金 / ETF','現有儲蓄','保單資源','MPF / 退休金','退休資產','家庭資源','其他資產','另外預留儲備','尚未決定 / 暫時未諗過'],
+                resourceAnswers: [],
+                userFlow: [],
+                cloudStepData: [],
                 
                 stepData: JSON.parse(JSON.stringify(defaultStepData)),
                 
@@ -853,13 +960,17 @@
                 calcResults: [],
                 answers: { step1: '', step2: '', step3: '', step5: '' },
 
-                initApp() {
+                async initApp() {
                     this.loadAdminSettings();
-                    this.fetchClients();
+                    this.userFlow = this.stepObjectToFlow(this.stepData);
+                    await this.fetchClients();
                     this.fetchProducts();
                     this.fetchStepDataFromSheet();
                     this.recalc();
                 },
+
+                get coverageSummary() { return AVACRM.aggregateCoverage(this.currentClient); },
+                get activeDraftGroup() { return this.aiDraftGroups[this.activeDraftIndex] || null; },
 
                 loadAdminSettings() {
                     const saved = localStorage.getItem('AVA_STEP_DATABASE');
@@ -913,9 +1024,31 @@
                                     }
                                 }
                             });
-                            this.stepData = cloudStepData;
+                            this.cloudStepData = this.stepObjectToFlow(cloudStepData);
+                            const overrides = await AVACRM.getAll('FlowOverrides');
+                            this.userFlow = AVACRM.resolveFlow(this.stepObjectToFlow(defaultStepData), this.cloudStepData, overrides);
+                            this.stepData = this.flowToStepObject(this.userFlow, cloudStepData);
                         }
                     } catch(e) {}
+                },
+
+                stepObjectToFlow(source) {
+                    return Object.keys(source || {}).map((key, index) => ({
+                        step_id: key,
+                        stepId: key,
+                        step_name: source[key].name || `步驟 ${index + 1}`,
+                        title: source[key].title || '', subtitle: source[key].subtitle || '',
+                        options_json: source[key].options || [], enabled: source[key].enabled !== false,
+                        sort_order: source[key].sort_order ?? index, version: this.systemVersion
+                    }));
+                },
+                flowToStepObject(flow, fallback) {
+                    const result = JSON.parse(JSON.stringify(fallback || defaultStepData));
+                    (flow || []).forEach(step => {
+                        if (!result[step.step_id]) result[step.step_id] = {};
+                        Object.assign(result[step.step_id], { name: step.step_name, title: step.title, subtitle: step.subtitle, options: step.options_json, enabled: step.enabled, sort_order: step.sort_order });
+                    });
+                    return result;
                 },
 
                 autoResizeTextarea(el) {
@@ -934,27 +1067,16 @@
                     const total = this.calculateTotalCv(item);
                     return item.cvCurrency === 'USD' ? total * 7.8 : total;
                 },
-                fetchClients(forceSync = false) {
-                    const localData = localStorage.getItem('AVA_CLIENTS_CACHE');
-                    if (localData && !forceSync) {
-                        this.clients = JSON.parse(localData);
-                        if (this.clients.length > 0 && !this.selectedClientId) {
-                            this.selectedClientId = this.clients[0].id;
-                            this.loadSelectedClient();
-                        }
+                async fetchClients() {
+                    try {
+                        await AVACRM.migrateLegacy(localStorage);
+                        this.clients = await AVACRM.loadClients();
+                        if (this.clients.length > 0 && !this.selectedClientId) this.selectedClientId = this.clients[0].clientId;
+                        if (this.selectedClientId) this.loadSelectedClient();
+                    } catch (error) {
+                        console.error('無法讀取本機 CRM Database', error);
+                        alert('無法開啟本機 CRM Database，請確認瀏覽器允許 IndexedDB。');
                     }
-                    fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'get', version: this.systemVersion }), redirect: "follow" })
-                    .then(r => r.json()).then(res => {
-                        if (res.status === 'success') {
-                            this.clients = res.data || [];
-                            localStorage.setItem('AVA_CLIENTS_CACHE', JSON.stringify(this.clients));
-                            if (this.selectedClientId) this.loadSelectedClient();
-                            else if (this.clients.length > 0) {
-                                this.selectedClientId = this.clients[0].id;
-                                this.loadSelectedClient();
-                            }
-                        }
-                    });
                 },
                 fetchProducts() {
                     fetch(PRODUCTS_GAS_URL).then(r => r.json()).then(res => { if (res.status === 'success') this.dbProducts = res.data || {}; });
@@ -963,7 +1085,7 @@
                     const found = this.clients.find(c => String(c.id) === String(this.selectedClientId));
                     if (!found) { this.currentClient = null; return; }
                     const clientCopy = JSON.parse(JSON.stringify(found));
-                    clientCopy.policies.forEach(pol => {
+                    (clientCopy.policies || []).forEach(pol => {
                         if (pol.items) {
                             pol.items.forEach(item => {
                                 if (!item.payMode) item.payMode = '年繳';
@@ -989,30 +1111,32 @@
                     }
                 },
                 resetOwner() {
-                    const newId = Date.now().toString();
-                    const newClient = { id: newId, owner: '新客戶', insured: '新客戶', policies: [] };
+                    const newId = AVACRM.id('client');
+                    const newClient = { id: newId, clientId: newId, owner: '新客戶', insured: '新客戶', policies: [], updatedAt: new Date().toISOString() };
                     this.clients.unshift(newClient);
                     this.selectedClientId = newId;
                     this.currentClient = newClient;
                     this.searchOrNameInput = '新客戶';
                 },
-                deleteCurrentClient() {
+                async deleteCurrentClient() {
                     if (!this.selectedClientId) return;
                     if (confirm('確定要刪除？')) {
-                        fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'delete', id: this.selectedClientId, version: this.systemVersion }), redirect: "follow" })
-                        .then(r => r.json()).then(res => { if (res.status === 'success') { this.selectedClientId = ''; this.currentClient = null; this.fetchClients(true); } });
+                        await AVACRM.deleteClient(this.selectedClientId);
+                        this.selectedClientId = ''; this.currentClient = null; await this.fetchClients();
                     }
                 },
                 addEmptyPolicy() {
                     if (!this.currentClient.policies) this.currentClient.policies = [];
+                    const policyId = AVACRM.id('policy');
                     this.currentClient.policies.push({
+                        policyId, clientId: this.currentClient.clientId,
                         insurer: '', policyNumber: '', commencementDate: '', policyHolder: this.searchOrNameInput, insuredPerson: this.searchOrNameInput,
-                        items: [{ category: '危疾', name: '', term: '', maturity: '', sumAssured: "0", saCurrency: 'HKD', premium: "0", payMode: '年繳', currency: 'HKD', cvCurrency: 'HKD', cvGuaranteed: "0", cvAnnualBonus: "0", cvCashValue: "0", cvTerminalBonus: "0", cvReversionaryBonus: "0", isMedRetire: false, isMultiClaim: false, features: '' }]
+                        items: [{ benefitId: AVACRM.id('benefit'), policyId, category: '危疾', name: '', term: '', maturity: '', sumAssured: "0", saCurrency: 'HKD', premium: "0", payMode: '年繳', currency: 'HKD', cvCurrency: 'HKD', cvGuaranteed: "0", cvAnnualBonus: "0", cvCashValue: "0", cvTerminalBonus: "0", cvReversionaryBonus: "0", isMedRetire: false, isMultiClaim: false, features: '' }]
                     });
                 },
                 addEmptyItemToPolicy(policy) {
                     if (!policy.items) policy.items = [];
-                    policy.items.push({ category: '危疾', name: '', term: '', maturity: '', sumAssured: "0", saCurrency: 'HKD', premium: "0", payMode: '年繳', currency: 'HKD', cvCurrency: 'HKD', cvGuaranteed: "0", cvAnnualBonus: "0", cvCashValue: "0", cvTerminalBonus: "0", cvReversionaryBonus: "0", isMedRetire: false, isMultiClaim: false, features: '' });
+                    policy.items.push({ benefitId: AVACRM.id('benefit'), policyId: policy.policyId, category: '危疾', name: '', term: '', maturity: '', sumAssured: "0", saCurrency: 'HKD', premium: "0", payMode: '年繳', currency: 'HKD', cvCurrency: 'HKD', cvGuaranteed: "0", cvAnnualBonus: "0", cvCashValue: "0", cvTerminalBonus: "0", cvReversionaryBonus: "0", isMedRetire: false, isMultiClaim: false, features: '' });
                 },
                 removePolicy(index) { this.currentClient.policies.splice(index, 1); },
                 removeSingleItem(policy, itemIndex) { policy.items.splice(itemIndex, 1); },
@@ -1141,6 +1265,90 @@
                     this.$nextTick(() => { document.querySelectorAll('textarea').forEach(el => this.autoResizeTextarea(el)); });
                     alert(`🎉 批次上載完成（共 ${files.length} 份文件）！\n\n- 新增保單：${totalNewPolicies} 份\n- 更新/補充覆蓋：${totalUpdatedPolicies} 份`);
                 },
+                // v7 local-first AI intake: files remain in memory and extracted data is staged.
+                async uploadAndParseMultiple(e) {
+                    const files = Array.from(e.target.files || []);
+                    if (!files.length) return;
+                    if (files.length > 10) { alert('一次最多選擇 10 份文件。'); e.target.value = ''; return; }
+                    this.cancelAiIntake(false);
+                    this.isParsing = true;
+                    const results = [];
+                    try {
+                        for (let index = 0; index < files.length; index += 1) {
+                            const file = files[index];
+                            this.parseProgressText = `正在暫時分析 ${index + 1}/${files.length}：${file.name}`;
+                            const fileRef = { id: AVACRM.id('file'), name: file.name, type: file.type, size: file.size, file };
+                            try {
+                                const base64Data = await this.readFileAsBase64(file);
+                                const adapter = new PolicyAIAdapter(AI_GAS_URL, this.systemVersion);
+                                const extraction = await adapter.extractFile({ base64Data, mimeType: file.type, fileName: file.name });
+                                extraction.records.forEach(data => results.push({ fileRef, data: data || {} }));
+                                await adapter.cleanup(extraction.processingId);
+                            } catch (error) {
+                                results.push({ fileRef, data: {}, warning: `${file.name} 未能可靠讀取：${error.message}` });
+                            }
+                        }
+                        this.aiDraftGroups = AVACRM.groupExtractionResults(results);
+                        this.aiDraftGroups.forEach(group => {
+                            if (!group.draft.premium || typeof group.draft.premium !== 'object') group.draft.premium = { amount: group.draft.premium || '', currency: group.draft.currency || 'HKD' };
+                            if (!group.draft.policyValues) group.draft.policyValues = { guaranteed: '', nonGuaranteed: '', currency: group.draft.currency || 'HKD' };
+                        });
+                        this.activeDraftIndex = 0;
+                    } finally {
+                        this.isParsing = false; this.parseProgressText = ''; e.target.value = '';
+                    }
+                },
+                cancelAiIntake(showNotice = true) {
+                    this.aiDraftGroups.forEach(group => group.files.forEach(file => { if (file) delete file.file; }));
+                    this.aiDraftGroups = []; this.activeDraftIndex = 0;
+                    if (showNotice) alert('暫存文件及 AI Draft 已清除，未寫入 CRM。');
+                },
+                splitDraftGroup() {
+                    const group = this.activeDraftGroup;
+                    if (!group || group.files.length < 2) return;
+                    const moved = group.files.pop();
+                    const split = AVACRM.groupExtractionResults([{ fileRef: moved, data: {} }])[0];
+                    split.status = 'needs_confirmation'; this.aiDraftGroups.splice(this.activeDraftIndex + 1, 0, split);
+                },
+                mergeDraftGroup() {
+                    if (this.activeDraftIndex < 1) return;
+                    const source = this.aiDraftGroups[this.activeDraftIndex];
+                    const target = this.aiDraftGroups[this.activeDraftIndex - 1];
+                    target.files.push(...source.files); target.status = 'needs_confirmation';
+                    this.aiDraftGroups.splice(this.activeDraftIndex, 1); this.activeDraftIndex -= 1;
+                },
+                moveDraftFile(fileId) {
+                    if (this.aiDraftGroups.length < 2) return;
+                    const source = this.activeDraftGroup;
+                    const index = source.files.findIndex(file => file.id === fileId);
+                    if (index < 0) return;
+                    const destinationIndex = (this.activeDraftIndex + 1) % this.aiDraftGroups.length;
+                    this.aiDraftGroups[destinationIndex].files.push(source.files.splice(index, 1)[0]);
+                    source.status = this.aiDraftGroups[destinationIndex].status = 'needs_confirmation';
+                },
+                reanalyzeDraftGroup() { alert('請重新選擇需要分析的原始文件；舊 Draft 會保留至你取消或確認。'); },
+                async confirmAiDraft() {
+                    const group = this.activeDraftGroup;
+                    if (!group || !this.currentClient) { alert('請先選擇或建立客戶。'); return; }
+                    const draft = group.draft;
+                    const policyId = AVACRM.id('policy');
+                    const values = draft.policyValues || {};
+                    const premium = draft.premium || {};
+                    const items = (draft.benefits || []).map((benefit, index) => ({
+                        benefitId: AVACRM.id('benefit'), policyId, category: benefit.category || draft.type || '其他', name: benefit.name || draft.productName || '',
+                        sumAssured: typeof benefit.sumAssured === 'object' ? benefit.sumAssured.amount : benefit.sumAssured || '0', saCurrency: benefit.sumAssured && benefit.sumAssured.currency || draft.currency || 'HKD',
+                        premium: typeof premium === 'object' ? premium.amount || '0' : premium, currency: premium.currency || draft.currency || 'HKD', payMode: draft.payMode || '', term: draft.coverageTerm || '', maturity: draft.premiumTerm || '',
+                        cvGuaranteed: values.guaranteed || '0', cvAnnualBonus: values.nonGuaranteed || '0', cvCashValue: '0', cvTerminalBonus: '0', cvReversionaryBonus: '0', cvCurrency: values.currency || draft.currency || 'HKD',
+                        deductible: typeof benefit.deductible === 'object' ? benefit.deductible.amount : benefit.deductible || '0', roomLevel: benefit.roomLevel || '', majorLimit: benefit.majorLimit || '', sortOrder: index, features: ''
+                    }));
+                    this.currentClient.policies.push({ policyId, clientId: this.currentClient.clientId, insurer: draft.insurer, type: draft.type, policyNumber: draft.policyNumber, commencementDate: draft.commencementDate, policyHolder: draft.policyHolder || this.currentClient.owner, insuredPerson: draft.insuredPerson || this.currentClient.owner, items });
+                    await this.saveClientLocal(false);
+                    group.files.forEach(file => delete file.file);
+                    this.aiDraftGroups.splice(this.activeDraftIndex, 1);
+                    this.activeDraftIndex = Math.max(0, Math.min(this.activeDraftIndex, this.aiDraftGroups.length - 1));
+                    alert('已按你確認嘅內容加入本機 CRM。原始文件已清除。');
+                },
+
                 readFileAsBase64(file) {
                     return new Promise((resolve, reject) => {
                         const reader = new FileReader();
@@ -1152,18 +1360,17 @@
                         reader.readAsDataURL(file);
                     });
                 },
-                saveClientToCloud() {
-                    if (this.currentClient) this.currentClient.owner = this.searchOrNameInput;
-                    fetch(CRM_GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'update', payload: this.currentClient, version: this.systemVersion }), redirect: "follow" })
-                    .then(r => r.json()).then(res => {
-                        if (res.status === 'success') {
-                            localStorage.setItem('AVA_CLIENTS_CACHE', JSON.stringify(this.clients));
-                            alert(`✅ 儲存成功！已同步至 Google Sheet。(Version: ${this.systemVersion})`);
-                        } else {
-                            alert('❌ 儲存失敗：' + res.message);
-                        }
-                    });
+                async saveClientLocal(showNotice = true) {
+                    if (!this.currentClient) return;
+                    this.currentClient.owner = this.searchOrNameInput || this.currentClient.owner;
+                    this.currentClient.updatedAt = new Date().toISOString();
+                    this.currentClient = await AVACRM.saveClientGraph(this.currentClient);
+                    const existing = this.clients.findIndex(client => client.clientId === this.currentClient.clientId);
+                    if (existing >= 0) this.clients.splice(existing, 1, JSON.parse(JSON.stringify(this.currentClient)));
+                    else this.clients.unshift(JSON.parse(JSON.stringify(this.currentClient)));
+                    if (showNotice) alert('已保存到本機 IndexedDB。客戶私人資料不會寫入 Admin Cloud。');
                 },
+                saveClientToCloud() { return this.saveClientLocal(); },
 
                 selectOption(stepKey, val) { this.answers[stepKey] = val; },
                 nextStep() { 
@@ -1215,12 +1422,12 @@
                     });
                     this.calcResults = rows;
                 },
-                renderQRCode() {
+                async renderQRCode() {
                     const container = document.getElementById('qrcode-container');
-                    if (!container) return;
+                    if (!container || !this.currentClient) return;
                     container.innerHTML = '';
-                    const clientId = this.currentClient ? this.currentClient.id : 'default';
-                    const targetUrl = window.location.href.split('?')[0].replace('index.html', '') + 'client.html?id=' + clientId + '&role=client&v=' + this.systemVersion;
+                    const share = await AVACRM.createClientShare(this.currentClient, 24);
+                    const targetUrl = window.location.href.split('?')[0].replace('index.html', '') + 'client.html#token=' + share.token;
                     new QRCode(container, {
                         text: targetUrl,
                         width: 140,
@@ -1230,9 +1437,47 @@
                         correctLevel: QRCode.CorrectLevel.H
                     });
                 },
-                saveReviewSummary() {
-                    this.saveClientToCloud();
-                    alert(`🎉 專屬生活藍圖 Review 完成！已為客戶【${this.currentClient ? this.currentClient.owner : '新客戶'}】完成登記。(Version: ${this.systemVersion})`);
+                money(value) { return 'HK$' + new Intl.NumberFormat('en-HK', { maximumFractionDigits: 0 }).format(value || 0); },
+                coverageFocusLabel() { return ({ ci: '危疾保障來源', life: '人壽保障來源', medical: '醫療保障來源', values: '保單價值來源' })[this.coverageFocus] || '保障來源'; },
+                coverageSources() { return this.coverageSummary.sources[this.coverageFocus] || []; },
+                coverageDataStateLabel() {
+                    if (!this.currentClient) return '未選客戶';
+                    if (!this.currentClient.policies?.length) return '沒有相關保單';
+                    const hasMissing = this.currentClient.policies.some(policy => !policy.insurer || !(policy.items || []).length);
+                    return hasMissing ? '部分資料' : '已有完整資料';
+                },
+                openPolicyDetail(policyId) { this.selectedPolicyDetail = this.currentClient?.policies?.find(policy => policy.policyId === policyId) || null; if (this.selectedPolicyDetail) this.coverageLevel = 3; },
+                policyDisplayName(policy) { return [policy?.insurer, policy?.items?.[0]?.name].filter(Boolean).join(' · ') || '保單詳情'; },
+                maskPolicyNumber(value) { const text = String(value || ''); return text ? '••••' + text.slice(-4) : '—'; },
+                toggleResourceSource(source) { const index = this.resourceAnswers.indexOf(source); if (index >= 0) this.resourceAnswers.splice(index, 1); else this.resourceAnswers.push(source); },
+                async saveResourceAnswers() {
+                    if (!this.currentClient) { alert('請先選擇客戶。'); return; }
+                    const answer = { answerId: `resources_${this.currentClient.clientId}`, clientId: this.currentClient.clientId, sources: [...this.resourceAnswers], updatedAt: new Date().toISOString() };
+                    await AVACRM.put('ResourceAnswers', answer); alert('已保存今次「未來資源來源」答案。');
+                },
+                moveFlowStep(index, offset) { const target = index + offset; if (target < 0 || target >= this.userFlow.length) return; const moved = this.userFlow.splice(index, 1)[0]; this.userFlow.splice(target, 0, moved); this.userFlow.forEach((step, i) => step.sort_order = i); },
+                toggleFlowStep(index) { this.userFlow[index].enabled = this.userFlow[index].enabled === false; },
+                addUserFlowStep() { const stepId = AVACRM.id('step'); this.userFlow.push({ step_id: stepId, stepId, step_name: '新步驟', title: '請輸入問題', subtitle: '', options_json: [], enabled: true, sort_order: this.userFlow.length, version: this.systemVersion }); },
+                deleteUserFlowStep(index) { if (confirm('只從你嘅本機流程刪除此步驟？')) this.userFlow.splice(index, 1); },
+                async saveUserFlow() { await AVACRM.replaceStore('FlowOverrides', this.userFlow.map(step => ({ ...step, stepId: step.step_id }))); this.stepData = this.flowToStepObject(this.userFlow, this.stepData); alert('已保存本機 User Flow；官方 Cloud Default 未被改寫。'); },
+                async resetUserFlow() { await AVACRM.replaceStore('FlowOverrides', []); this.userFlow = AVACRM.resolveFlow(this.stepObjectToFlow(defaultStepData), this.cloudStepData, []); this.stepData = this.flowToStepObject(this.userFlow, defaultStepData); alert('已還原官方／內置 Default Flow。'); },
+                async exportBackupFile() {
+                    const backup = await AVACRM.exportBackup();
+                    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob); const link = document.createElement('a');
+                    link.href = url; link.download = `AVA-CRM-Backup-${new Date().toISOString().slice(0,10)}.json`; link.click();
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                },
+                async importBackupFile(event) {
+                    const file = event.target.files?.[0]; if (!file) return;
+                    try { const payload = JSON.parse(await file.text()); AVACRM.validateBackup(payload); if (!confirm('Restore 會以備份內容取代目前本機 CRM 資料，是否繼續？')) return; await AVACRM.restoreBackup(payload); await this.fetchClients(); alert('Backup Restore 完成。'); }
+                    catch (error) { alert('Restore 失敗：' + error.message); }
+                    finally { event.target.value = ''; }
+                },
+                async saveReviewSummary() {
+                    await this.saveClientLocal(false);
+                    await AVACRM.put('Reviews', { reviewId: AVACRM.id('review'), clientId: this.currentClient?.clientId, answers: JSON.parse(JSON.stringify(this.answers)), completedAt: new Date().toISOString(), version: this.systemVersion });
+                    alert(`Review 已保存到本機：${this.currentClient ? this.currentClient.owner : '新客戶'}。`);
                 }
             }
         }

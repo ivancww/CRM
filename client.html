@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AVA Portfolio | 客戶專屬保障首頁</title>
 
-    <link id="dynamic-manifest" rel="manifest" href="manifest-client.json?v=3.6.3">
+    <link id="dynamic-manifest" rel="manifest" href="manifest-client.json?v=7.0.0">
     <link rel="icon" type="image/png" sizes="192x192" href="clientapp-192.png?v=3.6.3">
     <link rel="apple-touch-icon" sizes="180x180" href="clientapp-192.png?v=3.6.3">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,6 +13,7 @@
     <meta name="theme-color" content="#f6f8fb">
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="crm-data.js?v=7.0.0"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -51,6 +52,13 @@
             #pdf-container { padding: 16px; }
             header { padding: 14px 16px !important; }
         }
+        #pdf-container, footer { display:none !important; }
+        .client-v7 { max-width:760px; margin:0 auto; padding:24px 18px 80px; }
+        .client-v7-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+        .client-v7-card { padding:18px; border:1px solid var(--border); border-radius:16px; background:#fff; text-align:left; }
+        .client-v7-card strong { display:block; margin-top:10px; font-size:clamp(23px,6vw,34px); color:var(--text); }
+        .client-v7-source { display:flex; justify-content:space-between; gap:14px; padding:14px 0; border-bottom:1px solid var(--border); }
+        @media(max-width:520px){.client-v7-grid{grid-template-columns:1fr}.client-v7{padding:18px 14px 70px}}
     </style>
 </head>
 <body x-data="pwaApp()" x-init="initPwa()">
@@ -121,6 +129,22 @@
             </div>
         </div>
 
+        <main class="client-v7" x-show="pwaClient" style="display:none">
+            <div class="mb-5"><p class="text-xs font-bold blue-text tracking-widest">我的保障總覽</p><h1 class="text-2xl font-extrabold mt-1" x-text="pwaClient?.owner || '客戶'"></h1><p class="text-xs text-slate-400 mt-2" x-text="'資料更新：' + formatDate(pwaClient?.updatedAt)"></p></div>
+            <div class="client-v7-grid">
+                <button type="button" class="client-v7-card" @click="selectedCompany='ci'"><span class="text-xs text-slate-400 font-bold">危疾保障</span><strong x-text="money(pwaClient?.summary?.ci)"></strong><span class="text-xs text-slate-400" x-text="(pwaClient?.sources?.ci?.length || 0) + ' 個來源'"></span></button>
+                <button type="button" class="client-v7-card" @click="selectedCompany='life'"><span class="text-xs text-slate-400 font-bold">人壽保障</span><strong x-text="money(pwaClient?.summary?.life)"></strong><span class="text-xs text-slate-400" x-text="(pwaClient?.sources?.life?.length || 0) + ' 個來源'"></span></button>
+                <button type="button" class="client-v7-card" @click="selectedCompany='medical'"><span class="text-xs text-slate-400 font-bold">醫療保障</span><strong x-text="(pwaClient?.summary?.medical || 0) + ' 份'"></strong><span class="text-xs text-slate-400">按來源查看</span></button>
+                <button type="button" class="client-v7-card" @click="selectedCompany='values'"><span class="text-xs text-slate-400 font-bold">保單價值</span><strong class="!text-lg" x-text="'保證 ' + money(pwaClient?.summary?.guaranteed)"></strong><span class="text-sm text-slate-400 font-bold" x-text="'非保證 ' + money(pwaClient?.summary?.nonGuaranteed)"></span></button>
+            </div>
+            <section x-show="selectedCompany" class="glass-card rounded-2xl p-5 mt-5" style="display:none">
+                <div class="flex justify-between gap-3 items-center"><div><p class="text-xs font-bold blue-text tracking-widest">保障來源</p><h2 class="text-lg font-extrabold mt-1" x-text="sourceTitle()"></h2></div><button @click="selectedCompany=''" class="text-xs blue-text font-bold">收起</button></div>
+                <template x-if="currentSources().length===0"><p class="py-8 text-center text-slate-400 text-sm">目前未有相關保單資料</p></template>
+                <template x-for="item in currentSources()" :key="item.policyId + (item.benefitId || '')"><div class="client-v7-source"><span class="font-bold" x-text="item.label"></span><span class="font-extrabold blue-text" x-text="sourceValue(item)"></span></div></template>
+            </section>
+            <p class="text-[11px] text-slate-400 mt-5 leading-relaxed">此頁只顯示 read-only 保障總覽及來源，不包括完整保單號碼、內部 CRM Notes、設定或 AI 處理資料。</p>
+        </main>
+
         <!-- 載入中 / 錯誤防護提示 -->
         <template x-if="!pwaClient && isLoading">
             <div class="p-8 text-center space-y-3 max-w-sm mx-auto my-12 glass-card rounded-2xl border border-slate-800">
@@ -138,7 +162,7 @@
         </template>
 
         <!-- 主內容區域 -->
-        <main id="pdf-container" x-show="pwaClient" class="p-4 max-w-lg mx-auto space-y-5 bg-black text-white">
+        <div id="pdf-container" x-show="pwaClient" class="p-4 max-w-lg mx-auto space-y-5 bg-black text-white">
             <template x-if="pwaClient">
                 <div class="space-y-5">
 
@@ -353,7 +377,7 @@
 
                 </div>
             </template>
-        </main>
+        </div>
 
         <!-- 底部保險公司導航欄 -->
         <footer x-show="pwaClient" class="fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-md border-t border-slate-800 px-4 py-2.5 z-40">
@@ -374,13 +398,14 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js?v=3.6.3');
+                navigator.serviceWorker.register('sw.js?v=7.0.0');
             });
         }
     </script>
 
     <script>
-        const CRM_GAS_URL = "https://script.google.com/macros/s/AKfycbzy1gnDB-qXZIhTsgxNvLveRrHWVP7AoYoqG_JsbELBvvReXy4Fx2rYu6ieJNuupMtmdg/exec";
+        // Customer GAS reads are intentionally disabled in v7. Kept only as legacy UI compatibility code.
+        const CRM_GAS_URL = "";
 
         let deferredPrompt = null;
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -630,5 +655,6 @@
             }
         }
     </script>
+    <script src="client-v7.js?v=7.0.0"></script>
 </body>
 </html>

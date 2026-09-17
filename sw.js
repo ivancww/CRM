@@ -1,23 +1,21 @@
 // ==========================================
-// AVA CRM & Portfolio Service Worker (v6.2.0)
+// AVA CRM & Portfolio Service Worker (v7.0.0)
 // ==========================================
-const CACHE_NAME = 'crm-cache-v6.2.0';
+const CACHE_NAME = 'crm-cache-v7.0.0';
 
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/client.html',
-  '/manifest-admin.json',
-  '/manifest-client.json',
-  '/crmlogo-192.png?v=3.6.3',
-  '/crmlogo-512.png?v=3.6.3',
-  '/clientapp-192.png?v=3.6.3',
-  '/clientapp-512.png?v=3.6.3',
-  'https://cdn.tailwindcss.com',
-  'https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
+  './',
+  './index.html',
+  './client.html',
+  './crm-data.js',
+  './crm-ai-adapter.js',
+  './client-v7.js',
+  './manifest-admin.json',
+  './manifest-client.json',
+  './crmlogo-192.png',
+  './crmlogo-512.png',
+  './clientapp-192.png',
+  './clientapp-512.png'
 ];
 
 self.addEventListener('install', event => {
